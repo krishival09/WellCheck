@@ -1,0 +1,164 @@
+﻿WellCheck — Elder Care Safety App — PRD v2
+Event: 12-hour hackathon (in progress) Team: 3 — You (Firebase/data model/check-in logic/server + integration) · Teammate 2 (Expo scaffold/nav, SOS + Medicine features) · Teammate 3 (wireframes, UI polish, demo narrative) Stack: Expo (React Native, managed) · Firebase Firestore (Spark/free plan) · Oracle Cloud "Realms Server" (self-hosted cron/backend logic) · EAS Build · expo-notifications · expo-linking · expo-speech · expo-camera/expo-image-picker Firebase project: WellCheck
+
+
+This version supersedes the original PRD. Read fully before starting — don't invent new collections, fields, or architecture not described here; if something's ambiguous, ask before assuming.
+
+
+________________
+
+
+1. Problem & Goal
+A two-role (Elder / Volunteer) mobile app keeping an elder and their volunteer/caregiver connected through SOS alerts, medicine reminders, check-in prompts, and multilingual TTS support — real-time, low-complexity, built to survive a live demo without internet or device hiccups derailing it.
+
+
+Demo-critical path: SOS button on elder's phone → alert appears on volunteer's phone within 1-2 seconds. Everything else supports this core trust; nothing should be built in a way that risks breaking this path.
+
+
+________________
+
+
+2. Roles & Pairing
+* Elder mode: large buttons, minimal text, high contrast, SOS button, medicine reminders, check-in prompts, TTS.
+* Volunteer mode: dashboard showing paired elder's live status, alert feed, acknowledge/respond actions.
+
+
+Pairing — PIN-based (decided):
+
+
+1. On first launch, user selects Elder or Volunteer.
+2. Elder generates a random 4–6 digit PIN, shown prominently, and a pairs/{pin} document is created holding the elder's generated ID.
+3. Volunteer enters the PIN; the app looks up that document, retrieves the elder ID, and writes the volunteer's own ID back into it.
+4. Both devices store their paired counterpart's ID locally (not just in Firestore) and scope every future query to that pairing.
+5. Wrong/expired PIN → simple "Pair not found, try again" message. No re-pairing flow needed for the demo.
+
+
+________________
+
+
+3. Firestore Data Model
+* pairs/{pinCode} — elderId, volunteerId (nullable until paired), createdAt
+* alerts/{alertId} — elderId, type ("sos" | "checkin_missed"), status ("active" | "acknowledged" | "resolved"), createdAt, acknowledgedAt
+* medicineReminders/{reminderId} — elderId, medicineName, scheduledTime, localPhotoRef (string, device-local only — never synced), taken (bool), takenAt
+* checkins/{checkinId} — elderId, promptedAt, responded (bool), respondedAt
+
+
+Keep this flat. No nested subcollections — easier to query and debug live during the event.
+
+
+________________
+
+
+4. Features
+4.1 SOS
+* Elder taps a large, unmistakable SOS button → immediately writes an alerts doc (type: "sos", status: "active").
+* Simultaneously offers one-tap fallback to open the phone's native call or SMS to a preset emergency contact (user must confirm the tap themselves — neither Android nor iOS allow apps to silently place calls or send texts).
+* Volunteer app holds a live Firestore listener on alerts filtered to the paired elder; a new "active" SOS doc triggers a full-screen, high-urgency notification with sound.
+4.2 Medicine Reminders
+* Caretaker/elder sets up a reminder: medicine name, time, and a photo taken directly on the elder's own device, stored locally only (not uploaded — see Section 8, Security).
+* expo-notifications schedules a local notification at the set time — works without connectivity, since it's device-scheduled, not server-triggered.
+* Tapping the notification opens a screen showing the medicine name and the locally-stored photo, plus a "Taken" action that logs to Firestore (for the volunteer's status view — photo itself stays off Firestore).
+4.3 Check-in
+* Local notification prompts "Are you OK?" on a set interval; a "Yes, I'm fine" tap logs a checkins doc.
+* Escalation runs server-side, not on the elder's phone: a script on the Oracle Realms Server, using the Firebase Admin SDK, runs on a cron schedule (every 10–15 min) and queries for any elder whose last check-in response is older than the threshold. If found, it writes a checkin_missed alert — independent of whether the elder's phone is on, backgrounded, or has connectivity at that exact moment. See Section 9.
+4.4 Language / TTS
+* expo-speech reads prompts and alerts aloud in the elder's selected language, chosen via a simple settings dropdown.
+
+
+________________
+
+
+5. UI Section — Guidance for Whichever AI Builds the Interface
+This app's primary user (the elder) may have reduced vision, dexterity, or unfamiliarity with smartphones. Judges will notice if the UI doesn't reflect that. Follow these constraints strictly for elder-facing screens:
+
+
+* Touch targets: minimum 60×60dp for any tappable element on elder screens — bigger than typical mobile defaults.
+* Font size: minimum 20sp body text, 32sp+ for critical actions/labels like the SOS button.
+* Contrast: high contrast only (dark text on light background or vice versa) — no low-contrast grey-on-grey patterns common in modern minimalist UI kits.
+* Navigation depth: max 1–2 taps to reach any core action from the home screen. No hidden menus, no swipe-only gestures, no hamburger menus on elder screens.
+* Status indication: never rely on color alone (colorblindness, low vision) — pair every status indicator with an icon AND a text label.
+* Icons: avoid ambiguous/trendy iconography. Every icon needs a visible text label next to it on elder screens — don't assume icon meaning is obvious.
+* Confirmation dialogs: keep to one clear action + one cancel, plain language, no double negatives ("Are you sure you don't want to cancel?" — never do this).
+* Volunteer dashboard can use denser, more conventional mobile UI patterns — this user is assumed tech-comfortable — but keep the alert feed unmissable (top of screen, not buried in tabs).
+* Loading/empty states: every screen needs a visible loading indicator and an empty state message — don't leave a blank screen while Firestore data loads, which will look broken during a live demo.
+
+
+________________
+
+
+6. Backend / Firestore Section — Guidance for Whichever AI Builds Data Logic
+* Use the exact collection and field names from Section 3 — don't rename or restructure without checking first.
+* Every Firestore write must have error handling with a visible fallback for the user (e.g. "Couldn't send alert — retrying..." rather than silently failing). An SOS button that fails silently is the single worst possible failure mode for this app.
+* Use onSnapshot listeners (real-time), not one-time get() calls, for anything the volunteer needs to see live (alerts feed, check-in status).
+* Batch reads/writes where reasonable to stay well within Firestore's free daily quotas (50K reads/20K writes/day on Spark) — for a hackathon demo with a handful of devices, this won't be a real constraint, but avoid obviously wasteful patterns like polling in a tight loop.
+* Retry logic: wrap SOS and check-in writes with at least one automatic retry on failure before showing an error to the user — network blips shouldn't sink the demo's core flow.
+
+
+________________
+
+
+7. Oracle Realms Server Section — Check-in Escalation Backend
+* A standalone script (not part of the Expo app) runs on the Realms Server, using the Firebase Admin SDK with a service account key.
+* Scheduled via cron (same mechanism as the existing keepalive job) at a 10–15 minute interval.
+* Logic: query checkins for the most recent entry per paired elder; if the most recent respondedAt (or promptedAt if never responded) exceeds the configured threshold, write a checkin_missed alert doc for that elder — but only if no unresolved checkin_missed alert already exists for them, to avoid spamming duplicate alerts every cron cycle.
+* Log every run's output (even "nothing to do") to a local file for demo-time debugging — if something goes wrong mid-demo, you want fast visibility into why.
+* Keep this script simple and single-purpose. Don't fold SOS or medicine logic into it — those stay entirely client-side/Firestore-listener-driven.
+
+
+________________
+
+
+8. Security Section
+* Firestore Security Rules (critical, don't skip): by default Firestore denies all access — rules must be written to allow read/write only to documents relevant to a device's paired role (e.g. an elder's device should only be able to write alerts/checkins/medicine docs tagged with their own elderId, and only read documents scoped to their own pairing). Without this, anyone with your Firebase config (which ships inside the app itself) could read or write any user's data. Don't ship with fully open test-mode rules if you can help it — even a basic "must know the pairing ID" constraint is far better than nothing.
+* Service account key (used by the Oracle server script) must never be committed to the shared GitHub repo — keep it in a .gitignore'd location on the server only, referenced by an environment variable or local file path.
+* Medicine photos stay local-only (Section 4.2) specifically to avoid any additional data-handling/privacy surface area during a time-constrained build — don't reintroduce a cloud upload path without discussing it first.
+* Emergency contact number should not be hardcoded into shared/public code if you're pushing to a public GitHub repo — use a placeholder or environment-style config value instead.
+* PIN codes are not a strong security boundary (short, guessable) — acceptable for a hackathon demo since the stakes are low and time is short, but this should be stated as a known limitation if judges ask, not presented as production-secure.
+
+
+________________
+
+
+9. Fail-Proofing — Known Risk Points & Alternate Workarounds
+These are workarounds for extreme/edge-case failures only — do not build these preemptively. Flag to me if you hit one of these situations during the hackathon, and I'll confirm whether it's worth the time to implement before you build it.
+
+
+* Risk: Android background/battery optimization kills the check-in escalation reliance on the elder's phone. (Mitigated already — this is why escalation runs server-side, not on-device. No action needed unless the server cron itself proves unreliable.)
+* Risk: Notification permissions denied by the user. Workaround (ask before building): an in-app banner detecting denied permissions and prompting the user to enable them in system settings, since without this SOS/reminders silently do nothing.
+* Risk: No internet at the moment of SOS. Workaround (ask before building): queue the Firestore write locally and retry on reconnect, in addition to the existing call/SMS fallback which doesn't need Firestore at all.
+* Risk: Oracle server goes down mid-demo, killing check-in escalation. Workaround (ask before building): a simple external uptime check (e.g. a free tier uptime monitor) that alerts you separately if the cron job stops running — only worth it if you have spare time near the end.
+* Risk: Firestore document exceeds size limits due to accidentally storing something large (e.g. photo data leaking back into Firestore despite the local-only design). Workaround (ask before building): a defensive check rejecting any write with an unexpectedly large payload before it hits Firestore.
+* Risk: Demo phone's Expo Go session disconnects from Tailscale mid-demo. Workaround (ask before building): have a pre-built EAS APK installed as backup instead of relying on live Expo Go during the actual judging.
+
+
+________________
+
+
+10. Instructions for Any AI Coding Agent Working on This Project
+* Read this entire PRD before writing anything. Don't invent features, collections, or architecture choices not listed here — ask first if something's unclear.
+* Match the exact Firestore collection/field names in Section 3 across every part of the app — inconsistent naming between features is a common source of hard-to-debug bugs under time pressure.
+* Follow the UI constraints in Section 5 for any elder-facing screen without exception.
+* Do not implement anything listed in Section 9 (fail-proofing workarounds) unless explicitly told to — those are opt-in, not default.
+* Commit working code frequently to the shared GitHub repo in small increments — don't sit on large uncommitted changes for hours, given three people are integrating work.
+* If a chosen approach turns out to need more time than remains, say so early rather than late — flag it back to the team immediately rather than silently descoping.
+
+
+________________
+
+
+11. Explicitly Out of Scope
+* Real authentication (PIN pairing instead)
+* Cloud-hosted medicine photos (local-only, per Section 4.2/8)
+* Multi-elder-per-volunteer support
+* Production-grade security hardening beyond basic Firestore rules
+* Push notifications via FCM (Firestore listeners handle real-time sync while the app is open; not building true background push for this scope)
+
+
+________________
+
+
+12. Open Items
+* GitHub repo created, all 3 members have access
+* Firestore Security Rules written and deployed (Section 8)
+* Emergency contact number source — hardcoded placeholder for demo, or configurable in-app?
+* Oracle server cron script deployed and confirmed running on schedule

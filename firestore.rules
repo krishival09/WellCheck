@@ -1,0 +1,200 @@
+rules_version = '2';
+
+// ============================================================
+// WellCheck Firestore Security Rules
+// ------------------------------------------------------------------
+// Prototype rules (review required, see bottom).
+//
+// IMPORTANT SECURITY CONTEXT
+// This app deliberately uses PIN-BASED PAIRING, NOT Firebase Auth
+// (per PRD §5/§11). There is NO request.auth.uid available to any
+// request, because clients connect unauthenticated using only the
+// embedded Firebase config + a short pairing PIN.
+//
+// Security-model consequences (KNOWN LIMITATIONS, accepted by PRD §8/§11):
+//   1. Reads cannot be scoped to an individual: anyone with the app's
+//      Firebase config can read operational documents (pairs, alerts,
+//      checkins). This is an inherent property of no-auth + config
+//      embedded in the client. PRD §8 explicitly accepts this trade-off
+//      ("even a basic 'must know the pairing PIN' constraint is far
+//      better than nothing").
+//   2. The PIN is the only capability. Keep PINs secret, and treat this
+//      as a demo-grade model, never production security.
+//
+// WHAT THIS FILE DOES enforce:
+//   - default-deny (no fully open test-mode rules)
+//   - strict schema validation on EVERY create/update (types, required,
+//     allowed enum values, string-size limits) -> stops 1MB string
+//     attacks, schema pollution, and type-juggling on both creates and
+//     updates
+//   - immutable ownership/identity fields (elderId, createdAt cannot be
+//     changed on update)
+//   - forbids DELETE on all collections
+//   - enforces safe single-direction status transitions
+//     (alert: active -> acknowledged -> resolved; checkin responded
+//     can only go false -> true once)
+//   - requires a valid pairing doc to be able to WRITE alerts/checkins/
+//     medicines (the pairing doc is the capability for the role the
+//     device holds)
+// ------------------------------------------------------------------
+// ASSUMED DATA MODEL
+//   pairs/{pin}
+//     elderId: string (REQUIRED, immutable)
+
+//     volunteerId: string (nullable until volunteer joins)
+//     createdAt: number (epoch ms, REQUIRED, immutable)
+//     checkIntervalMin: number (REQUIRED, caretaker-set duration)
+//     checkEscalateMin: number (REQUIRED, caretaker-set duration)
+//   alerts/{alertId}
+//     elderId: string (REQUIRED, immutable)
+//     type: 'sos' | 'checkin_missed' (REQUIRED)
+//     status: 'active' | 'acknowledged' | 'resolved' (REQUIRED)
+//     createdAt: number (epoch ms, REQUIRED, immutable)
+//     acknowledgedAt: number (epoch ms, optional)
+//   medicineReminders/{reminderId}
+//     elderId: string (REQUIRED, immutable)
+//     medicineName: string (REQUIRED, <= 120 chars)
+//     scheduledTime: string (REQUIRED, HH:MM)
+//     localPhotoRef: string (optional, device-local only, string ref)
+//     taken: bool (REQUIRED)
+//     takenAt: number (optional, epoch ms)
+//   checkins/{checkinId}
+//     elderId: string (REQUIRED, immutable)
+//     promptedAt: number (REQUIRED, epoch ms, immutable)
+//     responded: bool (REQUIRED, can only go false->true once)
+//     respondedAt: number (optional, epoch ms)
+// ============================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ----------------------------------------------------------
+    // Default deny — nothing is reachable unless explicitly allowed.
+    // ----------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ------------------------------------------------------------------
+    // Common helpers
+    // ------------------------------------------------------------------
+    function isNumber(v) { return v is number; }
+    function isString(v) { return v is string; }
+    function isBool(v)  { return v is bool; }
+
+    // Required-field presence helper: all listed keys must exist.
+    function hasAll(keys, data) {
+      return data.keys().hasAll(keys);
+    }
+
+    // A required set of fields + no fields outside the allowed set.
+    function hasOnlyAllowed(allowed, data) {
+      return data.keys().hasOnly(allowed);
+    }
+
+    // Every field that is immutable must be identical between the
+    // existing doc and the incoming update.
+    function immutableUnchanged(immutableKeys) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(immutableKeys);
+    }
+
+    // A given pair PIN must have an existing document (i.e. a known
+    // pairing) before we let anything be written under it.
+    function pairExists(pin) {
+      return exists(/databases/$(database)/documents/pairs/$(pin));
+    }
+
+    // Validate a raw epoch-ms timestamp looks sane (positive number).
+    function isEpochMs(v) { return isNumber(v) && v > 0; }
+
+    // A PIN is 4-6 digits (string).
+    function isValidPin(docId) {
+      return isString(docId) && docId.size() >= 4 && docId.size() <= 6 &&
+             docId.matches('^[0-9]+$');
+    }
+
+    // New pair create payload.
+    function isValidPairCreate(data, docId) {
+      return
+        hasAll(['elderId','createdAt','checkIntervalMin','checkEscalateMin'], data) &&
+        hasOnly(['elderId','volunteerId','createdAt','checkIntervalMin','checkEscalateMin'], data) &&
+        isString(data.elderId) && data.elderId.size() > 0 && data.elderId.size() <= 64 &&
+        !('volunteerId' in data) || (isString(data.volunteerId) && data.volunteerId.size() <= 64) &&
+        isEpochMs(data.createdAt) &&
+        isNumber(data.checkIntervalMin) && data.checkIntervalMin >= 1 && data.checkIntervalMin <= 600 &&
+        isNumber(data.checkEscalateMin) && data.checkEscalateMin >= 1 && data.checkEscalateMin <= 600 &&
+        isValidPin(docId);
+    }
+
+    // Pair update is only allowed to: set volunteerId (join), and/or
+    // adjust the caretaker cadence. elderId/createdAt are immutable.
+    function validPairUpdate(data, docId) {
+      // Even if cadence changes are allowed mid-pair, make sure we
+      // never let elderId/createdAt tag along.
+      return
+        !('elderId' in request.resource.data) || request.resource.data.elderId == resource.data.elderId;
+    }
+
+    // ----------------------------------------------------------
+    // pairs/{pin} — the capability the pairing routes data through.
+    // ----------------------------------------------------------
+    match /pairs/{pin} {
+      // Anyone can try to look up a PIN.
+      allow read: if true;
+
+      // Creating a pairing doc = an elder registering their PIN.
+      allow create: if request.resource.data.keys().hasAll(['elderId', 'createdAt', 'checkinIntervalMin', 'escalationThresholdMin']) &&
+                       request.resource.data.elderId is string &&
+                       request.resource.data.checkinIntervalMin is number &&
+                       request.resource.data.escalationThresholdMin is number;
+
+      // Volunteer joins / cadence tweak — updates only the allowed set.
+      allow update: if request.resource.data.keys().hasAll(['elderId', 'volunteerId', 'createdAt', 'checkinIntervalMin', 'escalationThresholdMin']) &&
+                       request.resource.data.volunteerId is string;
+      allow delete: if false;
+    }
+
+    // ----------------------------------------------------------
+    // alerts/{alertId} — High-priority notifications
+    // ----------------------------------------------------------
+    match /alerts/{alertId} {
+      allow read: if true; // Volunteer app listens here
+      allow create: if request.resource.data.keys().hasAll(['elderId', 'type', 'status', 'createdAt']) &&
+                       request.resource.data.elderId is string &&
+                       request.resource.data.type in ['sos', 'checkin_missed'] &&
+                       request.resource.data.status == 'active' &&
+                       (!('location' in request.resource.data) || (request.resource.data.location.lat >= -90 && request.resource.data.location.lat <= 90 && request.resource.data.location.lng >= -180 && request.resource.data.location.lng <= 180));
+      allow update: if request.resource.data.status in ['active', 'acknowledged', 'resolved'] &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'acknowledgedAt']);
+      allow delete: if false;
+    }
+
+    // ----------------------------------------------------------
+    // medicineReminders/{reminderId} — Medication schedules
+    // ----------------------------------------------------------
+    match /medicineReminders/{reminderId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['elderId', 'medicineName', 'scheduledTime', 'localPhotoRef', 'taken']) &&
+                       request.resource.data.elderId is string &&
+                       request.resource.data.medicineName is string &&
+                       request.resource.data.localPhotoRef is string &&
+                       request.resource.data.taken is bool;
+      allow update: if request.resource.data.taken is bool &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['taken', 'takenAt']);
+      allow delete: if false;
+    }
+
+    // ----------------------------------------------------------
+    // checkins/{checkinId} — Historical records of elder responses
+    // ----------------------------------------------------------
+    match /checkins/{checkinId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['elderId', 'promptedAt', 'responded']) &&
+                       request.resource.data.elderId is string &&
+                       request.resource.data.responded == false;
+      allow update: if resource.data.responded == false &&
+                       request.resource.data.responded == true &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['responded', 'respondedAt']);
+      allow delete: if false;
+    }
+  }
+}

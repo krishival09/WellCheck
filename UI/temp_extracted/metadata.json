@@ -1,0 +1,6 @@
+{
+  "name": "WellCheck",
+  "description": "Two-role elder safety and volunteer monitoring platform featuring scheduled check-ins with 3-minute timeout escalation, elder live GPS location tracking, SOS full-screen takeovers, and medicine reminders.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
