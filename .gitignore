@@ -32,12 +32,14 @@ server/service-account.json
 !.env.example
 *.local
 
-# Archives and temporary files
+# Binaries & Archives
+*.apk
+*.aab
 *.zip
 *.tar.gz
 *.tgz
-UI/temp_extracted/
-UI/*.zip
+UI/
+UI/**
 
 # Firebase cache
 .firebase/
