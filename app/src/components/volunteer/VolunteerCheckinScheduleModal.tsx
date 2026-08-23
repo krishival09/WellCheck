@@ -1,3 +1,4 @@
+import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React, { useState } from 'react';
 import { 
   X, 
@@ -11,7 +12,7 @@ import {
   Send,
   Timer,
   Play
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
 import { soundFx } from '../../utils/audio';
 
@@ -75,77 +76,77 @@ export const VolunteerCheckinScheduleModal: React.FC<VolunteerCheckinScheduleMod
   };
 
   return (
-    <div 
+    <View 
       id="volunteer-checkin-schedule-modal"
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3.5 animate-in fade-in"
+      
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-[#FAF7F2] w-full max-w-lg rounded-3xl border-3 border-[#1A2B4C] shadow-[6px_6px_0px_#1A2B4C] max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95">
+      <View >
         
         {/* Header */}
-        <div className="p-4 bg-white border-b-2 border-[#1A2B4C] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#1A2B4C] text-white flex items-center justify-center font-black shadow-[2px_2px_0px_#1A2B4C]">
-              <Clock className="w-5 h-5 text-[#FFB84D]" />
-            </div>
-            <div>
-              <h2 className="text-base font-black text-[#1A2B4C] leading-tight">
+        <View >
+          <View >
+            <View >
+              <Clock  />
+            </View>
+            <View>
+              <Text >
                 Scheduled Check-In Times
-              </h2>
-              <p className="text-xs font-bold text-[#1A2B4C]/70">
-                Automated check-in messages for <span className="font-black text-[#1A2B4C]">{pairData.elderName}</span>
-              </p>
-            </div>
-          </div>
-          <button
+              </Text>
+              <Text >
+                Automated check-in messages for <Text >{pairData.elderName}</Text>
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity
             id="close-checkin-schedule-modal-btn"
             onClick={() => {
               soundFx.playTap();
               onClose();
             }}
             aria-label="Close modal"
-            className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#1A2B4C] border-2 border-[#1A2B4C] flex items-center justify-center cursor-pointer active:scale-95 transition"
+            
           >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+            <X  />
+          </TouchableOpacity>
+        </View>
 
         {/* 3-Minute Timeout Policy Banner */}
-        <div className="bg-[#FFF8E7] border-b-2 border-[#1A2B4C] px-4 py-3 flex items-start gap-2.5">
-          <Timer className="w-5 h-5 text-[#FFB84D] shrink-0 mt-0.5" />
-          <div className="text-xs text-[#1A2B4C]">
-            <span className="font-black uppercase tracking-wider block text-[11px] text-[#1A2B4C]">
+        <View >
+          <Timer  />
+          <View >
+            <Text >
               ⚡ 3-Minute Escalation Rule
-            </span>
-            <p className="font-medium text-[11px] leading-relaxed mt-0.5">
-              When a check-in time arrives, <span className="font-bold">{pairData.elderName}</span> receives an instant prompt with sound and voice. If no response is received within <span className="font-black underline">3 minutes</span>, a high-priority <strong>Missed Check-In Alert Pop-up</strong> will immediately trigger on your screen.
-            </p>
-          </div>
-        </div>
+            </Text>
+            <Text >
+              When a check-in time arrives, <Text >{pairData.elderName}</Text> receives an instant prompt with sound and voice. If no response is received within <Text >3 minutes</Text>, a high-priority <Text>Missed Check-In Alert Pop-up</Text> will immediately trigger on your screen.
+            </Text>
+          </View>
+        </View>
 
         {/* Success toast if triggered */}
         {testSentToast && (
-          <div className="bg-[#4CAF50] text-white px-4 py-2 text-xs font-black flex items-center gap-2 border-b-2 border-[#1A2B4C] animate-in slide-in-from-top">
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>{testSentToast}</span>
-          </div>
+          <View >
+            <CheckCircle2  />
+            <Text>{testSentToast}</Text>
+          </View>
         )}
 
         {/* Body Content */}
-        <div className="p-4 flex-1 overflow-y-auto flex flex-col gap-4">
+        <View >
           
           {/* Elder Quick-Switch Strip */}
           {monitoredElders.length > 1 && (
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-              <span className="text-[11px] font-black uppercase text-slate-500 shrink-0 mr-1">
+            <View >
+              <Text >
                 Elders:
-              </span>
+              </Text>
               {monitoredElders.map((elder) => {
                 const isSelected = elder.id === selectedElderId;
                 return (
-                  <button
+                  <TouchableOpacity
                     key={elder.id}
                     onClick={() => selectElder(elder.id)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 border transition shrink-0 cursor-pointer ${
@@ -154,62 +155,62 @@ export const VolunteerCheckinScheduleModal: React.FC<VolunteerCheckinScheduleMod
                         : 'bg-white text-[#1A2B4C] border-slate-300 hover:bg-slate-50'
                     }`}
                   >
-                    <span>{elder.avatarEmoji || '👵'}</span>
-                    <span>{elder.name}</span>
-                  </button>
+                    <Text>{elder.avatarEmoji || '👵'}</Text>
+                    <Text>{elder.name}</Text>
+                  </TouchableOpacity>
                 );
               })}
-            </div>
+            </View>
           )}
 
           {/* Active Prompt Alert if running right now */}
           {activeCheckinPrompt && activeCheckinPrompt.status === 'pending' && (
-            <div className="p-3.5 bg-amber-50 rounded-2xl border-2 border-amber-500 shadow-[2px_2px_0px_#1A2B4C] flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <span className="w-3 h-3 rounded-full bg-amber-500 animate-ping" />
-                <div>
-                  <span className="text-xs font-black uppercase text-amber-900 block">
+            <View >
+              <View >
+                <Text  />
+                <View>
+                  <Text >
                     Active Check-In Prompt In Progress
-                  </span>
-                  <span className="text-[11px] font-bold text-amber-800">
+                  </Text>
+                  <Text >
                     Sent for {activeCheckinPrompt.scheduledTime} • 3 min window counting down
-                  </span>
-                </div>
-              </div>
-              <button
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
                 onClick={handleSimulateMissedTimeout}
-                className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-[10px] font-black uppercase tracking-wider shadow-xs cursor-pointer"
+                
                 title="Fast forward to test 3-min timeout popup"
               >
                 Fast-Forward 3m
-              </button>
-            </div>
+              </TouchableOpacity>
+            </View>
           )}
 
           {/* Quick Preset Time Chips */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-black uppercase tracking-wider text-[#1A2B4C] flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#FF6B4A]" />
+          <View>
+            <View >
+              <Text >
+                <Sparkles  />
                 Add Common Schedule Slots
-              </span>
-              <button
+              </Text>
+              <TouchableOpacity
                 onClick={() => {
                   soundFx.playTap();
                   setShowAddForm(!showAddForm);
                 }}
-                className="text-xs font-black text-[#1A2B4C] hover:underline flex items-center gap-1 cursor-pointer"
+                
               >
-                <Plus className="w-3.5 h-3.5" />
-                <span>{showAddForm ? 'Cancel Custom' : 'Custom Time'}</span>
-              </button>
-            </div>
+                <Plus  />
+                <Text>{showAddForm ? 'Cancel Custom' : 'Custom Time'}</Text>
+              </TouchableOpacity>
+            </View>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <View >
               {PRESET_TIMES.map((preset) => {
                 const isAlreadyAdded = checkinSchedules.some(s => s.time === preset.time);
                 return (
-                  <button
+                  <TouchableOpacity
                     key={preset.time}
                     disabled={isAlreadyAdded}
                     onClick={() => {
@@ -221,83 +222,83 @@ export const VolunteerCheckinScheduleModal: React.FC<VolunteerCheckinScheduleMod
                         : 'bg-white hover:bg-emerald-50 text-[#1A2B4C] border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] active:scale-95'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-black">{preset.time}</span>
+                    <View >
+                      <Text >{preset.time}</Text>
                       {isAlreadyAdded ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <CheckCircle2  />
                       ) : (
-                        <Plus className="w-3.5 h-3.5 text-[#4CAF50]" />
+                        <Plus  />
                       )}
-                    </div>
-                    <span className="text-[10px] font-bold truncate opacity-75">{preset.label}</span>
-                  </button>
+                    </View>
+                    <Text >{preset.label}</Text>
+                  </TouchableOpacity>
                 );
               })}
-            </div>
-          </div>
+            </View>
+          </View>
 
           {/* Custom Time Add Form */}
           {showAddForm && (
             <form 
               onSubmit={handleAddSubmit}
-              className="p-3.5 bg-white rounded-2xl border-2 border-[#1A2B4C] shadow-[3px_3px_0px_#1A2B4C] flex flex-col gap-2.5 animate-in fade-in"
+              
             >
-              <span className="text-xs font-black uppercase text-[#1A2B4C]">
+              <Text >
                 Set Custom Check-In Time
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[10px] font-black uppercase text-[#1A2B4C] mb-1">
+              </Text>
+              <View >
+                <View>
+                  <Text >
                     Check-In Time (e.g. 10:15 AM)
-                  </label>
+                  </Text>
                   <input
                     type="text"
                     required
                     value={customTime}
                     onChange={(e) => setCustomTime(e.target.value)}
                     placeholder="09:00 AM"
-                    className="w-full text-xs font-bold px-3 py-2 bg-[#FAF7F2] rounded-xl border border-[#1A2B4C] focus:outline-none"
+                    
                   />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black uppercase text-[#1A2B4C] mb-1">
+                </View>
+                <View>
+                  <Text >
                     Label / Description
-                  </label>
+                  </Text>
                   <input
                     type="text"
                     value={customLabel}
                     onChange={(e) => setCustomLabel(e.target.value)}
                     placeholder="e.g. Afternoon Tea Check"
-                    className="w-full text-xs font-bold px-3 py-2 bg-[#FAF7F2] rounded-xl border border-[#1A2B4C] focus:outline-none"
+                    
                   />
-                </div>
-              </div>
-              <button
+                </View>
+              </View>
+              <TouchableOpacity
                 type="submit"
-                className="min-h-[40px] bg-[#1A2B4C] hover:bg-black text-white font-black text-xs uppercase rounded-xl border border-black shadow-[2px_2px_0px_#1A2B4C] flex items-center justify-center gap-1.5 cursor-pointer"
+                
               >
-                <Plus className="w-4 h-4 text-[#4CAF50]" />
-                <span>Save Check-In Time to Schedule</span>
-              </button>
+                <Plus  />
+                <Text>Save Check-In Time to Schedule</Text>
+              </TouchableOpacity>
             </form>
           )}
 
           {/* Current Configured Schedule Slots List */}
-          <div>
-            <span className="text-xs font-black uppercase tracking-wider text-[#1A2B4C] block mb-2">
+          <View>
+            <Text >
               Active Daily Check-In Times ({checkinSchedules.length})
-            </span>
+            </Text>
 
             {checkinSchedules.length === 0 ? (
-              <div className="p-6 bg-white rounded-2xl border-2 border-dashed border-[#1A2B4C] text-center text-slate-500">
-                <Clock className="w-8 h-8 mx-auto text-slate-400 mb-1" />
-                <p className="text-xs font-bold">No check-in times currently scheduled.</p>
-                <p className="text-[11px] mt-0.5">Click any preset above to add daily automated check-in times.</p>
-              </div>
+              <View >
+                <Clock  />
+                <Text >No check-in times currently scheduled.</Text>
+                <Text >Click any preset above to add daily automated check-in times.</Text>
+              </View>
             ) : (
-              <div className="flex flex-col gap-2.5">
+              <View >
                 {checkinSchedules.map((slot) => (
-                  <div
+                  <View
                     key={slot.id}
                     className={`p-3 rounded-2xl border-2 flex items-center justify-between transition ${
                       slot.enabled
@@ -305,8 +306,8 @@ export const VolunteerCheckinScheduleModal: React.FC<VolunteerCheckinScheduleMod
                         : 'bg-slate-100 border-slate-300 opacity-60'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <button
+                    <View >
+                      <TouchableOpacity
                         onClick={() => toggleCheckinScheduleTime(slot.id)}
                         className={`w-9 h-9 rounded-xl border-2 flex items-center justify-center font-black cursor-pointer transition ${
                           slot.enabled
@@ -316,96 +317,96 @@ export const VolunteerCheckinScheduleModal: React.FC<VolunteerCheckinScheduleMod
                         title={slot.enabled ? 'Enabled (tap to pause)' : 'Paused (tap to enable)'}
                       >
                         {slot.enabled ? '✓' : '⏸'}
-                      </button>
+                      </TouchableOpacity>
 
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-black text-[#1A2B4C]">
+                      <View>
+                        <View >
+                          <Text >
                             {slot.time}
-                          </span>
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                          </Text>
+                          <Text className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                             slot.enabled ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'
                           }`}>
                             {slot.enabled ? 'Active Daily' : 'Paused'}
-                          </span>
-                        </div>
-                        <p className="text-[11px] font-bold text-[#1A2B4C]/70">
+                          </Text>
+                        </View>
+                        <Text >
                           {slot.label}
-                        </p>
-                      </div>
-                    </div>
+                        </Text>
+                      </View>
+                    </View>
 
-                    <div className="flex items-center gap-1.5">
+                    <View >
                       {/* Send check-in prompt right now */}
-                      <button
+                      <TouchableOpacity
                         onClick={() => handleSendPromptNow(slot.time)}
-                        className="px-2.5 py-1.5 bg-[#FAF7F2] hover:bg-emerald-50 text-[#1A2B4C] border border-[#1A2B4C] rounded-xl text-xs font-black flex items-center gap-1 active:scale-95 transition cursor-pointer"
+                        
                         title="Send this check-in prompt to the elder right now"
                       >
-                        <Send className="w-3.5 h-3.5 text-[#4CAF50]" />
-                        <span className="hidden sm:inline">Send Now</span>
-                      </button>
+                        <Send  />
+                        <Text >Send Now</Text>
+                      </TouchableOpacity>
 
                       {/* Delete slot */}
-                      <button
+                      <TouchableOpacity
                         onClick={() => deleteCheckinScheduleTime(slot.id)}
-                        className="w-8 h-8 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 flex items-center justify-center cursor-pointer transition"
+                        
                         title="Delete this schedule slot"
                       >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
+                        <Trash2  />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 ))}
-              </div>
+              </View>
             )}
-          </div>
+          </View>
 
           {/* Testing & Simulation Card for Evaluation */}
-          <div className="p-3.5 bg-amber-50 rounded-2xl border-2 border-amber-400 shadow-[2px_2px_0px_#1A2B4C] flex flex-col gap-2">
-            <span className="text-xs font-black uppercase text-amber-950 flex items-center gap-1">
-              <AlertTriangle className="w-4 h-4 text-amber-700" />
+          <View >
+            <Text >
+              <AlertTriangle  />
               Volunteer Test & Demonstration Tools
-            </span>
-            <p className="text-[11px] font-bold text-amber-900 leading-snug">
+            </Text>
+            <Text >
               Want to see what happens when {pairData.elderName} misses a 3-minute check-in? Click below to immediately trigger the Missed Check-In Alert Pop-up.
-            </p>
-            <div className="flex flex-wrap gap-2 pt-1">
-              <button
+            </Text>
+            <View >
+              <TouchableOpacity
                 id="volunteer-simulate-missed-checkin-btn"
                 onClick={handleSimulateMissedTimeout}
-                className="min-h-[40px] px-3.5 bg-[#FF6B4A] hover:bg-red-600 text-white font-black text-xs uppercase tracking-wider rounded-xl border border-black shadow-[2px_2px_0px_#1A2B4C] flex items-center gap-1.5 active:scale-95 transition cursor-pointer"
+                
               >
-                <Play className="w-3.5 h-3.5 fill-current" />
-                <span>Trigger Missed 3-Min Check-In Pop-Up</span>
-              </button>
+                <Play  />
+                <Text>Trigger Missed 3-Min Check-In Pop-Up</Text>
+              </TouchableOpacity>
 
-              <button
+              <TouchableOpacity
                 onClick={() => handleSendPromptNow('09:00 AM')}
-                className="min-h-[40px] px-3.5 bg-white hover:bg-slate-50 text-[#1A2B4C] font-black text-xs uppercase tracking-wider rounded-xl border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] flex items-center gap-1.5 active:scale-95 transition cursor-pointer"
+                
               >
-                <Bell className="w-3.5 h-3.5 text-[#FFB84D]" />
-                <span>Send 9:00 AM Prompt to Elder</span>
-              </button>
-            </div>
-          </div>
+                <Bell  />
+                <Text>Send 9:00 AM Prompt to Elder</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
 
-        </div>
+        </View>
 
         {/* Footer */}
-        <div className="p-3 bg-white border-t-2 border-[#1A2B4C] flex items-center justify-between">
-          <span className="text-[11px] font-bold text-[#1A2B4C]/70">
+        <View >
+          <Text >
             {checkinSchedules.filter(s => s.enabled).length} automated check-in times enabled
-          </span>
-          <button
+          </Text>
+          <TouchableOpacity
             onClick={onClose}
-            className="px-4 py-2 bg-[#1A2B4C] text-white font-black text-xs uppercase tracking-wider rounded-xl border border-black shadow-[2px_2px_0px_#1A2B4C] cursor-pointer"
+            
           >
             Done
-          </button>
-        </div>
+          </TouchableOpacity>
+        </View>
 
-      </div>
-    </div>
+      </View>
+    </View>
   );
 };

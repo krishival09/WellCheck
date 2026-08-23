@@ -1,5 +1,6 @@
+import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React, { ReactNode } from 'react';
-import { Wifi, Battery, Signal } from 'lucide-react';
+import { Wifi, Battery, Signal } from 'lucide-react-native';
 
 interface PhoneFrameProps {
   children: ReactNode;
@@ -23,66 +24,184 @@ export const PhoneFrame: React.FC<PhoneFrameProps> = ({
   const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 
   return (
-    <div className="flex flex-col items-center">
+    <SafeAreaView style={styles.container}>
       {/* Top Device Label & Mode Badge */}
-      <div className="w-full max-w-[390px] mb-3 flex items-center justify-between px-1">
-        <div className="flex items-center gap-2">
+      <View style={styles.headerArea}>
+        <View style={styles.badgeContainer}>
           {modeTag && (
-            <span
-              className={`text-xs px-2 py-0.5 font-black uppercase tracking-wider text-white border border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] ${
-                badgeColor === 'elder' ? 'bg-[#1A2B4C]' : 'bg-[#FF6B4A]'
-              }`}
-            >
-              {modeTag}
-            </span>
+            <View style={[styles.modeTag, badgeColor === 'elder' ? styles.elderBadge : styles.volunteerBadge]}>
+              <Text style={styles.modeTagText}>{modeTag}</Text>
+            </View>
           )}
-          <span className="font-extrabold text-[#1A2B4C] text-sm tracking-tight uppercase">{title}</span>
-        </div>
+          <Text style={styles.titleText}>{title}</Text>
+        </View>
         {statusText && (
-          <span className="text-[11px] font-bold text-[#1A2B4C]/70 uppercase tracking-wide">
+          <Text style={styles.statusText}>
             {statusText}
-          </span>
+          </Text>
         )}
-      </div>
+      </View>
 
       {/* Realistic Mobile Device Frame */}
-      <div className="relative w-[360px] sm:w-[380px] h-[760px] bg-[#FAF7F2] rounded-[36px] shadow-2xl border-[6px] border-[#1A2B4C] overflow-hidden flex flex-col select-none ring-2 ring-[#1A2B4C]/20">
+      <View style={styles.deviceFrame}>
         
         {/* Dynamic Island / Notch */}
-        <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-28 h-5 bg-[#1A2B4C] rounded-full z-50 flex items-center justify-between px-3 border border-white/20">
-          <div className="w-2 h-2 rounded-full bg-slate-900 border border-white/20" />
-          <div className="w-2 h-2 rounded-full bg-[#FF6B4A] animate-pulse" title="Live System Active" />
-        </div>
+        <View style={styles.notch}>
+          <View style={styles.notchCam} />
+          <View style={styles.notchIndicator} />
+        </View>
 
         {/* Status Bar */}
-        <div className="h-10 bg-transparent flex items-center justify-between px-6 pt-1 text-[#1A2B4C] text-xs font-black z-40 border-b border-[#1A2B4C]/10">
-          <span>{currentTime}</span>
-          <div className="flex items-center gap-1.5 opacity-90 text-[#1A2B4C]">
-            <Signal className="w-3.5 h-3.5 stroke-[2.5]" />
-            <Wifi className="w-3.5 h-3.5 stroke-[2.5]" />
-            <Battery className="w-4 h-4 stroke-[2.5]" />
-          </div>
-        </div>
+        <View style={styles.statusBar}>
+          <Text style={styles.timeText}>{currentTime}</Text>
+          <View style={styles.statusBarIcons}>
+            <Signal size={14} color="#1A2B4C" />
+            <Wifi size={14} color="#1A2B4C" />
+            <Battery size={14} color="#1A2B4C" />
+          </View>
+        </View>
 
         {/* Main Content Area */}
-        <div className="relative flex-1 overflow-y-auto overflow-x-hidden flex flex-col bg-[#FAF7F2]">
+        <View style={styles.contentArea}>
           {children}
 
           {/* Dev Inspection Overlay for 60dp targets */}
           {showInspectionOverlay && (
-            <div className="pointer-events-none absolute inset-0 z-40 bg-emerald-500/10 border-2 border-dashed border-emerald-600 flex flex-col justify-between p-2">
-              <div className="bg-[#1A2B4C] text-emerald-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded shadow border border-emerald-400 self-start">
-                60×60dp Touch Target Grid Active
-              </div>
-            </div>
+            <View style={styles.overlay}>
+              <View style={styles.overlayGrid}>
+                <Text style={styles.overlayText}>60×60dp Touch Target Grid Active</Text>
+              </View>
+            </View>
           )}
-        </div>
+        </View>
 
         {/* Home Indicator Bar */}
-        <div className="h-5 bg-transparent flex items-center justify-center pb-1 z-40 pointer-events-none">
-          <div className="w-28 h-1.5 bg-[#1A2B4C]/40 rounded-full" />
-        </div>
-      </div>
-    </div>
+        <View style={styles.homeIndicatorContainer}>
+          <View style={styles.homeIndicator} />
+        </View>
+      </View>
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: '#FAF7F2',
+  },
+  headerArea: {
+    width: '100%',
+    paddingHorizontal: 8,
+    marginBottom: 12,
+  },
+  badgeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  modeTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: '#1A2B4C',
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 0,
+  },
+  elderBadge: { backgroundColor: '#1A2B4C' },
+  volunteerBadge: { backgroundColor: '#FF6B4A' },
+  modeTagText: {
+    fontSize: 10,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    color: '#FFFFFF',
+    letterSpacing: 1,
+  },
+  titleText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#1A2B4C',
+    textTransform: 'uppercase',
+    letterSpacing: -0.5,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#1A2B4C',
+    opacity: 0.7,
+    textTransform: 'uppercase',
+  },
+  deviceFrame: {
+    width: 360,
+    height: 760,
+    backgroundColor: '#FAF7F2',
+    borderRadius: 36,
+    borderWidth: 6,
+    borderColor: '#1A2B4C',
+    overflow: 'hidden',
+    flexDirection: 'column',
+  },
+  notch: {
+    position: 'absolute',
+    top: 10,
+    alignSelf: 'center',
+    width: 112,
+    height: 20,
+    backgroundColor: '#1A2B4C',
+    borderRadius: 20,
+    zIndex: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+  },
+  notchCam: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#000' },
+  notchIndicator: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#FF6B4A' },
+  statusBar: {
+    height: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingTop: 4,
+    borderBottomWidth: 1,
+    borderColor: 'rgba(26, 43, 76, 0.1)',
+  },
+  timeText: { color: '#1A2B4C', fontSize: 12, fontWeight: '900' },
+  statusBarIcons: { flexDirection: 'row', gap: 6, opacity: 0.9 },
+  contentArea: {
+    flex: 1,
+    overflow: 'hidden',
+    backgroundColor: '#FAF7F2',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 40,
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    borderWidth: 2,
+    borderColor: '#059669',
+    borderStyle: 'dashed',
+    padding: 8,
+  },
+  overlayGrid: {
+    backgroundColor: '#1A2B4C',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  overlayText: { color: '#6ee7b7', fontSize: 10, fontWeight: '900' },
+  homeIndicatorContainer: {
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 4,
+  },
+  homeIndicator: {
+    width: 112,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(26, 43, 76, 0.4)',
+  },
+});

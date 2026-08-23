@@ -1,3 +1,4 @@
+import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React, { useState } from 'react';
 import { 
   X, 
@@ -11,7 +12,7 @@ import {
   ArrowRight,
   Sparkles,
   Smartphone
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
 import { COUNTRY_CODES, SUPPORTED_LANGUAGES } from '../../utils/speech';
 import { RoleMode, SupportedLanguage } from '../../types';
@@ -94,43 +95,43 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   return (
-    <div 
+    <View 
       id="auth-role-modal"
-      className="fixed inset-0 z-50 bg-[#1A2B4C]/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150"
+      
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-[#FAF7F2] w-full max-w-lg max-h-[90vh] rounded-3xl border-4 border-[#1A2B4C] shadow-[8px_8px_0px_#1A2B4C] p-4 sm:p-6 text-[#1A2B4C] flex flex-col gap-4 overflow-y-auto">
+      <View >
         
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b-2 border-[#1A2B4C]/20">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-[#FFB84D] border-2 border-[#1A2B4C] flex items-center justify-center text-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C]">
-              <ShieldCheck className="w-5 h-5 stroke-[2.5]" />
-            </div>
-            <div>
-              <h2 className="text-base sm:text-lg font-black uppercase tracking-tight leading-tight">
+        <View >
+          <View >
+            <View >
+              <ShieldCheck  />
+            </View>
+            <View>
+              <Text >
                 Account & Role Switcher
-              </h2>
-              <p className="text-xs font-bold text-[#1A2B4C]/70">
+              </Text>
+              <Text >
                 Configure profile details and active device mode
-              </p>
-            </div>
-          </div>
-          <button
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity
             id="close-auth-modal-btn"
             onClick={onClose}
             aria-label="Close Profile Modal"
-            className="w-8 h-8 rounded-xl bg-white hover:bg-slate-100 border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] flex items-center justify-center text-[#1A2B4C] active:scale-95 transition cursor-pointer"
+            
           >
-            <X className="w-4 h-4 stroke-[2.5]" />
-          </button>
-        </div>
+            <X  />
+          </TouchableOpacity>
+        </View>
 
         {/* Role Toggle Selector */}
-        <div className="grid grid-cols-2 gap-2 bg-slate-200 p-1.5 rounded-2xl border border-[#1A2B4C]/30">
-          <button
+        <View >
+          <TouchableOpacity
             type="button"
             onClick={() => {
               soundFx.playTap();
@@ -142,11 +143,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 : 'text-[#1A2B4C]/70 hover:text-[#1A2B4C]'
             }`}
           >
-            <User className="w-4 h-4 text-[#FFB84D]" />
-            <span>Elder (Senior Mode)</span>
-          </button>
+            <User  />
+            <Text>Elder (Senior Mode)</Text>
+          </TouchableOpacity>
 
-          <button
+          <TouchableOpacity
             type="button"
             onClick={() => {
               soundFx.playTap();
@@ -158,89 +159,89 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 : 'text-[#1A2B4C]/70 hover:text-[#1A2B4C]'
             }`}
           >
-            <HeartHandshake className="w-4 h-4 text-[#4CAF50]" />
-            <span>Volunteer Caregiver</span>
-          </button>
-        </div>
+            <HeartHandshake  />
+            <Text>Volunteer Caregiver</Text>
+          </TouchableOpacity>
+        </View>
 
-        <form onSubmit={handleSave} className="flex flex-col gap-3">
+        <form onSubmit={handleSave} >
           
           {selectedRole === 'elder' ? (
             /* ELDER PROFILE FORM */
-            <div className="flex flex-col gap-3 bg-white p-4 rounded-2xl border-2 border-[#1A2B4C] shadow-[3px_3px_0px_#1A2B4C]">
-              <div className="flex items-center justify-between pb-1 border-b border-slate-100">
-                <span className="text-xs font-black uppercase text-[#1A2B4C]">
+            <View >
+              <View >
+                <Text >
                   Senior Citizen Information
-                </span>
-                <span className="text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded border border-amber-300">
+                </Text>
+                <Text >
                   PIN: {pairData.pinCode}
-                </span>
-              </div>
+                </Text>
+              </View>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <div>
-                  <label className="block text-[11px] font-black uppercase text-[#1A2B4C] mb-1">
+              <View >
+                <View>
+                  <Text >
                     Senior Full Name *
-                  </label>
+                  </Text>
                   <input
                     type="text"
                     required
                     value={elderForm.name}
                     onChange={(e) => setElderForm({ ...elderForm, name: e.target.value })}
-                    className="w-full text-xs font-bold px-3 py-2 bg-[#FAF7F2] rounded-xl border border-[#1A2B4C] focus:outline-none"
+                    
                   />
-                </div>
+                </View>
 
-                <div>
-                  <label className="block text-[11px] font-black uppercase text-[#1A2B4C] mb-1">
+                <View>
+                  <Text >
                     Age
-                  </label>
+                  </Text>
                   <input
                     type="number"
                     value={elderForm.age}
                     onChange={(e) => setElderForm({ ...elderForm, age: Number(e.target.value) })}
-                    className="w-full text-xs font-bold px-3 py-2 bg-[#FAF7F2] rounded-xl border border-[#1A2B4C] focus:outline-none"
+                    
                   />
-                </div>
-              </div>
+                </View>
+              </View>
 
-              <div>
-                <label className="block text-[11px] font-black uppercase text-[#1A2B4C] mb-1">
+              <View>
+                <Text >
                   Home / Apartment Address
-                </label>
-                <div className="relative">
-                  <MapPin className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                </Text>
+                <View >
+                  <MapPin  />
                   <input
                     type="text"
                     value={elderForm.address}
                     onChange={(e) => setElderForm({ ...elderForm, address: e.target.value })}
-                    className="w-full text-xs font-bold pl-8 pr-3 py-2 bg-[#FAF7F2] rounded-xl border border-[#1A2B4C] focus:outline-none"
+                    
                   />
-                </div>
-              </div>
+                </View>
+              </View>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <div>
-                  <label className="block text-[11px] font-black uppercase text-[#1A2B4C] mb-1">
+              <View >
+                <View>
+                  <Text >
                     Emergency Contact Name
-                  </label>
+                  </Text>
                   <input
                     type="text"
                     value={elderForm.emergencyContactName}
                     onChange={(e) => setElderForm({ ...elderForm, emergencyContactName: e.target.value })}
-                    className="w-full text-xs font-bold px-3 py-2 bg-[#FAF7F2] rounded-xl border border-[#1A2B4C] focus:outline-none"
+                    
                   />
-                </div>
+                </View>
 
-                <div>
-                  <label className="block text-[11px] font-black uppercase text-[#1A2B4C] mb-1">
+                <View>
+                  <Text >
                     Emergency Phone Number
-                  </label>
-                  <div className="flex gap-1.5">
+                  </Text>
+                  <View >
                     <select
                       value={elderForm.countryCode}
                       onChange={(e) => setElderForm({ ...elderForm, countryCode: e.target.value })}
-                      className="text-xs font-bold px-2 py-2 bg-[#FAF7F2] rounded-xl border border-[#1A2B4C] focus:outline-none"
+                      
                     >
                       {COUNTRY_CODES.map((c) => (
                         <option key={c.code} value={c.code}>
@@ -252,34 +253,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       type="text"
                       value={elderForm.emergencyContactPhone}
                       onChange={(e) => setElderForm({ ...elderForm, emergencyContactPhone: e.target.value })}
-                      className="flex-1 text-xs font-bold px-3 py-2 bg-[#FAF7F2] rounded-xl border border-[#1A2B4C] focus:outline-none"
+                      
                     />
-                  </div>
-                </div>
-              </div>
+                  </View>
+                </View>
+              </View>
 
-              <div>
-                <label className="block text-[11px] font-black uppercase text-[#1A2B4C] mb-1">
+              <View>
+                <Text >
                   Medical Notes / Conditions (comma separated)
-                </label>
+                </Text>
                 <input
                   type="text"
                   value={elderForm.medicalConditions}
                   onChange={(e) => setElderForm({ ...elderForm, medicalConditions: e.target.value })}
                   placeholder="e.g. Hypertension, Diabetes, Pacemaker"
-                  className="w-full text-xs font-bold px-3 py-2 bg-[#FAF7F2] rounded-xl border border-[#1A2B4C] focus:outline-none"
+                  
                 />
-              </div>
+              </View>
 
               {/* Language Choice */}
-              <div>
-                <label className="block text-[11px] font-black uppercase text-[#1A2B4C] mb-1">
+              <View>
+                <Text >
                   Elder Voice & Display Language
-                </label>
+                </Text>
                 <select
                   value={language}
                   onChange={(e) => setLanguage(e.target.value as SupportedLanguage)}
-                  className="w-full text-xs font-bold px-3 py-2 bg-[#FAF7F2] rounded-xl border border-[#1A2B4C] focus:outline-none"
+                  
                 >
                   {SUPPORTED_LANGUAGES.map((l) => (
                     <option key={l.code} value={l.code}>
@@ -287,57 +288,57 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     </option>
                   ))}
                 </select>
-              </div>
-            </div>
+              </View>
+            </View>
           ) : (
             /* VOLUNTEER PROFILE FORM */
-            <div className="flex flex-col gap-3 bg-white p-4 rounded-2xl border-2 border-[#1A2B4C] shadow-[3px_3px_0px_#1A2B4C]">
-              <div className="flex items-center justify-between pb-1 border-b border-slate-100">
-                <span className="text-xs font-black uppercase text-[#1A2B4C]">
+            <View >
+              <View >
+                <Text >
                   Volunteer Caregiver Profile
-                </span>
-                <span className="text-[10px] bg-emerald-100 text-emerald-900 font-bold px-2 py-0.5 rounded border border-emerald-300">
+                </Text>
+                <Text >
                   Caregiver Role
-                </span>
-              </div>
+                </Text>
+              </View>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <div>
-                  <label className="block text-[11px] font-black uppercase text-[#1A2B4C] mb-1">
+              <View >
+                <View>
+                  <Text >
                     Caregiver Name *
-                  </label>
+                  </Text>
                   <input
                     type="text"
                     required
                     value={volForm.name}
                     onChange={(e) => setVolForm({ ...volForm, name: e.target.value })}
-                    className="w-full text-xs font-bold px-3 py-2 bg-[#FAF7F2] rounded-xl border border-[#1A2B4C] focus:outline-none"
+                    
                   />
-                </div>
+                </View>
 
-                <div>
-                  <label className="block text-[11px] font-black uppercase text-[#1A2B4C] mb-1">
+                <View>
+                  <Text >
                     Relationship
-                  </label>
+                  </Text>
                   <input
                     type="text"
                     value={volForm.relationship}
                     onChange={(e) => setVolForm({ ...volForm, relationship: e.target.value })}
                     placeholder="e.g. Daughter, Neighbor, Nurse"
-                    className="w-full text-xs font-bold px-3 py-2 bg-[#FAF7F2] rounded-xl border border-[#1A2B4C] focus:outline-none"
+                    
                   />
-                </div>
-              </div>
+                </View>
+              </View>
 
-              <div>
-                <label className="block text-[11px] font-black uppercase text-[#1A2B4C] mb-1">
+              <View>
+                <Text >
                   Caregiver Contact Phone
-                </label>
-                <div className="flex gap-1.5">
+                </Text>
+                <View >
                   <select
                     value={volForm.countryCode}
                     onChange={(e) => setVolForm({ ...volForm, countryCode: e.target.value })}
-                    className="text-xs font-bold px-2 py-2 bg-[#FAF7F2] rounded-xl border border-[#1A2B4C] focus:outline-none"
+                    
                   >
                     {COUNTRY_CODES.map((c) => (
                       <option key={c.code} value={c.code}>
@@ -349,20 +350,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     type="text"
                     value={volForm.phoneNumber}
                     onChange={(e) => setVolForm({ ...volForm, phoneNumber: e.target.value })}
-                    className="flex-1 text-xs font-bold px-3 py-2 bg-[#FAF7F2] rounded-xl border border-[#1A2B4C] focus:outline-none"
+                    
                   />
-                </div>
-              </div>
+                </View>
+              </View>
 
               {/* Language Choice */}
-              <div>
-                <label className="block text-[11px] font-black uppercase text-[#1A2B4C] mb-1">
+              <View>
+                <Text >
                   Caregiver UI Language
-                </label>
+                </Text>
                 <select
                   value={volunteerLanguage}
                   onChange={(e) => setVolunteerLanguage(e.target.value as SupportedLanguage)}
-                  className="w-full text-xs font-bold px-3 py-2 bg-[#FAF7F2] rounded-xl border border-[#1A2B4C] focus:outline-none"
+                  
                 >
                   {SUPPORTED_LANGUAGES.map((l) => (
                     <option key={l.code} value={l.code}>
@@ -370,17 +371,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     </option>
                   ))}
                 </select>
-              </div>
-            </div>
+              </View>
+            </View>
           )}
 
           {/* Quick Demo Presets */}
-          <div className="p-3 bg-white rounded-2xl border-2 border-[#1A2B4C] flex items-center justify-between">
-            <span className="text-[11px] font-black text-[#1A2B4C] uppercase flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-[#FF6B4A]" /> Preset Demo Accounts
-            </span>
-            <div className="flex gap-1.5">
-              <button
+          <View >
+            <Text >
+              <Sparkles  /> Preset Demo Accounts
+            </Text>
+            <View >
+              <TouchableOpacity
                 type="button"
                 onClick={() => {
                   soundFx.playTap();
@@ -395,11 +396,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   });
                   setSelectedRole('elder');
                 }}
-                className="px-2 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg text-[10px] font-bold text-amber-900 cursor-pointer"
+                
               >
                 Load Eleanor (Elder)
-              </button>
-              <button
+              </TouchableOpacity>
+              <TouchableOpacity
                 type="button"
                 onClick={() => {
                   soundFx.playTap();
@@ -411,24 +412,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   });
                   setSelectedRole('volunteer');
                 }}
-                className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg text-[10px] font-bold text-emerald-900 cursor-pointer"
+                
               >
                 Load Sarah (Caregiver)
-              </button>
-            </div>
-          </div>
+              </TouchableOpacity>
+            </View>
+          </View>
 
           {/* Action Button */}
-          <button
+          <TouchableOpacity
             id="auth-modal-save-btn"
             type="submit"
-            className="w-full min-h-[50px] bg-[#1A2B4C] hover:bg-black text-white font-black text-xs uppercase tracking-wider rounded-2xl border-2 border-[#1A2B4C] shadow-[3px_3px_0px_#1A2B4C] flex items-center justify-center gap-2 active:scale-95 transition cursor-pointer"
+            
           >
-            <Check className="w-4 h-4 text-[#4CAF50] stroke-[3]" />
-            <span>Save Profile & Activate {selectedRole === 'elder' ? 'Elder Mode' : 'Volunteer Mode'}</span>
-          </button>
+            <Check  />
+            <Text>Save Profile & Activate {selectedRole === 'elder' ? 'Elder Mode' : 'Volunteer Mode'}</Text>
+          </TouchableOpacity>
         </form>
-      </div>
-    </div>
+      </View>
+    </View>
   );
 };

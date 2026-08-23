@@ -1,4 +1,10 @@
+import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet } from 'react-native';
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { 
+  sendSOS, 
+  acknowledgeAlert as acknowledgeAlertBackend, 
+  resolveAlert as resolveAlertBackend 
+} from '../lib/wellcheck';
 import { 
   AlertDoc, 
   CheckinDoc, 
@@ -750,9 +756,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setElderScreen('home');
   }, []);
 
-import { sendSOS, acknowledgeAlert, resolveAlert } from '../lib/wellcheck';
-
-// ... (inside AppContext component)
+  // ... (inside AppContext component)
 
   const triggerImmediateSos = useCallback(async () => {
     // 1. Get location (mocked/integrated by UI team via expo-location)
@@ -768,16 +772,11 @@ import { sendSOS, acknowledgeAlert, resolveAlert } from '../lib/wellcheck';
     // Update local state...
   }, []);
 
-  const resolveAlert = useCallback((alertId: string) => {
+  const resolveAlert = useCallback(async (alertId: string) => {
     soundFx.stopSosSirenLoop();
     soundFx.playTap();
-    setAlerts(prev =>
-      prev.map(a =>
-        a.id === alertId
-          ? { ...a, status: 'resolved', resolvedAt: new Date().toISOString() }
-          : a
-      )
-    );
+    await resolveAlertBackend(alertId);
+    // Update local state...
   }, []);
 
   const triggerMissedCheckinAlert = useCallback(() => {

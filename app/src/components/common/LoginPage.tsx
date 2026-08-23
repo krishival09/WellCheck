@@ -1,3 +1,4 @@
+import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React, { useState } from 'react';
 import { 
   ShieldCheck, 
@@ -16,7 +17,7 @@ import {
   Bell,
   Smartphone,
   LayoutDashboard
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
 import { COUNTRY_CODES, SUPPORTED_LANGUAGES } from '../../utils/speech';
 import { RoleMode, SupportedLanguage } from '../../types';
@@ -145,40 +146,40 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div 
+    <View 
       id="unified-login-page" 
-      className="w-full max-w-xl bg-white rounded-3xl border-4 border-[#1A2B4C] shadow-[8px_8px_0px_#1A2B4C] p-5 sm:p-7 text-[#1A2B4C] animate-in fade-in duration-200"
+      
     >
       {/* Header */}
-      <div className="flex items-center gap-3.5 pb-4 border-b-2 border-[#1A2B4C]/20">
-        <div className={`w-12 h-12 rounded-2xl border-2 border-[#1A2B4C] flex items-center justify-center shadow-[3px_3px_0px_#1A2B4C] ${
+      <View >
+        <View className={`w-12 h-12 rounded-2xl border-2 border-[#1A2B4C] flex items-center justify-center shadow-[3px_3px_0px_#1A2B4C] ${
           selectedRole === 'elder' ? 'bg-[#FFB84D] text-[#1A2B4C]' : 'bg-[#4CAF50] text-white'
         }`}>
           {selectedRole === 'elder' ? (
-            <User className="w-6 h-6 stroke-[2.5]" />
+            <User  />
           ) : (
-            <HeartHandshake className="w-6 h-6 stroke-[2.5]" />
+            <HeartHandshake  />
           )}
-        </div>
-        <div>
-          <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight leading-none">
+        </View>
+        <View>
+          <Text >
             WellCheck Login & Account
-          </h2>
-          <p className="text-xs font-bold text-[#1A2B4C]/70 mt-1">
+          </Text>
+          <Text >
             Choose your account role and enter your details below
-          </p>
-        </div>
-      </div>
+          </Text>
+        </View>
+      </View>
 
       {/* Role Selection Switcher */}
-      <div className="mt-4">
-        <label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-2">
+      <View >
+        <Text >
           Select Your Role
-        </label>
-        <div className="grid grid-cols-2 gap-2 bg-[#FAF7F2] p-1.5 rounded-2xl border-2 border-[#1A2B4C]">
+        </Text>
+        <View >
           
           {/* Elder Option */}
-          <button
+          <TouchableOpacity
             id="login-role-elder-btn"
             type="button"
             onClick={() => handleRoleSelect('elder')}
@@ -189,11 +190,11 @@ export const LoginPage: React.FC = () => {
             }`}
           >
             <User className={`w-4 h-4 ${selectedRole === 'elder' ? 'text-[#FFB84D]' : 'text-[#1A2B4C]'}`} />
-            <span>Elder / Senior</span>
-          </button>
+            <Text>Elder / Senior</Text>
+          </TouchableOpacity>
 
           {/* Volunteer Option */}
-          <button
+          <TouchableOpacity
             id="login-role-volunteer-btn"
             type="button"
             onClick={() => handleRoleSelect('volunteer')}
@@ -204,36 +205,36 @@ export const LoginPage: React.FC = () => {
             }`}
           >
             <HeartHandshake className={`w-4 h-4 ${selectedRole === 'volunteer' ? 'text-[#4CAF50]' : 'text-[#1A2B4C]'}`} />
-            <span>Volunteer / Caregiver</span>
-          </button>
+            <Text>Volunteer / Caregiver</Text>
+          </TouchableOpacity>
 
-        </div>
-      </div>
+        </View>
+      </View>
 
       {/* Success Notification Banner */}
       {savedSuccess && (
-        <div className="mt-4 p-3 bg-emerald-50 border-2 border-emerald-600 rounded-2xl flex items-center gap-2 text-xs font-black text-emerald-800 animate-in fade-in duration-200">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-          <span>{savedSuccess}</span>
-        </div>
+        <View >
+          <CheckCircle2  />
+          <Text>{savedSuccess}</Text>
+        </View>
       )}
 
       {/* FORM: Dynamic based on selected role */}
-      <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-3.5">
+      <form onSubmit={handleSubmit} >
         
         {/* ========================================================================= */}
         {/* ELDER SPECIFIC FIELDS */}
         {/* ========================================================================= */}
         {selectedRole === 'elder' && (
-          <div className="flex flex-col gap-3.5 animate-in fade-in duration-150">
+          <View >
             
             {/* Senior Name & Age */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-[#FF6B4A]" />
-                  <span>Senior Full Name *</span>
-                </label>
+            <View >
+              <View >
+                <Text >
+                  <User  />
+                  <Text>Senior Full Name *</Text>
+                </Text>
                 <input
                   id="elder-name-input"
                   type="text"
@@ -241,37 +242,37 @@ export const LoginPage: React.FC = () => {
                   value={elderForm.name}
                   onChange={(e) => setElderForm({ ...elderForm, name: e.target.value })}
                   placeholder="e.g. Eleanor Vance"
-                  className="w-full text-sm font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
+                  
                 />
-              </div>
+              </View>
 
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1">
+              <View>
+                <Text >
                   Age
-                </label>
+                </Text>
                 <input
                   id="elder-age-input"
                   type="number"
                   value={elderForm.age}
                   onChange={(e) => setElderForm({ ...elderForm, age: Number(e.target.value) })}
-                  className="w-full text-sm font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
+                  
                 />
-              </div>
-            </div>
+              </View>
+            </View>
 
             {/* Mobile Phone & Security PIN */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5 text-[#4CAF50]" />
-                  <span>Senior Phone Number *</span>
-                </label>
-                <div className="flex gap-1.5">
+            <View >
+              <View>
+                <Text >
+                  <Phone  />
+                  <Text>Senior Phone Number *</Text>
+                </Text>
+                <View >
                   <select
                     id="elder-country-code-select"
                     value={elderForm.countryCode}
                     onChange={(e) => setElderForm({ ...elderForm, countryCode: e.target.value })}
-                    className="text-xs font-black px-2 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none shrink-0"
+                    
                   >
                     {COUNTRY_CODES.map((c) => (
                       <option key={c.code} value={c.code}>
@@ -286,16 +287,16 @@ export const LoginPage: React.FC = () => {
                     value={elderForm.phoneNumber}
                     onChange={(e) => setElderForm({ ...elderForm, phoneNumber: e.target.value })}
                     placeholder="9845012345"
-                    className="flex-1 text-sm font-bold px-3 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
+                    
                   />
-                </div>
-              </div>
+                </View>
+              </View>
 
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5 text-[#1A2B4C]" />
-                  <span>Device PIN *</span>
-                </label>
+              <View>
+                <Text >
+                  <Lock  />
+                  <Text>Device PIN *</Text>
+                </Text>
                 <input
                   id="elder-pin-input"
                   type="text"
@@ -304,71 +305,71 @@ export const LoginPage: React.FC = () => {
                   value={elderForm.pinCode}
                   onChange={(e) => setElderForm({ ...elderForm, pinCode: e.target.value })}
                   placeholder="7492"
-                  className="w-full text-sm font-mono font-black px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] tracking-widest focus:outline-none focus:bg-white transition"
+                  
                 />
-              </div>
-            </div>
+              </View>
+            </View>
 
             {/* Home Address */}
-            <div>
-              <label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-[#FF6B4A]" />
-                <span>Home / Flat Address</span>
-              </label>
+            <View>
+              <Text >
+                <MapPin  />
+                <Text>Home / Flat Address</Text>
+              </Text>
               <input
                 id="elder-address-input"
                 type="text"
                 value={elderForm.address}
                 onChange={(e) => setElderForm({ ...elderForm, address: e.target.value })}
                 placeholder="Apartment 4B, Maple Green Lane"
-                className="w-full text-sm font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
+                
               />
-            </div>
+            </View>
 
             {/* Emergency Contact */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <Heart className="w-3.5 h-3.5 text-red-500" />
-                  <span>Emergency Contact Name</span>
-                </label>
+            <View >
+              <View>
+                <Text >
+                  <Heart  />
+                  <Text>Emergency Contact Name</Text>
+                </Text>
                 <input
                   id="elder-emergency-name-input"
                   type="text"
                   value={elderForm.emergencyContactName}
                   onChange={(e) => setElderForm({ ...elderForm, emergencyContactName: e.target.value })}
                   placeholder="Sarah Chen (Daughter)"
-                  className="w-full text-sm font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
+                  
                 />
-              </div>
+              </View>
 
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5 text-red-500" />
-                  <span>Emergency Phone</span>
-                </label>
+              <View>
+                <Text >
+                  <Phone  />
+                  <Text>Emergency Phone</Text>
+                </Text>
                 <input
                   id="elder-emergency-phone-input"
                   type="tel"
                   value={elderForm.emergencyContactPhone}
                   onChange={(e) => setElderForm({ ...elderForm, emergencyContactPhone: e.target.value })}
                   placeholder="+91 98450 67890"
-                  className="w-full text-sm font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
+                  
                 />
-              </div>
-            </div>
+              </View>
+            </View>
 
             {/* Language Preference */}
-            <div>
-              <label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                <Globe className="w-3.5 h-3.5 text-[#4CAF50]" />
-                <span>Voice Guidance & Subtitle Language</span>
-              </label>
+            <View>
+              <Text >
+                <Globe  />
+                <Text>Voice Guidance & Subtitle Language</Text>
+              </Text>
               <select
                 id="elder-language-select"
                 value={elderForm.preferredLanguage}
                 onChange={(e) => setElderForm({ ...elderForm, preferredLanguage: e.target.value as SupportedLanguage })}
-                className="w-full text-xs font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none"
+                
               >
                 {SUPPORTED_LANGUAGES.map((lang) => (
                   <option key={lang.code} value={lang.code}>
@@ -376,23 +377,23 @@ export const LoginPage: React.FC = () => {
                   </option>
                 ))}
               </select>
-            </div>
-          </div>
+            </View>
+          </View>
         )}
 
         {/* ========================================================================= */}
         {/* VOLUNTEER SPECIFIC FIELDS */}
         {/* ========================================================================= */}
         {selectedRole === 'volunteer' && (
-          <div className="flex flex-col gap-3.5 animate-in fade-in duration-150">
+          <View >
             
             {/* Caregiver Name & Role */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-[#4CAF50]" />
-                  <span>Caregiver Name *</span>
-                </label>
+            <View >
+              <View>
+                <Text >
+                  <User  />
+                  <Text>Caregiver Name *</Text>
+                </Text>
                 <input
                   id="vol-name-input"
                   type="text"
@@ -400,15 +401,15 @@ export const LoginPage: React.FC = () => {
                   value={volForm.name}
                   onChange={(e) => setVolForm({ ...volForm, name: e.target.value })}
                   placeholder="e.g. Sarah Chen"
-                  className="w-full text-sm font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
+                  
                 />
-              </div>
+              </View>
 
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#FFB84D]" />
-                  <span>Relationship / Role *</span>
-                </label>
+              <View>
+                <Text >
+                  <ShieldCheck  />
+                  <Text>Relationship / Role *</Text>
+                </Text>
                 <input
                   id="vol-relationship-input"
                   type="text"
@@ -416,24 +417,24 @@ export const LoginPage: React.FC = () => {
                   value={volForm.relationship}
                   onChange={(e) => setVolForm({ ...volForm, relationship: e.target.value })}
                   placeholder="e.g. Daughter / Nurse"
-                  className="w-full text-sm font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
+                  
                 />
-              </div>
-            </div>
+              </View>
+            </View>
 
             {/* Mobile Phone & Linked PIN */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5 text-[#4CAF50]" />
-                  <span>Caregiver Mobile Phone *</span>
-                </label>
-                <div className="flex gap-1.5">
+            <View >
+              <View>
+                <Text >
+                  <Phone  />
+                  <Text>Caregiver Mobile Phone *</Text>
+                </Text>
+                <View >
                   <select
                     id="vol-country-code-select"
                     value={volForm.countryCode}
                     onChange={(e) => setVolForm({ ...volForm, countryCode: e.target.value })}
-                    className="text-xs font-black px-2 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none shrink-0"
+                    
                   >
                     {COUNTRY_CODES.map((c) => (
                       <option key={c.code} value={c.code}>
@@ -448,16 +449,16 @@ export const LoginPage: React.FC = () => {
                     value={volForm.phoneNumber}
                     onChange={(e) => setVolForm({ ...volForm, phoneNumber: e.target.value })}
                     placeholder="9845067890"
-                    className="flex-1 text-sm font-bold px-3 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
+                    
                   />
-                </div>
-              </div>
+                </View>
+              </View>
 
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5 text-[#1A2B4C]" />
-                  <span>Linked Elder PIN *</span>
-                </label>
+              <View>
+                <Text >
+                  <Lock  />
+                  <Text>Linked Elder PIN *</Text>
+                </Text>
                 <input
                   id="vol-pin-input"
                   type="text"
@@ -466,55 +467,55 @@ export const LoginPage: React.FC = () => {
                   value={volForm.pinCode}
                   onChange={(e) => setVolForm({ ...volForm, pinCode: e.target.value })}
                   placeholder="7492"
-                  className="w-full text-sm font-mono font-black px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] tracking-widest focus:outline-none focus:bg-white transition"
+                  
                 />
-              </div>
-            </div>
+              </View>
+            </View>
 
             {/* Email & Organization */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <Mail className="w-3.5 h-3.5 text-[#1A2B4C]" />
-                  <span>Email Address</span>
-                </label>
+            <View >
+              <View>
+                <Text >
+                  <Mail  />
+                  <Text>Email Address</Text>
+                </Text>
                 <input
                   id="vol-email-input"
                   type="email"
                   value={volForm.email}
                   onChange={(e) => setVolForm({ ...volForm, email: e.target.value })}
                   placeholder="sarah.chen@caregiver.org"
-                  className="w-full text-sm font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
+                  
                 />
-              </div>
+              </View>
 
-              <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-[#FF6B4A]" />
-                  <span>Organization</span>
-                </label>
+              <View>
+                <Text >
+                  <Building2  />
+                  <Text>Organization</Text>
+                </Text>
                 <input
                   id="vol-org-input"
                   type="text"
                   value={volForm.organization}
                   onChange={(e) => setVolForm({ ...volForm, organization: e.target.value })}
                   placeholder="Family Care / Agency"
-                  className="w-full text-sm font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
+                  
                 />
-              </div>
-            </div>
+              </View>
+            </View>
 
             {/* Caregiver Portal Language */}
-            <div>
-              <label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                <Globe className="w-3.5 h-3.5 text-[#4CAF50]" />
-                <span>Dashboard Language</span>
-              </label>
+            <View>
+              <Text >
+                <Globe  />
+                <Text>Dashboard Language</Text>
+              </Text>
               <select
                 id="vol-language-select"
                 value={volForm.preferredLanguage}
                 onChange={(e) => setVolForm({ ...volForm, preferredLanguage: e.target.value as SupportedLanguage })}
-                className="w-full text-xs font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none"
+                
               >
                 {SUPPORTED_LANGUAGES.map((lang) => (
                   <option key={lang.code} value={lang.code}>
@@ -522,51 +523,51 @@ export const LoginPage: React.FC = () => {
                   </option>
                 ))}
               </select>
-            </div>
+            </View>
 
             {/* Alert Subscriptions */}
-            <div className="bg-[#FAF7F2] p-3 rounded-2xl border-2 border-[#1A2B4C]/30 flex flex-col gap-2">
-              <span className="text-[11px] font-black uppercase tracking-wider text-[#1A2B4C] flex items-center gap-1.5">
-                <Bell className="w-3.5 h-3.5 text-[#FF6B4A]" />
-                <span>Real-Time Alert Subscriptions</span>
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs font-bold text-[#1A2B4C]">
-                <label className="flex items-center gap-1.5 cursor-pointer">
+            <View >
+              <Text >
+                <Bell  />
+                <Text>Real-Time Alert Subscriptions</Text>
+              </Text>
+              <View >
+                <Text >
                   <input 
                     type="checkbox" 
                     checked={volForm.notifySos} 
                     onChange={(e) => setVolForm({ ...volForm, notifySos: e.target.checked })}
-                    className="w-4 h-4 accent-[#FF6B4A] rounded"
+                    
                   />
-                  <span>🚨 SOS Siren</span>
-                </label>
-                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <Text>🚨 SOS Siren</Text>
+                </Text>
+                <Text >
                   <input 
                     type="checkbox" 
                     checked={volForm.notifyMissedMeds} 
                     onChange={(e) => setVolForm({ ...volForm, notifyMissedMeds: e.target.checked })}
-                    className="w-4 h-4 accent-[#4CAF50] rounded"
+                    
                   />
-                  <span>💊 Missed Meds</span>
-                </label>
-                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <Text>💊 Missed Meds</Text>
+                </Text>
+                <Text >
                   <input 
                     type="checkbox" 
                     checked={volForm.notifyDailyReport} 
                     onChange={(e) => setVolForm({ ...volForm, notifyDailyReport: e.target.checked })}
-                    className="w-4 h-4 accent-[#1A2B4C] rounded"
+                    
                   />
-                  <span>📊 Daily Report</span>
-                </label>
-              </div>
-            </div>
+                  <Text>📊 Daily Report</Text>
+                </Text>
+              </View>
+            </View>
 
-          </div>
+          </View>
         )}
 
         {/* Submit Button */}
-        <div className="mt-2">
-          <button
+        <View >
+          <TouchableOpacity
             id="login-submit-btn"
             type="submit"
             className={`w-full min-h-[50px] text-white font-black text-sm uppercase tracking-wider rounded-2xl border-2 border-[#1A2B4C] shadow-[4px_4px_0px_#1A2B4C] flex items-center justify-center gap-2 active:scale-95 transition cursor-pointer ${
@@ -575,22 +576,22 @@ export const LoginPage: React.FC = () => {
                 : 'bg-[#4CAF50] hover:bg-[#43a047]'
             }`}
           >
-            <CheckCircle2 className="w-5 h-5 text-white stroke-[2.5]" />
-            <span>
+            <CheckCircle2  />
+            <Text>
               {selectedRole === 'elder' ? 'Log In as Elder Senior' : 'Log In as Volunteer Caregiver'}
-            </span>
-            <ArrowRight className="w-4 h-4 ml-1 text-white" />
-          </button>
-        </div>
+            </Text>
+            <ArrowRight  />
+          </TouchableOpacity>
+        </View>
 
       </form>
 
       {/* Footer Info */}
-      <div className="mt-5 pt-3 border-t-2 border-[#1A2B4C]/10 flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold text-[#1A2B4C]/60">
-        <span>Device Sync PIN: <strong className="font-mono text-[#1A2B4C]">{pairData.pinCode}</strong></span>
-        <span>Secure Local & Firestore Sync</span>
-      </div>
+      <View >
+        <Text>Device Sync PIN: <Text >{pairData.pinCode}</Text></Text>
+        <Text>Secure Local & Firestore Sync</Text>
+      </View>
 
-    </div>
+    </View>
   );
 };

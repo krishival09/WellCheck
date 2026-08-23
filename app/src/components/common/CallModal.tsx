@@ -1,3 +1,4 @@
+import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { 
@@ -13,7 +14,7 @@ import {
   ExternalLink,
   MessageSquare,
   X
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { TRANSLATIONS } from '../../utils/speech';
 import { soundFx } from '../../utils/audio';
 
@@ -69,147 +70,147 @@ export const CallModal: React.FC = () => {
   const cleanPhone = activeCall.phoneNumber.replace(/[^\d+]/g, '');
 
   return (
-    <div 
+    <View 
       id="active-call-modal-overlay"
-      className="fixed inset-0 z-50 bg-[#1A2B4C]/90 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200"
+      
     >
-      <div 
+      <View 
         id="active-call-card"
-        className="w-full max-w-md bg-[#FAF7F2] border-4 border-[#1A2B4C] rounded-3xl shadow-[8px_8px_0px_#1A2B4C] p-5 flex flex-col justify-between min-h-[580px] my-auto relative text-[#1A2B4C]"
+        
       >
         {/* Top Status Header */}
-        <header className="flex items-center justify-between border-b-2 border-[#1A2B4C]/20 pb-3">
-          <div className="flex items-center gap-2">
-            <span className={`w-3 h-3 rounded-full ${
+        <View >
+          <View >
+            <Text className={`w-3 h-3 rounded-full ${
               activeCall.status === 'connected' 
                 ? 'bg-[#4CAF50] animate-pulse' 
                 : activeCall.status === 'ringing' 
                 ? 'bg-[#FFB84D] animate-ping' 
                 : 'bg-red-500'
             }`} />
-            <span className="text-xs font-black uppercase tracking-wider text-[#1A2B4C]">
+            <Text >
               {activeCall.status === 'dialing' && 'Connecting Network...'}
               {activeCall.status === 'ringing' && 'Ringing...'}
               {activeCall.status === 'connected' && `Call Connected • ${formatTime(activeCall.connectedDurationSec)}`}
               {activeCall.status === 'ended' && 'Call Ended'}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-black uppercase px-2 py-0.5 bg-[#1A2B4C] text-white rounded-md flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3 text-[#4CAF50]" />
+            </Text>
+          </View>
+          <View >
+            <Text >
+              <ShieldCheck  />
               Secure VoIP
-            </span>
-            <button
+            </Text>
+            <TouchableOpacity
               onClick={endCall}
-              className="w-7 h-7 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center text-[#1A2B4C] transition cursor-pointer"
+              
               title="Close Call"
             >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </header>
+              <X  />
+            </TouchableOpacity>
+          </View>
+        </View>
 
         {/* Callee / Caller Profile Details */}
-        <main className="my-auto flex flex-col items-center text-center py-4">
+        <View >
           {/* Avatar Ring */}
-          <div className="relative mb-3">
+          <View >
             {activeCall.status === 'connected' && (
-              <div className="absolute -inset-3 rounded-full bg-[#4CAF50]/30 animate-pulse" />
+              <View  />
             )}
             {activeCall.status === 'ringing' && (
-              <div className="absolute -inset-3 rounded-full bg-[#FFB84D]/40 animate-ping" />
+              <View  />
             )}
-            <div className="relative w-24 h-24 rounded-full bg-[#1A2B4C] text-white flex items-center justify-center text-3xl font-black border-4 border-[#1A2B4C] shadow-[4px_4px_0px_#1A2B4C]">
+            <View >
               {activeCall.contactName.charAt(0)}
-            </div>
-          </div>
+            </View>
+          </View>
 
-          <h2 className="text-2xl font-black text-[#1A2B4C] uppercase tracking-tight leading-tight">
+          <Text >
             {activeCall.contactName}
-          </h2>
-          <span className="text-xs font-bold text-[#1A2B4C]/70 mt-0.5 uppercase tracking-wider">
+          </Text>
+          <Text >
             {activeCall.contactRole === 'caregiver' ? 'Primary Volunteer / Daughter' : 'Paired Elder • Apt 4B'}
-          </span>
-          <span className="text-xs font-mono font-black text-[#1A2B4C] bg-white px-2.5 py-0.5 rounded-full border border-[#1A2B4C] shadow-sm mt-1.5">
+          </Text>
+          <Text >
             {activeCall.phoneNumber}
-          </span>
+          </Text>
 
           {/* Animated Audio Waveform when call is connected */}
           {activeCall.status === 'connected' ? (
-            <div className="w-full mt-4 p-3 bg-white rounded-2xl border-2 border-[#1A2B4C] shadow-[3px_3px_0px_#1A2B4C] flex flex-col gap-2">
-              <div className="flex items-center justify-center gap-1.5 h-8">
+            <View >
+              <View >
                 {[40, 75, 100, 60, 90, 45, 80, 100, 65, 30].map((height, i) => (
-                  <span
+                  <Text
                     key={i}
                     style={{ height: `${height}%` }}
-                    className="w-1.5 bg-[#4CAF50] rounded-full animate-pulse"
+                    
                   />
                 ))}
-              </div>
-              <p className="text-[11px] font-bold text-[#1A2B4C]/80">
+              </View>
+              <Text >
                 Voice channel active • Crystal Clear HD Audio
-              </p>
-            </div>
+              </Text>
+            </View>
           ) : (
-            <div className="w-full mt-4 p-2.5 bg-amber-50 rounded-xl border border-amber-300 text-xs font-bold text-amber-900 flex items-center justify-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-              <span>Contacting device ({activeCall.phoneNumber})...</span>
-            </div>
+            <View >
+              <Text  />
+              <Text>Contacting device ({activeCall.phoneNumber})...</Text>
+            </View>
           )}
 
           {/* Quick Voice Dialogue Simulator */}
           {activeCall.status === 'connected' && (
-            <div className="w-full mt-3 flex flex-col gap-1.5 text-left">
-              <div className="flex items-center justify-between px-1">
-                <span className="text-[10px] font-black uppercase tracking-wider text-[#1A2B4C]/70 flex items-center gap-1">
-                  <MessageSquare className="w-3 h-3" /> Quick Voice Prompts
-                </span>
-                <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.2 rounded">
+            <View >
+              <View >
+                <Text >
+                  <MessageSquare  /> Quick Voice Prompts
+                </Text>
+                <Text >
                   Tap to speak
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-1.5">
+                </Text>
+              </View>
+              <View >
                 {responses.map((resp, idx) => (
-                  <button
+                  <TouchableOpacity
                     key={idx}
                     onClick={() => triggerCallDialogue(resp.speech)}
-                    className="min-h-[38px] p-2 bg-white hover:bg-slate-100 text-[#1A2B4C] rounded-xl border border-[#1A2B4C] shadow-[1px_1px_0px_#1A2B4C] text-[11px] font-black text-left leading-tight active:scale-95 transition flex items-center gap-1 cursor-pointer"
+                    
                   >
-                    <Sparkles className="w-3 h-3 text-[#FFB84D] shrink-0" />
-                    <span className="truncate">{resp.label}</span>
-                  </button>
+                    <Sparkles  />
+                    <Text >{resp.label}</Text>
+                  </TouchableOpacity>
                 ))}
-              </div>
-            </div>
+              </View>
+            </View>
           )}
 
           {/* Keypad View if opened */}
           {showKeypad && (
-            <div className="w-full mt-3 bg-white p-3 rounded-2xl border-2 border-[#1A2B4C] shadow-[3px_3px_0px_#1A2B4C] animate-in fade-in">
-              <div className="text-center font-mono font-black text-lg text-[#1A2B4C] mb-2 min-h-[28px] border-b border-slate-200 pb-1">
+            <View >
+              <View >
                 {dialedDigits || 'Tap digits for DTMF tone'}
-              </div>
-              <div className="grid grid-cols-3 gap-2">
+              </View>
+              <View >
                 {['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'].map((k) => (
-                  <button
+                  <TouchableOpacity
                     key={k}
                     onClick={() => handleKeypadPress(k)}
-                    className="h-10 bg-[#FAF7F2] hover:bg-slate-100 border border-[#1A2B4C] rounded-xl font-black text-base active:scale-90 transition cursor-pointer"
+                    
                   >
                     {k}
-                  </button>
+                  </TouchableOpacity>
                 ))}
-              </div>
-            </div>
+              </View>
+            </View>
           )}
-        </main>
+        </View>
 
         {/* Bottom Call Controls */}
-        <footer className="pt-2 flex flex-col gap-3">
+        <View >
           {/* Action Button Strip: Mute, Keypad, Speaker, Native Dial */}
-          <div className="grid grid-cols-4 gap-2">
+          <View >
             {/* Mute Button */}
-            <button
+            <TouchableOpacity
               id="call-mute-toggle-btn"
               onClick={toggleCallMute}
               className={`h-12 rounded-2xl border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] flex flex-col items-center justify-center gap-0.5 active:scale-95 transition cursor-pointer ${
@@ -217,12 +218,12 @@ export const CallModal: React.FC = () => {
               }`}
               title={activeCall.isMuted ? 'Unmute microphone' : 'Mute microphone'}
             >
-              {activeCall.isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-              <span className="text-[9px] font-black uppercase">{activeCall.isMuted ? 'Muted' : 'Mute'}</span>
-            </button>
+              {activeCall.isMuted ? <MicOff  /> : <Mic  />}
+              <Text >{activeCall.isMuted ? 'Muted' : 'Mute'}</Text>
+            </TouchableOpacity>
 
             {/* Keypad Button */}
-            <button
+            <TouchableOpacity
               id="call-keypad-toggle-btn"
               onClick={() => setShowKeypad(!showKeypad)}
               className={`h-12 rounded-2xl border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] flex flex-col items-center justify-center gap-0.5 active:scale-95 transition cursor-pointer ${
@@ -230,12 +231,12 @@ export const CallModal: React.FC = () => {
               }`}
               title="Toggle Keypad"
             >
-              <Grid3X3 className="w-4 h-4" />
-              <span className="text-[9px] font-black uppercase">Keypad</span>
-            </button>
+              <Grid3X3  />
+              <Text >Keypad</Text>
+            </TouchableOpacity>
 
             {/* Speaker Button */}
-            <button
+            <TouchableOpacity
               id="call-speaker-toggle-btn"
               onClick={toggleCallSpeaker}
               className={`h-12 rounded-2xl border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] flex flex-col items-center justify-center gap-0.5 active:scale-95 transition cursor-pointer ${
@@ -243,33 +244,33 @@ export const CallModal: React.FC = () => {
               }`}
               title="Toggle Speakerphone"
             >
-              {activeCall.isSpeakerOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-              <span className="text-[9px] font-black uppercase">{activeCall.isSpeakerOn ? 'Speaker' : 'Earpiece'}</span>
-            </button>
+              {activeCall.isSpeakerOn ? <Volume2  /> : <VolumeX  />}
+              <Text >{activeCall.isSpeakerOn ? 'Speaker' : 'Earpiece'}</Text>
+            </TouchableOpacity>
 
             {/* Native Cellular Dial Link */}
             <a
               id="call-cellular-dial-link"
               href={`tel:${cleanPhone}`}
-              className="h-12 rounded-2xl bg-white hover:bg-slate-50 text-[#1A2B4C] border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] flex flex-col items-center justify-center gap-0.5 active:scale-95 transition cursor-pointer"
+              
               title="Launch Device Phone Dialer"
             >
-              <ExternalLink className="w-4 h-4 text-[#1A2B4C]" />
-              <span className="text-[9px] font-black uppercase">Cellular</span>
+              <ExternalLink  />
+              <Text >Cellular</Text>
             </a>
-          </div>
+          </View>
 
           {/* Big End Call Button */}
-          <button
+          <TouchableOpacity
             id="call-hangup-btn"
             onClick={endCall}
-            className="w-full min-h-[56px] bg-[#FF6B4A] hover:bg-[#e05333] active:bg-[#c94123] text-white font-black text-base uppercase tracking-wider rounded-2xl border-2 border-[#1A2B4C] shadow-[4px_4px_0px_#1A2B4C] flex items-center justify-center gap-2 active:translate-x-[1px] active:translate-y-[1px] transition cursor-pointer"
+            
           >
-            <PhoneOff className="w-5 h-5 stroke-[2.5]" />
-            <span>End Call</span>
-          </button>
-        </footer>
-      </div>
-    </div>
+            <PhoneOff  />
+            <Text>End Call</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
   );
 };

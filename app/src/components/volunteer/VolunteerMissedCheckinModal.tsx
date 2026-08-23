@@ -1,3 +1,4 @@
+import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React from 'react';
 import { 
   AlertTriangle, 
@@ -9,7 +10,7 @@ import {
   CheckCircle2,
   Battery,
   Navigation
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
 import { soundFx } from '../../utils/audio';
 
@@ -76,135 +77,135 @@ export const VolunteerMissedCheckinModal: React.FC<VolunteerMissedCheckinModalPr
   };
 
   return (
-    <div 
+    <View 
       id="volunteer-missed-checkin-alert-modal"
-      className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3.5 animate-in fade-in"
+      
     >
-      <div className="bg-white w-full max-w-md rounded-3xl border-3 border-[#1A2B4C] shadow-[8px_8px_0px_#1A2B4C] overflow-hidden flex flex-col animate-in zoom-in-95">
+      <View >
         
         {/* Urgent Alert Header */}
-        <div className="bg-[#FF6B4A] text-white p-4.5 border-b-3 border-[#1A2B4C] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-white text-[#FF6B4A] flex items-center justify-center font-black shadow-[2px_2px_0px_#1A2B4C] animate-bounce">
-              <AlertTriangle className="w-7 h-7 stroke-[2.5]" />
-            </div>
-            <div>
-              <span className="text-[11px] font-black uppercase tracking-widest bg-black/20 px-2 py-0.5 rounded text-white inline-block mb-1">
+        <View >
+          <View >
+            <View >
+              <AlertTriangle  />
+            </View>
+            <View>
+              <Text >
                 URGENT ESCALATION
-              </span>
-              <h2 className="text-lg font-black leading-tight tracking-tight">
+              </Text>
+              <Text >
                 Missed Check-In Alert!
-              </h2>
-            </div>
-          </div>
+              </Text>
+            </View>
+          </View>
 
-          <button
+          <TouchableOpacity
             onClick={onClose}
             aria-label="Close modal"
-            className="w-8 h-8 rounded-xl bg-black/20 hover:bg-black/40 text-white flex items-center justify-center cursor-pointer transition"
+            
           >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+            <X  />
+          </TouchableOpacity>
+        </View>
 
         {/* Content Body */}
-        <div className="p-4.5 flex flex-col gap-3.5 bg-[#FAF7F2]">
+        <View >
           
           {/* Main Notice Box */}
-          <div className="p-3.5 bg-white rounded-2xl border-2 border-[#1A2B4C] shadow-[3px_3px_0px_#1A2B4C] flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-[#1A2B4C] text-white flex items-center justify-center text-xs font-black">
+          <View >
+            <View >
+              <View >
+                <View >
                   {pairData.elderName.charAt(0)}
-                </div>
-                <span className="text-sm font-black text-[#1A2B4C]">
+                </View>
+                <Text >
                   {pairData.elderName}
-                </span>
-              </div>
-              <span className="text-xs font-black text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-lg flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" />
+                </Text>
+              </View>
+              <Text >
+                <Clock  />
                 {scheduledTime} Check-In
-              </span>
-            </div>
+              </Text>
+            </View>
 
-            <p className="text-xs font-bold text-[#1A2B4C] leading-relaxed">
-              <span className="font-black text-red-600">{pairData.elderName} did not check in</span> within the required <span className="underline font-black">3-minute response window</span> for the {scheduledTime} safety check.
-            </p>
-          </div>
+            <Text >
+              <Text >{pairData.elderName} did not check in</Text> within the required <Text >3-minute response window</Text> for the {scheduledTime} safety check.
+            </Text>
+          </View>
 
           {/* Elder Live Location & Battery Snapshot */}
-          <div className="p-3 bg-white rounded-2xl border border-[#1A2B4C] flex items-center justify-between shadow-xs">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center justify-center shrink-0">
-                <MapPin className="w-4 h-4" />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-[10px] font-black uppercase text-[#1A2B4C]/70">
+          <View >
+            <View >
+              <View >
+                <MapPin  />
+              </View>
+              <View >
+                <Text >
                   Last Known GPS Location
-                </span>
-                <span className="text-xs font-black text-[#1A2B4C] truncate">
+                </Text>
+                <Text >
                   {elderLocation.address}
-                </span>
-              </div>
-            </div>
+                </Text>
+              </View>
+            </View>
 
-            <div className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded-lg shrink-0 text-slate-700 text-xs font-black border border-slate-300">
-              <Battery className="w-3.5 h-3.5 text-emerald-600" />
-              <span>{elderLocation.batteryLevel}%</span>
-            </div>
-          </div>
+            <View >
+              <Battery  />
+              <Text>{elderLocation.batteryLevel}%</Text>
+            </View>
+          </View>
 
           {/* Action Buttons Grid */}
-          <div className="flex flex-col gap-2 pt-1">
+          <View >
             
             {/* Primary Action 1: Call Elder Directly */}
-            <button
+            <TouchableOpacity
               id="missed-checkin-call-elder-btn"
               onClick={handleCallElder}
-              className="w-full min-h-[48px] bg-[#1A2B4C] hover:bg-black text-white rounded-2xl border-2 border-black shadow-[3px_3px_0px_#1A2B4C] flex items-center justify-center gap-2 font-black text-xs uppercase tracking-wider active:scale-95 transition cursor-pointer"
+              
             >
-              <Phone className="w-4 h-4 text-[#4CAF50]" />
-              <span>Call {pairData.elderName.split(' ')[0]} Directly</span>
-            </button>
+              <Phone  />
+              <Text>Call {pairData.elderName.split(' ')[0]} Directly</Text>
+            </TouchableOpacity>
 
             {/* Primary Action 2: Track Live GPS Location */}
-            <button
+            <TouchableOpacity
               id="missed-checkin-track-location-btn"
               onClick={handleTrackLocation}
-              className="w-full min-h-[46px] bg-[#4CAF50] hover:bg-[#43a047] text-white rounded-2xl border-2 border-[#1A2B4C] shadow-[3px_3px_0px_#1A2B4C] flex items-center justify-center gap-2 font-black text-xs uppercase tracking-wider active:scale-95 transition cursor-pointer"
+              
             >
-              <Navigation className="w-4 h-4 text-white" />
-              <span>Track Live GPS Location on Map</span>
-            </button>
+              <Navigation  />
+              <Text>Track Live GPS Location on Map</Text>
+            </TouchableOpacity>
 
             {/* Primary Action 3: Call Emergency Family Contact */}
-            <button
+            <TouchableOpacity
               id="missed-checkin-call-emergency-btn"
               onClick={handleCallEmergencyContact}
-              className="w-full min-h-[44px] bg-white hover:bg-rose-50 text-rose-800 rounded-2xl border-2 border-rose-300 shadow-[2px_2px_0px_#1A2B4C] flex items-center justify-center gap-2 font-black text-xs uppercase tracking-wider active:scale-95 transition cursor-pointer"
+              
             >
-              <ShieldAlert className="w-4 h-4 text-rose-600" />
-              <span>Call Emergency Contact ({elderProfile.emergencyContactName?.split(' ')[0] || 'Family'})</span>
-            </button>
-          </div>
+              <ShieldAlert  />
+              <Text>Call Emergency Contact ({elderProfile.emergencyContactName?.split(' ')[0] || 'Family'})</Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Dismiss & Acknowledge */}
-          <div className="flex items-center justify-between pt-1 border-t border-[#1A2B4C]/20">
-            <span className="text-[11px] font-bold text-[#1A2B4C]/60">
+          <View >
+            <Text >
               Check in confirmed in person?
-            </span>
-            <button
+            </Text>
+            <TouchableOpacity
               onClick={handleResolveAndDismiss}
-              className="text-xs font-black text-[#4CAF50] hover:underline flex items-center gap-1 cursor-pointer"
+              
             >
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Mark Resolved & Safe</span>
-            </button>
-          </div>
+              <CheckCircle2  />
+              <Text>Mark Resolved & Safe</Text>
+            </TouchableOpacity>
+          </View>
 
-        </div>
+        </View>
 
-      </div>
-    </div>
+      </View>
+    </View>
   );
 };

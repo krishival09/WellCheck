@@ -1,5 +1,5 @@
+import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { useApp } from '../../context/AppContext';
 import { AlertTriangle, X, Volume2, ShieldAlert } from 'lucide-react-native';
 import { speakText, TRANSLATIONS } from '../../utils/speech';

@@ -1,3 +1,4 @@
+import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   X, 
@@ -10,7 +11,7 @@ import {
   AlertCircle,
   Pill,
   Trash2
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
 import { MedicineReminderDoc, RoleMode } from '../../types';
 import { soundFx } from '../../utils/audio';
@@ -248,9 +249,9 @@ export const MedicinePhotoUploaderModal: React.FC<MedicinePhotoUploaderModalProp
     : (volunteerProfile.name || 'Sarah Chen');
 
   return (
-    <div 
+    <View 
       id="medicine-photo-upload-modal"
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+      
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           stopCamera();
@@ -258,66 +259,66 @@ export const MedicinePhotoUploaderModal: React.FC<MedicinePhotoUploaderModalProp
         }
       }}
     >
-      <div className="bg-[#FAF7F2] w-full max-w-lg rounded-3xl border-4 border-[#1A2B4C] shadow-[8px_8px_0px_#1A2B4C] p-4 sm:p-6 text-[#1A2B4C] flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
+      <View >
         
         {/* Modal Header */}
-        <div className="flex items-center justify-between pb-3 border-b-2 border-[#1A2B4C]/20">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-[#FFB84D] border-2 border-[#1A2B4C] flex items-center justify-center text-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C]">
-              <Camera className="w-5 h-5 stroke-[2.5]" />
-            </div>
-            <div>
-              <h2 className="text-base sm:text-lg font-black uppercase tracking-tight leading-tight">
+        <View >
+          <View >
+            <View >
+              <Camera  />
+            </View>
+            <View>
+              <Text >
                 Upload Medicine Photo
-              </h2>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md border border-[#1A2B4C] ${
+              </Text>
+              <View >
+                <Text className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md border border-[#1A2B4C] ${
                   role === 'elder' ? 'bg-[#4CAF50] text-white' : 'bg-[#FF6B4A] text-white'
                 }`}>
                   {role === 'elder' ? '👵 Elder Upload' : '🧑‍⚕️ Volunteer Upload'}
-                </span>
-                <span className="text-xs font-bold text-[#1A2B4C]/80">
+                </Text>
+                <Text >
                   By {uploaderName}
-                </span>
-              </div>
-            </div>
-          </div>
-          <button
+                </Text>
+              </View>
+            </View>
+          </View>
+          <TouchableOpacity
             id="close-med-photo-modal-btn"
             onClick={() => {
               stopCamera();
               onClose();
             }}
             aria-label="Close Modal"
-            className="w-8 h-8 rounded-xl bg-white hover:bg-slate-100 border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] flex items-center justify-center text-[#1A2B4C] active:scale-95 transition cursor-pointer"
+            
           >
-            <X className="w-4 h-4 stroke-[2.5]" />
-          </button>
-        </div>
+            <X  />
+          </TouchableOpacity>
+        </View>
 
         {/* Medicine Info Summary Strip */}
-        <div className="p-3 bg-white rounded-2xl border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#FAF7F2] border border-[#1A2B4C] flex items-center justify-center text-[#FF6B4A] shrink-0 font-bold">
-              <Pill className="w-4 h-4 stroke-[2.5]" />
-            </div>
-            <div>
-              <div className="text-xs sm:text-sm font-black text-[#1A2B4C] leading-tight">
+        <View >
+          <View >
+            <View >
+              <Pill  />
+            </View>
+            <View>
+              <View >
                 {medicine.medicineName}
-              </div>
-              <div className="text-[11px] font-bold text-[#1A2B4C]/70 mt-0.5">
+              </View>
+              <View >
                 {medicine.dosage} • {medicine.scheduledTime}
-              </div>
-            </div>
-          </div>
-          <span className="text-[10px] font-mono font-bold bg-slate-100 text-[#1A2B4C] px-2 py-1 rounded-lg border border-slate-300 shrink-0">
+              </View>
+            </View>
+          </View>
+          <Text >
             {medicine.scheduledTime}
-          </span>
-        </div>
+          </Text>
+        </View>
 
         {/* Method Tab Selector */}
-        <div className="grid grid-cols-3 gap-1.5 bg-slate-200 p-1.5 rounded-2xl border border-[#1A2B4C]/30">
-          <button
+        <View >
+          <TouchableOpacity
             type="button"
             onClick={() => {
               stopCamera();
@@ -329,10 +330,10 @@ export const MedicinePhotoUploaderModal: React.FC<MedicinePhotoUploaderModalProp
                 : 'text-[#1A2B4C]/80 hover:text-[#1A2B4C]'
             }`}
           >
-            <Upload className="w-3.5 h-3.5" />
-            <span>Upload File</span>
-          </button>
-          <button
+            <Upload  />
+            <Text>Upload File</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             type="button"
             onClick={() => {
               setActiveTab('camera');
@@ -344,10 +345,10 @@ export const MedicinePhotoUploaderModal: React.FC<MedicinePhotoUploaderModalProp
                 : 'text-[#1A2B4C]/80 hover:text-[#1A2B4C]'
             }`}
           >
-            <Camera className="w-3.5 h-3.5" />
-            <span>Live Snap</span>
-          </button>
-          <button
+            <Camera  />
+            <Text>Live Snap</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             type="button"
             onClick={() => {
               stopCamera();
@@ -359,15 +360,15 @@ export const MedicinePhotoUploaderModal: React.FC<MedicinePhotoUploaderModalProp
                 : 'text-[#1A2B4C]/80 hover:text-[#1A2B4C]'
             }`}
           >
-            <ImageIcon className="w-3.5 h-3.5" />
-            <span>Pill Library</span>
-          </button>
-        </div>
+            <ImageIcon  />
+            <Text>Pill Library</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* TAB 1: FILE DRAG & DROP / UPLOAD */}
         {activeTab === 'upload' && (
-          <div className="flex flex-col gap-3">
-            <div
+          <View >
+            <View
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
@@ -383,126 +384,126 @@ export const MedicinePhotoUploaderModal: React.FC<MedicinePhotoUploaderModalProp
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
-                className="hidden"
+                
                 id="med-photo-file-input"
               />
-              <div className="w-12 h-12 rounded-2xl bg-[#FFB84D] border-2 border-[#1A2B4C] flex items-center justify-center text-[#1A2B4C] mb-2 shadow-[2px_2px_0px_#1A2B4C]">
-                <Upload className="w-6 h-6 stroke-[2.5]" />
-              </div>
-              <span className="text-xs sm:text-sm font-black uppercase text-[#1A2B4C]">
+              <View >
+                <Upload  />
+              </View>
+              <Text >
                 Click to Choose or Drag Photo Here
-              </span>
-              <span className="text-[11px] font-bold text-slate-500 mt-0.5">
+              </Text>
+              <Text >
                 Supports JPG, PNG, WEBP, Camera photos
-              </span>
-            </div>
+              </Text>
+            </View>
 
             {/* Mobile Native Camera direct button */}
-            <div className="flex items-center gap-2">
+            <View >
               <input
                 ref={cameraInputRef}
                 type="file"
                 accept="image/*"
                 capture="environment"
                 onChange={handleFileChange}
-                className="hidden"
+                
                 id="med-photo-camera-direct-input"
               />
-              <button
+              <TouchableOpacity
                 type="button"
                 onClick={() => cameraInputRef.current?.click()}
-                className="flex-1 py-2 px-3 bg-white hover:bg-slate-50 border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] rounded-xl text-xs font-black uppercase flex items-center justify-center gap-2 transition cursor-pointer"
+                
               >
-                <Camera className="w-4 h-4 text-[#FF6B4A]" />
-                <span>Open Device Camera App</span>
-              </button>
-            </div>
-          </div>
+                <Camera  />
+                <Text>Open Device Camera App</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         )}
 
         {/* TAB 2: LIVE CAMERA VIEWFINDER */}
         {activeTab === 'camera' && (
-          <div className="flex flex-col gap-3">
+          <View >
             {isCapturingCamera ? (
-              <div className="relative w-full h-56 rounded-2xl overflow-hidden bg-black border-2 border-[#1A2B4C] flex flex-col items-center justify-center">
+              <View >
                 <video
                   ref={videoRef}
                   autoPlay
                   playsInline
                   muted
-                  className="w-full h-full object-cover"
+                  
                 />
-                <div className="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
-                  <span className="w-1.5 h-1.5 bg-white rounded-full" />
+                <View >
+                  <Text  />
                   Live Camera
-                </div>
-                <div className="absolute bottom-3 inset-x-0 flex items-center justify-center gap-3">
-                  <button
+                </View>
+                <View >
+                  <TouchableOpacity
                     type="button"
                     onClick={captureCameraSnapshot}
-                    className="min-h-[44px] px-5 bg-[#4CAF50] hover:bg-[#43a047] text-white font-black text-xs uppercase tracking-wider rounded-xl border-2 border-white shadow-lg flex items-center gap-2 active:scale-95 transition cursor-pointer"
+                    
                   >
-                    <Camera className="w-4 h-4" />
-                    <span>📸 Capture Photo</span>
-                  </button>
-                  <button
+                    <Camera  />
+                    <Text>📸 Capture Photo</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
                     type="button"
                     onClick={stopCamera}
-                    className="min-h-[44px] px-3 bg-black/70 text-white text-xs font-bold rounded-xl border border-white/40 cursor-pointer"
+                    
                   >
                     Cancel
-                  </button>
-                </div>
-              </div>
+                  </TouchableOpacity>
+                </View>
+              </View>
             ) : (
-              <div className="p-4 bg-white rounded-2xl border-2 border-[#1A2B4C] flex flex-col items-center text-center gap-3">
+              <View >
                 {cameraError ? (
-                  <div className="p-3 bg-red-50 border border-red-300 rounded-xl text-red-700 text-xs font-bold flex items-start gap-2 text-left">
-                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-black">Camera Access Issue</p>
-                      <p className="text-[11px] mt-0.5">{cameraError}</p>
-                    </div>
-                  </div>
+                  <View >
+                    <AlertCircle  />
+                    <View>
+                      <Text >Camera Access Issue</Text>
+                      <Text >{cameraError}</Text>
+                    </View>
+                  </View>
                 ) : (
-                  <p className="text-xs font-bold text-slate-600">
+                  <Text >
                     Snap a fresh photo of the pill bottle, strip, or blister pack using your device camera.
-                  </p>
+                  </Text>
                 )}
-                <div className="flex gap-2 w-full">
-                  <button
+                <View >
+                  <TouchableOpacity
                     type="button"
                     onClick={startLiveCamera}
-                    className="flex-1 min-h-[46px] bg-[#FFB84D] hover:bg-[#ffa726] text-[#1A2B4C] font-black text-xs uppercase rounded-xl border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] flex items-center justify-center gap-2 cursor-pointer"
+                    
                   >
-                    <RefreshCw className="w-4 h-4" />
-                    <span>Start Live Viewfinder</span>
-                  </button>
+                    <RefreshCw  />
+                    <Text>Start Live Viewfinder</Text>
+                  </TouchableOpacity>
                   
-                  <button
+                  <TouchableOpacity
                     type="button"
                     onClick={() => cameraInputRef.current?.click()}
-                    className="flex-1 min-h-[46px] bg-[#1A2B4C] hover:bg-black text-white font-black text-xs uppercase rounded-xl border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] flex items-center justify-center gap-2 cursor-pointer"
+                    
                   >
-                    <Camera className="w-4 h-4 text-[#4CAF50]" />
-                    <span>Device Camera App</span>
-                  </button>
-                </div>
-              </div>
+                    <Camera  />
+                    <Text>Device Camera App</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             )}
-          </div>
+          </View>
         )}
 
         {/* TAB 3: PRESET PILL LIBRARY */}
         {activeTab === 'presets' && (
-          <div className="flex flex-col gap-2 max-h-56 overflow-y-auto pr-1">
-            <div className="text-[11px] font-black uppercase text-[#1A2B4C]/80 flex items-center gap-1 mb-1">
-              <Sparkles className="w-3.5 h-3.5 text-[#FF6B4A]" />
+          <View >
+            <View >
+              <Sparkles  />
               Select from High-Clarity Medicine Presets:
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            </View>
+            <View >
               {PRESET_MEDICINE_PHOTOS.map((preset) => (
-                <button
+                <TouchableOpacity
                   key={preset.id}
                   type="button"
                   onClick={() => {
@@ -515,95 +516,95 @@ export const MedicinePhotoUploaderModal: React.FC<MedicinePhotoUploaderModalProp
                       : 'border-[#1A2B4C] hover:border-[#FF6B4A]'
                   }`}
                 >
-                  <div className="w-full h-16 bg-slate-200 relative">
-                    <img
+                  <View >
+                    <Image
                       src={preset.url}
                       alt={preset.title}
                       referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover group-hover:scale-105 transition"
+                      
                     />
                     {previewUrl === preset.url && (
-                      <div className="absolute inset-0 bg-[#4CAF50]/30 flex items-center justify-center">
-                        <div className="w-6 h-6 rounded-full bg-[#4CAF50] text-white flex items-center justify-center text-xs font-black border border-white">
+                      <View >
+                        <View >
                           ✓
-                        </div>
-                      </div>
+                        </View>
+                      </View>
                     )}
-                  </div>
-                  <div className="p-1.5 bg-white">
-                    <div className="text-[10px] font-black truncate text-[#1A2B4C]">
+                  </View>
+                  <View >
+                    <View >
                       {preset.title}
-                    </div>
-                    <div className="text-[9px] font-bold text-slate-500">
+                    </View>
+                    <View >
                       {preset.category}
-                    </div>
-                  </div>
-                </button>
+                    </View>
+                  </View>
+                </TouchableOpacity>
               ))}
-            </div>
-          </div>
+            </View>
+          </View>
         )}
 
         {/* Selected Photo Live Preview Card */}
-        <div className="p-3 bg-white rounded-2xl border-2 border-[#1A2B4C] shadow-[3px_3px_0px_#1A2B4C] flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-[#1A2B4C] flex items-center gap-1.5">
-              <Check className="w-3.5 h-3.5 text-[#4CAF50]" />
+        <View >
+          <View >
+            <Text >
+              <Check  />
               Active Selected Photo Preview
-            </span>
-            <span className="text-[10px] font-mono font-bold bg-[#FAF7F2] px-2 py-0.5 rounded border border-[#1A2B4C]">
+            </Text>
+            <Text >
               Ready to Sync
-            </span>
-          </div>
-          <div className="relative w-full h-36 rounded-xl overflow-hidden bg-slate-100 border-2 border-[#1A2B4C]">
-            <img
+            </Text>
+          </View>
+          <View >
+            <Image
               src={previewUrl}
               alt="Medicine verification preview"
               referrerPolicy="no-referrer"
-              className="w-full h-full object-cover"
+              
             />
-            <div className="absolute bottom-2 left-2 bg-[#1A2B4C]/90 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded border border-white/30 flex items-center gap-1">
-              <span>Verified for: {medicine.medicineName.split(' ')[0]}</span>
-            </div>
+            <View >
+              <Text>Verified for: {medicine.medicineName.split(' ')[0]}</Text>
+            </View>
             
-            <button
+            <TouchableOpacity
               type="button"
               onClick={() => {
                 soundFx.playTap();
                 setPreviewUrl(PRESET_MEDICINE_PHOTOS[0].url);
               }}
               title="Reset to default photo"
-              className="absolute top-2 right-2 p-1.5 bg-white/90 hover:bg-white text-red-600 rounded-lg border border-[#1A2B4C] shadow-sm cursor-pointer"
+              
             >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
+              <Trash2  />
+            </TouchableOpacity>
+          </View>
+        </View>
 
         {/* Modal Action Buttons */}
-        <div className="flex gap-2 pt-1">
-          <button
+        <View >
+          <TouchableOpacity
             type="button"
             onClick={() => {
               stopCamera();
               onClose();
             }}
-            className="flex-1 min-h-[50px] bg-slate-200 hover:bg-slate-300 text-[#1A2B4C] font-black text-xs uppercase tracking-wider rounded-2xl border-2 border-[#1A2B4C] active:scale-95 transition cursor-pointer"
+            
           >
             Cancel
-          </button>
-          <button
+          </TouchableOpacity>
+          <TouchableOpacity
             id="save-medicine-photo-btn"
             type="button"
             disabled={isSaving}
             onClick={handleSavePhoto}
-            className="flex-[2] min-h-[50px] bg-[#4CAF50] hover:bg-[#43a047] text-white font-black text-sm uppercase tracking-wider rounded-2xl border-2 border-[#1A2B4C] shadow-[3px_3px_0px_#1A2B4C] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#1A2B4C] flex items-center justify-center gap-2 transition cursor-pointer"
+            
           >
-            <Check className="w-4 h-4 stroke-[3]" />
-            <span>{isSaving ? 'Saving Photo...' : 'Confirm & Save Photo'}</span>
-          </button>
-        </div>
-      </div>
-    </div>
+            <Check  />
+            <Text>{isSaving ? 'Saving Photo...' : 'Confirm & Save Photo'}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
   );
 };

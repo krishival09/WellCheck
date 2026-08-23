@@ -1,3 +1,4 @@
+import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React, { useState } from 'react';
 import { 
   X, 
@@ -14,7 +15,7 @@ import {
   Minus,
   Sparkles,
   Layers
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
 import { soundFx } from '../../utils/audio';
 
@@ -62,69 +63,69 @@ export const VolunteerLocationTrackerModal: React.FC<VolunteerLocationTrackerMod
   const isSafeZone = elderLocation.safeZoneStatus === 'safe_zone';
 
   return (
-    <div 
+    <View 
       id="volunteer-location-tracker-modal"
-      className="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs flex items-center justify-center p-3.5 animate-in fade-in"
+      
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-[#FAF7F2] w-full max-w-2xl rounded-3xl border-3 border-[#1A2B4C] shadow-[8px_8px_0px_#1A2B4C] max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95">
+      <View >
         
         {/* Header */}
-        <div className="p-4 bg-white border-b-2 border-[#1A2B4C] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#1A2B4C] text-white flex items-center justify-center font-black shadow-[2px_2px_0px_#1A2B4C]">
-              <Compass className="w-5 h-5 text-[#4CAF50] animate-spin" style={{ animationDuration: '12s' }} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-black text-[#1A2B4C] leading-tight">
+        <View >
+          <View >
+            <View >
+              <Compass  style={{ animationDuration: '12s' }} />
+            </View>
+            <View>
+              <View >
+                <Text >
                   Elder Live Location GPS Tracker
-                </h2>
-                <span className="w-2.5 h-2.5 rounded-full bg-[#4CAF50] animate-pulse" />
-              </div>
-              <p className="text-xs font-bold text-[#1A2B4C]/70">
-                Tracking <span className="font-black text-[#1A2B4C]">{pairData.elderName}</span> in real-time
-              </p>
-            </div>
-          </div>
+                </Text>
+                <Text  />
+              </View>
+              <Text >
+                Tracking <Text >{pairData.elderName}</Text> in real-time
+              </Text>
+            </View>
+          </View>
 
-          <div className="flex items-center gap-2">
-            <button
+          <View >
+            <TouchableOpacity
               id="refresh-elder-gps-btn"
               onClick={handleRefreshPing}
               disabled={isScanning}
-              className="px-2.5 py-1.5 bg-[#FAF7F2] hover:bg-emerald-50 text-[#1A2B4C] border-2 border-[#1A2B4C] rounded-xl text-xs font-black flex items-center gap-1.5 shadow-[2px_2px_0px_#1A2B4C] active:scale-95 transition cursor-pointer"
+              
               title="Ping GPS satellites for live refresh"
             >
               <RefreshCw className={`w-3.5 h-3.5 text-[#4CAF50] ${isScanning ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">{isScanning ? 'Scanning...' : 'Ping GPS'}</span>
-            </button>
+              <Text >{isScanning ? 'Scanning...' : 'Ping GPS'}</Text>
+            </TouchableOpacity>
 
-            <button
+            <TouchableOpacity
               onClick={onClose}
               aria-label="Close modal"
-              className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#1A2B4C] border-2 border-[#1A2B4C] flex items-center justify-center cursor-pointer transition"
+              
             >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
+              <X  />
+            </TouchableOpacity>
+          </View>
+        </View>
 
         {/* Map View & Tracker Container */}
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3.5">
+        <View >
           
           {/* Elder Quick-Switch Strip */}
           {monitoredElders.length > 1 && (
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-              <span className="text-[11px] font-black uppercase text-slate-500 shrink-0 mr-1">
+            <View >
+              <Text >
                 Elders:
-              </span>
+              </Text>
               {monitoredElders.map((elder) => {
                 const isSelected = elder.id === selectedElderId;
                 return (
-                  <button
+                  <TouchableOpacity
                     key={elder.id}
                     onClick={() => selectElder(elder.id)}
                     className={`px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 border transition shrink-0 cursor-pointer ${
@@ -133,20 +134,20 @@ export const VolunteerLocationTrackerModal: React.FC<VolunteerLocationTrackerMod
                         : 'bg-white text-[#1A2B4C] border-slate-300 hover:bg-slate-50'
                     }`}
                   >
-                    <span>{elder.avatarEmoji || '👵'}</span>
-                    <span>{elder.name}</span>
-                  </button>
+                    <Text>{elder.avatarEmoji || '👵'}</Text>
+                    <Text>{elder.name}</Text>
+                  </TouchableOpacity>
                 );
               })}
-            </div>
+            </View>
           )}
           
           {/* Interactive Map Visualizer */}
-          <div className="relative w-full h-[260px] sm:h-[320px] bg-[#E5E3DF] rounded-2xl border-2 border-[#1A2B4C] shadow-[3px_3px_0px_#1A2B4C] overflow-hidden">
+          <View >
             
             {/* SVG Map Canvas */}
             <svg 
-              className="w-full h-full"
+              
               viewBox="0 0 600 360"
               style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'center center', transition: 'transform 0.3s ease' }}
             >
@@ -154,11 +155,11 @@ export const VolunteerLocationTrackerModal: React.FC<VolunteerLocationTrackerMod
               <rect width="600" height="360" fill={mapTheme === 'satellite' ? '#243224' : mapTheme === 'terrain' ? '#e2e8c0' : '#F2EFE9'} />
               
               {/* Park green zones */}
-              <path d="M 50 40 Q 140 20 220 70 T 320 60 L 300 160 L 80 140 Z" fill={mapTheme === 'satellite' ? '#1c381c' : '#D1E7DD'} opacity="0.8" />
-              <path d="M 380 200 Q 480 180 540 240 L 520 320 L 350 310 Z" fill={mapTheme === 'satellite' ? '#1c381c' : '#D1E7DD'} opacity="0.8" />
+              <Textath d="M 50 40 Q 140 20 220 70 T 320 60 L 300 160 L 80 140 Z" fill={mapTheme === 'satellite' ? '#1c381c' : '#D1E7DD'} opacity="0.8" />
+              <Textath d="M 380 200 Q 480 180 540 240 L 520 320 L 350 310 Z" fill={mapTheme === 'satellite' ? '#1c381c' : '#D1E7DD'} opacity="0.8" />
               
               {/* Waterway */}
-              <path d="M 0 280 C 150 250, 300 330, 600 290" stroke="#B8D5E5" strokeWidth="24" fill="none" />
+              <Textath d="M 0 280 C 150 250, 300 330, 600 290" stroke="#B8D5E5" strokeWidth="24" fill="none" />
               
               {/* Secondary Streets */}
               <line x1="60" y1="0" x2="60" y2="360" stroke="#FFFFFF" strokeWidth="8" />
@@ -221,132 +222,132 @@ export const VolunteerLocationTrackerModal: React.FC<VolunteerLocationTrackerMod
             </svg>
 
             {/* Top Left Floating Status Pill */}
-            <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-xs px-3 py-1.5 rounded-xl border border-[#1A2B4C] shadow-sm flex items-center gap-2">
+            <View >
               {isHome ? (
-                <span className="flex items-center gap-1.5 text-xs font-black text-emerald-700">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <Text >
+                  <ShieldCheck  />
                   Inside Home Safe Zone
-                </span>
+                </Text>
               ) : isSafeZone ? (
-                <span className="flex items-center gap-1.5 text-xs font-black text-blue-700">
-                  <ShieldCheck className="w-4 h-4 text-blue-600" />
+                <Text >
+                  <ShieldCheck  />
                   Safe Zone Area
-                </span>
+                </Text>
               ) : (
-                <span className="flex items-center gap-1.5 text-xs font-black text-amber-700">
-                  <AlertTriangle className="w-4 h-4 text-amber-600" />
+                <Text >
+                  <AlertTriangle  />
                   Outside Perimeter
-                </span>
+                </Text>
               )}
-            </div>
+            </View>
 
             {/* Map Controls (Zoom & Theme) */}
-            <div className="absolute bottom-3 right-3 flex flex-col gap-1.5">
-              <div className="bg-white rounded-xl border border-[#1A2B4C] shadow-sm overflow-hidden flex flex-col">
-                <button
+            <View >
+              <View >
+                <TouchableOpacity
                   onClick={() => setZoomLevel(prev => Math.min(prev + 0.25, 2.0))}
-                  className="w-8 h-8 flex items-center justify-center hover:bg-slate-100 text-[#1A2B4C] font-black cursor-pointer border-b border-slate-200"
+                  
                   title="Zoom in"
                 >
-                  <Plus className="w-4 h-4" />
-                </button>
-                <button
+                  <Plus  />
+                </TouchableOpacity>
+                <TouchableOpacity
                   onClick={() => setZoomLevel(prev => Math.max(prev - 0.25, 0.75))}
-                  className="w-8 h-8 flex items-center justify-center hover:bg-slate-100 text-[#1A2B4C] font-black cursor-pointer"
+                  
                   title="Zoom out"
                 >
-                  <Minus className="w-4 h-4" />
-                </button>
-              </div>
+                  <Minus  />
+                </TouchableOpacity>
+              </View>
 
-              <button
+              <TouchableOpacity
                 onClick={() => setMapTheme(mapTheme === 'street' ? 'satellite' : mapTheme === 'satellite' ? 'terrain' : 'street')}
-                className="w-8 h-8 bg-white rounded-xl border border-[#1A2B4C] shadow-sm flex items-center justify-center hover:bg-slate-100 text-[#1A2B4C] cursor-pointer"
+                
                 title="Toggle Map Style"
               >
-                <Layers className="w-4 h-4" />
-              </button>
-            </div>
+                <Layers  />
+              </TouchableOpacity>
+            </View>
 
             {/* Bottom Left GPS Coordinates Pill */}
-            <div className="absolute bottom-3 left-3 bg-[#1A2B4C]/90 text-white text-[10px] font-mono px-2.5 py-1 rounded-lg border border-white/20">
+            <View >
               {elderLocation.latitude.toFixed(4)}° N, {Math.abs(elderLocation.longitude).toFixed(4)}° W • ±{elderLocation.accuracyMeters}m
-            </div>
-          </div>
+            </View>
+          </View>
 
           {/* Current Address & Telemetry Status Card */}
-          <div className="p-3.5 bg-white rounded-2xl border-2 border-[#1A2B4C] shadow-[3px_3px_0px_#1A2B4C] flex flex-col gap-2.5">
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center justify-center shrink-0 mt-0.5">
-                  <MapPin className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-[#1A2B4C]/60 block">
+          <View >
+            <View >
+              <View >
+                <View >
+                  <MapPin  />
+                </View>
+                <View>
+                  <Text >
                     Current Verified Address
-                  </span>
-                  <h3 className="text-sm font-black text-[#1A2B4C] leading-snug">
+                  </Text>
+                  <Text >
                     {elderLocation.address}
-                  </h3>
-                  <p className="text-xs font-bold text-slate-500 mt-0.5">
+                  </Text>
+                  <Text >
                     {elderLocation.landmark}
-                  </p>
-                </div>
-              </div>
+                  </Text>
+                </View>
+              </View>
 
-              <button
+              <TouchableOpacity
                 onClick={handleOpenGoogleMaps}
-                className="px-2.5 py-1.5 bg-[#FAF7F2] hover:bg-blue-50 text-blue-900 border border-blue-300 rounded-xl text-xs font-black flex items-center gap-1 shrink-0 active:scale-95 transition cursor-pointer"
+                
                 title="Open in Google Maps"
               >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Open Maps</span>
-              </button>
-            </div>
+                <ExternalLink  />
+                <Text >Open Maps</Text>
+              </TouchableOpacity>
+            </View>
 
             {/* Telemetry Row */}
-            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100">
-              <div className="bg-[#FAF7F2] p-2 rounded-xl border border-slate-200 flex flex-col">
-                <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                  <Battery className="w-3 h-3 text-emerald-600" /> Battery
-                </span>
-                <span className="text-xs font-black text-[#1A2B4C] mt-0.5">
+            <View >
+              <View >
+                <Text >
+                  <Battery  /> Battery
+                </Text>
+                <Text >
                   {elderLocation.batteryLevel}% Normal
-                </span>
-              </div>
+                </Text>
+              </View>
 
-              <div className="bg-[#FAF7F2] p-2 rounded-xl border border-slate-200 flex flex-col">
-                <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-blue-600" /> Last Ping
-                </span>
-                <span className="text-xs font-black text-[#1A2B4C] mt-0.5 truncate">
+              <View >
+                <Text >
+                  <Clock  /> Last Ping
+                </Text>
+                <Text >
                   {elderLocation.lastUpdated}
-                </span>
-              </div>
+                </Text>
+              </View>
 
-              <div className="bg-[#FAF7F2] p-2 rounded-xl border border-slate-200 flex flex-col">
-                <span className="text-[10px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                  <Navigation className="w-3 h-3 text-purple-600" /> Movement
-                </span>
-                <span className="text-xs font-black text-[#1A2B4C] mt-0.5">
+              <View >
+                <Text >
+                  <Navigation  /> Movement
+                </Text>
+                <Text >
                   {elderLocation.isMoving ? 'Walking' : 'Stationary'}
-                </span>
-              </div>
-            </div>
-          </div>
+                </Text>
+              </View>
+            </View>
+          </View>
 
           {/* Simulate Elder Movement Presets (For Testing / Evaluation) */}
-          <div className="p-3.5 bg-white rounded-2xl border-2 border-[#1A2B4C] shadow-[3px_3px_0px_#1A2B4C] flex flex-col gap-2">
-            <span className="text-xs font-black uppercase tracking-wider text-[#1A2B4C] flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#FF6B4A]" />
+          <View >
+            <Text >
+              <Sparkles  />
               Simulate Live Movement Locations (Tester Tool)
-            </span>
-            <p className="text-[11px] font-bold text-slate-600">
+            </Text>
+            <Text >
               Test how the tracker responds when {pairData.elderName} moves between destinations:
-            </p>
+            </Text>
 
-            <div className="grid grid-cols-3 gap-2 pt-1">
-              <button
+            <View >
+              <TouchableOpacity
                 onClick={() => simulateElderMovement('home')}
                 className={`min-h-[44px] p-2 rounded-xl text-left border-2 transition cursor-pointer flex flex-col justify-center ${
                   isHome
@@ -354,11 +355,11 @@ export const VolunteerLocationTrackerModal: React.FC<VolunteerLocationTrackerMod
                     : 'bg-[#FAF7F2] hover:bg-slate-100 border-[#1A2B4C]/40 text-[#1A2B4C]'
                 }`}
               >
-                <span className="text-xs font-black">🏠 Home Apt 4B</span>
-                <span className="text-[10px] font-bold text-emerald-700">Safe Home Zone</span>
-              </button>
+                <Text >🏠 Home Apt 4B</Text>
+                <Text >Safe Home Zone</Text>
+              </TouchableOpacity>
 
-              <button
+              <TouchableOpacity
                 onClick={() => simulateElderMovement('park')}
                 className={`min-h-[44px] p-2 rounded-xl text-left border-2 transition cursor-pointer flex flex-col justify-center ${
                   isSafeZone && !isHome
@@ -366,11 +367,11 @@ export const VolunteerLocationTrackerModal: React.FC<VolunteerLocationTrackerMod
                     : 'bg-[#FAF7F2] hover:bg-slate-100 border-[#1A2B4C]/40 text-[#1A2B4C]'
                 }`}
               >
-                <span className="text-xs font-black">🌲 Central Park</span>
-                <span className="text-[10px] font-bold text-blue-700">Walking Trail</span>
-              </button>
+                <Text >🌲 Central Park</Text>
+                <Text >Walking Trail</Text>
+              </TouchableOpacity>
 
-              <button
+              <TouchableOpacity
                 onClick={() => simulateElderMovement('pharmacy')}
                 className={`min-h-[44px] p-2 rounded-xl text-left border-2 transition cursor-pointer flex flex-col justify-center ${
                   !isSafeZone && !isHome
@@ -378,44 +379,44 @@ export const VolunteerLocationTrackerModal: React.FC<VolunteerLocationTrackerMod
                     : 'bg-[#FAF7F2] hover:bg-slate-100 border-[#1A2B4C]/40 text-[#1A2B4C]'
                 }`}
               >
-                <span className="text-xs font-black">💊 Pharmacy Clinic</span>
-                <span className="text-[10px] font-bold text-amber-700">Outside Perimeter</span>
-              </button>
-            </div>
-          </div>
+                <Text >💊 Pharmacy Clinic</Text>
+                <Text >Outside Perimeter</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
 
           {/* Location History Trail */}
-          <div className="p-3.5 bg-white rounded-2xl border-2 border-[#1A2B4C] shadow-[3px_3px_0px_#1A2B4C] flex flex-col gap-2">
-            <span className="text-xs font-black uppercase tracking-wider text-[#1A2B4C] flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-[#1A2B4C]" />
+          <View >
+            <Text >
+              <Clock  />
               Today&apos;s GPS Waypoint History ({elderLocation.history.length})
-            </span>
+            </Text>
 
-            <div className="flex flex-col gap-2">
+            <View >
               {elderLocation.history.slice(0, 4).map((pt, idx) => (
-                <div key={pt.id} className="flex items-start gap-2.5 text-xs py-1 border-b border-slate-100 last:border-0">
-                  <span className="font-mono font-black text-[#1A2B4C] bg-slate-100 px-1.5 py-0.5 rounded text-[10px] shrink-0 mt-0.5">
+                <View key={pt.id} >
+                  <Text >
                     {pt.time}
-                  </span>
-                  <div className="flex flex-col flex-1 min-w-0">
-                    <span className="font-bold text-[#1A2B4C] truncate">{pt.address}</span>
-                    <span className="text-[10px] font-medium text-slate-500">{pt.status}</span>
-                  </div>
+                  </Text>
+                  <View >
+                    <Text >{pt.address}</Text>
+                    <Text >{pt.status}</Text>
+                  </View>
                   {idx === 0 && (
-                    <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded shrink-0">
+                    <Text >
                       Current
-                    </span>
+                    </Text>
                   )}
-                </div>
+                </View>
               ))}
-            </div>
-          </div>
+            </View>
+          </View>
 
-        </div>
+        </View>
 
         {/* Footer Actions */}
-        <div className="p-3.5 bg-white border-t-2 border-[#1A2B4C] flex items-center justify-between">
-          <button
+        <View >
+          <TouchableOpacity
             onClick={() => {
               onClose();
               startCall({
@@ -425,20 +426,20 @@ export const VolunteerLocationTrackerModal: React.FC<VolunteerLocationTrackerMod
                 reason: 'checkin',
               });
             }}
-            className="px-4 py-2 bg-[#1A2B4C] hover:bg-black text-white font-black text-xs uppercase tracking-wider rounded-xl border border-black shadow-[2px_2px_0px_#1A2B4C] flex items-center gap-1.5 active:scale-95 transition cursor-pointer"
+            
           >
-            <span>Call {pairData.elderName.split(' ')[0]}</span>
-          </button>
+            <Text>Call {pairData.elderName.split(' ')[0]}</Text>
+          </TouchableOpacity>
 
-          <button
+          <TouchableOpacity
             onClick={onClose}
-            className="px-4 py-2 bg-[#FAF7F2] hover:bg-slate-100 text-[#1A2B4C] font-black text-xs uppercase tracking-wider rounded-xl border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] cursor-pointer"
+            
           >
             Close Tracker
-          </button>
-        </div>
+          </TouchableOpacity>
+        </View>
 
-      </div>
-    </div>
+      </View>
+    </View>
   );
 };

@@ -1,16 +1,14 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
-// Firebase configuration. 
-// REPLACE WITH YOUR FULL API KEY FROM FIREBASE CONSOLE IF IT SHOWS AS MASKED.
 const firebaseConfig = {
-  projectId: "YOUR_FIREBASE_PROJECT_ID",
-  appId: "YOUR_FIREBASE_APP_ID",
-  storageBucket: "YOUR_PROJECT.firebasestorage.app",
-  apiKey: "AIzaSy-REPLACE-ME-WITH-FULL-KEY", 
+  // Replace these with your actual Firebase config
+  apiKey: "AIzaSy...",
   authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_FIREBASE_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
   messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  measurementId: "G-7Q4MNTBK5N",
+  appId: "YOUR_FIREBASE_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);

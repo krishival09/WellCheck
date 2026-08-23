@@ -1,3 +1,4 @@
+import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React, { useState } from 'react';
 import { 
   X, 
@@ -10,7 +11,7 @@ import {
   Sparkles,
   Upload,
   Image as ImageIcon
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
 import { PRESET_MEDICINE_PHOTOS } from '../common/MedicinePhotoUploaderModal';
 import { soundFx } from '../../utils/audio';
@@ -113,60 +114,60 @@ export const ElderAddMedicineModal: React.FC<ElderAddMedicineModalProps> = ({
   };
 
   return (
-    <div 
+    <View 
       id="elder-add-medicine-modal"
-      className="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+      
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="bg-[#FAF7F2] w-full max-w-lg max-h-[92vh] rounded-3xl border-4 border-[#1A2B4C] shadow-[8px_8px_0px_#1A2B4C] p-4 sm:p-5 text-[#1A2B4C] flex flex-col gap-3 overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
+      <View >
         
         {/* Header */}
-        <div className="flex items-center justify-between pb-2 border-b-2 border-[#1A2B4C]/20 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-[#4CAF50] text-white border-2 border-[#1A2B4C] flex items-center justify-center font-black text-xl shadow-[2px_2px_0px_#1A2B4C]">
+        <View >
+          <View >
+            <View >
               💊
-            </div>
-            <div>
-              <h2 className="text-base sm:text-lg font-black uppercase tracking-tight leading-tight">
+            </View>
+            <View>
+              <Text >
                 Add New Medicine
-              </h2>
-              <p className="text-xs font-bold text-[#1A2B4C]/70">
+              </Text>
+              <Text >
                 Set up your dose schedule & picture
-              </p>
-            </div>
-          </div>
+              </Text>
+            </View>
+          </View>
 
-          <div className="flex items-center gap-1.5">
-            <button
+          <View >
+            <TouchableOpacity
               type="button"
               id="elder-add-med-listen-btn"
               onClick={handleReadFormAloud}
               title="Listen to Instructions"
-              className="min-h-[38px] px-2.5 bg-[#FFB84D] hover:bg-[#ffa726] text-[#1A2B4C] rounded-xl border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] font-black text-xs uppercase flex items-center gap-1 active:scale-95 transition cursor-pointer"
+              
             >
-              <Volume2 className="w-4 h-4 stroke-[2.5]" />
-              <span className="hidden sm:inline">Listen</span>
-            </button>
-            <button
+              <Volume2  />
+              <Text >Listen</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
               onClick={onClose}
               aria-label="Close"
-              className="w-9 h-9 rounded-xl bg-white hover:bg-slate-100 border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] flex items-center justify-center text-[#1A2B4C] active:scale-95 transition cursor-pointer"
+              
             >
-              <X className="w-5 h-5 stroke-[2.5]" />
-            </button>
-          </div>
-        </div>
+              <X  />
+            </TouchableOpacity>
+          </View>
+        </View>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+        <form onSubmit={handleSubmit} >
           
           {/* 1. Medicine Name */}
-          <div className="bg-white p-3 rounded-2xl border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C]">
-            <label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1">
+          <View >
+            <Text >
               1. Medicine / Tablet Name *
-            </label>
+            </Text>
             <input
               id="elder-input-med-name"
               type="text"
@@ -174,12 +175,12 @@ export const ElderAddMedicineModal: React.FC<ElderAddMedicineModalProps> = ({
               value={medicineName}
               onChange={(e) => setMedicineName(e.target.value)}
               placeholder="Type name (e.g. Blood Pressure Pill)"
-              className="w-full text-sm font-black px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white text-[#1A2B4C]"
+              
             />
             {/* Quick Name Suggestions */}
-            <div className="flex flex-wrap gap-1.5 mt-2">
+            <View >
               {COMMON_MED_NAME_SUGGESTIONS.map((suggestion) => (
-                <button
+                <TouchableOpacity
                   key={suggestion}
                   type="button"
                   onClick={() => {
@@ -193,24 +194,24 @@ export const ElderAddMedicineModal: React.FC<ElderAddMedicineModalProps> = ({
                   }`}
                 >
                   + {suggestion}
-                </button>
+                </TouchableOpacity>
               ))}
-            </div>
-          </div>
+            </View>
+          </View>
 
           {/* 2. Scheduled Time Selection */}
-          <div className="bg-white p-3 rounded-2xl border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C]">
-            <label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1.5 flex items-center justify-between">
-              <span>2. When should you take it? *</span>
-              <span className="text-[11px] font-mono font-bold text-[#FF6B4A] bg-[#FF6B4A]/10 px-2 py-0.5 rounded">
+          <View >
+            <Text >
+              <Text>2. When should you take it? *</Text>
+              <Text >
                 {scheduledTime}
-              </span>
-            </label>
+              </Text>
+            </Text>
             
             {/* One-tap Time Slots */}
-            <div className="grid grid-cols-2 gap-2">
+            <View >
               {COMMON_TIME_PRESETS.map((slot) => (
-                <button
+                <TouchableOpacity
                   key={slot.time}
                   type="button"
                   onClick={() => {
@@ -223,41 +224,41 @@ export const ElderAddMedicineModal: React.FC<ElderAddMedicineModalProps> = ({
                       : 'bg-[#FAF7F2] hover:bg-amber-50 text-[#1A2B4C] border-[#1A2B4C]/40'
                   }`}
                 >
-                  <span className="text-base">{slot.icon}</span>
-                  <span className="leading-tight text-left">{slot.label}</span>
-                </button>
+                  <Text >{slot.icon}</Text>
+                  <Text >{slot.label}</Text>
+                </TouchableOpacity>
               ))}
-            </div>
+            </View>
 
             {/* Custom Time Input */}
-            <div className="mt-2 flex items-center gap-2">
-              <span className="text-[11px] font-bold text-[#1A2B4C]/70">Or custom time:</span>
+            <View >
+              <Text >Or custom time:</Text>
               <input
                 type="text"
                 value={scheduledTime}
                 onChange={(e) => setScheduledTime(e.target.value)}
                 placeholder="e.g. 02:30 PM"
-                className="text-xs font-bold px-2 py-1 bg-[#FAF7F2] rounded-lg border border-[#1A2B4C] w-28 text-center"
+                
               />
-            </div>
-          </div>
+            </View>
+          </View>
 
           {/* 3. Dosage & Instructions */}
-          <div className="bg-white p-3 rounded-2xl border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] flex flex-col gap-2.5">
-            <div>
-              <label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1">
+          <View >
+            <View>
+              <Text >
                 3. How much to take (Dosage)?
-              </label>
+              </Text>
               <input
                 type="text"
                 value={dosage}
                 onChange={(e) => setDosage(e.target.value)}
                 placeholder="e.g. 1 Tablet with water"
-                className="w-full text-xs font-bold px-3 py-2 bg-[#FAF7F2] rounded-xl border border-[#1A2B4C]"
+                
               />
-              <div className="flex flex-wrap gap-1.5 mt-1.5">
+              <View >
                 {COMMON_DOSAGE_PRESETS.map((d) => (
-                  <button
+                  <TouchableOpacity
                     key={d}
                     type="button"
                     onClick={() => {
@@ -271,25 +272,25 @@ export const ElderAddMedicineModal: React.FC<ElderAddMedicineModalProps> = ({
                     }`}
                   >
                     {d}
-                  </button>
+                  </TouchableOpacity>
                 ))}
-              </div>
-            </div>
+              </View>
+            </View>
 
-            <div>
-              <label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1">
+            <View>
+              <Text >
                 4. Instructions / With Food?
-              </label>
+              </Text>
               <input
                 type="text"
                 value={instructions}
                 onChange={(e) => setInstructions(e.target.value)}
                 placeholder="e.g. Take after food with warm water"
-                className="w-full text-xs font-bold px-3 py-2 bg-[#FAF7F2] rounded-xl border border-[#1A2B4C]"
+                
               />
-              <div className="flex flex-wrap gap-1 mt-1.5">
+              <View >
                 {COMMON_INSTRUCTIONS_PRESETS.map((inst) => (
-                  <button
+                  <TouchableOpacity
                     key={inst}
                     type="button"
                     onClick={() => {
@@ -303,34 +304,34 @@ export const ElderAddMedicineModal: React.FC<ElderAddMedicineModalProps> = ({
                     }`}
                   >
                     {inst}
-                  </button>
+                  </TouchableOpacity>
                 ))}
-              </div>
-            </div>
-          </div>
+              </View>
+            </View>
+          </View>
 
           {/* 4. Choose Pill Picture */}
-          <div className="bg-white p-3 rounded-2xl border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C]">
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-black uppercase tracking-wider text-[#1A2B4C]">
+          <View >
+            <View >
+              <Text >
                 5. Pill Picture (So you recognize it easily)
-              </label>
-              <label className="px-2 py-1 bg-[#FAF7F2] hover:bg-slate-100 text-[#1A2B4C] border border-[#1A2B4C] rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center gap-1 cursor-pointer">
-                <Camera className="w-3 h-3 text-[#FF6B4A]" />
-                <span>Snap / Upload</span>
+              </Text>
+              <Text >
+                <Camera  />
+                <Text>Snap / Upload</Text>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleFileUpload}
-                  className="hidden"
+                  
                 />
-              </label>
-            </div>
+              </Text>
+            </View>
 
             {/* Photo Preset Grid */}
-            <div className="grid grid-cols-4 gap-2 mt-2">
+            <View >
               {PRESET_MEDICINE_PHOTOS.map((preset) => (
-                <button
+                <TouchableOpacity
                   key={preset.id}
                   type="button"
                   onClick={() => {
@@ -343,46 +344,46 @@ export const ElderAddMedicineModal: React.FC<ElderAddMedicineModalProps> = ({
                       : 'border-[#1A2B4C]/40 hover:border-[#1A2B4C]'
                   }`}
                 >
-                  <img
+                  <Image
                     src={preset.url}
                     alt={preset.title}
                     referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover"
+                    
                   />
                   {selectedPhoto === preset.url && (
-                    <div className="absolute top-1 right-1 w-5 h-5 bg-[#4CAF50] text-white rounded-full flex items-center justify-center border border-white">
-                      <Check className="w-3 h-3 stroke-[3]" />
-                    </div>
+                    <View >
+                      <Check  />
+                    </View>
                   )}
-                  <span className="absolute bottom-0 inset-x-0 bg-black/75 text-white text-[9px] font-black uppercase py-0.5 text-center truncate">
+                  <Text >
                     {preset.category}
-                  </span>
-                </button>
+                  </Text>
+                </TouchableOpacity>
               ))}
-            </div>
-          </div>
+            </View>
+          </View>
 
           {/* Submit Button */}
-          <div className="pt-1 flex flex-col gap-2">
-            <button
+          <View >
+            <TouchableOpacity
               id="elder-submit-add-med-btn"
               type="submit"
-              className="w-full min-h-[58px] bg-[#4CAF50] hover:bg-[#43a047] active:bg-[#388e3c] text-white rounded-2xl p-3.5 border-4 border-[#1A2B4C] shadow-[4px_4px_0px_#1A2B4C] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#1A2B4C] flex items-center justify-center gap-2.5 font-black text-base uppercase tracking-wider transition-all cursor-pointer"
+              
             >
-              <Check className="w-6 h-6 stroke-[3]" />
-              <span>✓ Save & Add to My Schedule</span>
-            </button>
+              <Check  />
+              <Text>✓ Save & Add to My Schedule</Text>
+            </TouchableOpacity>
 
-            <button
+            <TouchableOpacity
               type="button"
               onClick={onClose}
-              className="w-full py-2 bg-transparent hover:bg-slate-200/60 text-[#1A2B4C] font-black text-xs uppercase tracking-wider rounded-xl transition cursor-pointer"
+              
             >
               Cancel
-            </button>
-          </div>
+            </TouchableOpacity>
+          </View>
         </form>
-      </div>
-    </div>
+      </View>
+    </View>
   );
 };
