@@ -1,350 +1,385 @@
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React, { useState } from 'react';
 import { 
-  X, 
-  Pill, 
-  Camera, 
-  Clock, 
-  CheckCircle2, 
-  RotateCcw, 
-  Trash2, 
-  Edit3, 
-  Save,
-  Image as ImageIcon,
-  Sparkles,
-  Info,
-  ShieldCheck
-} from 'lucide-react-native';
+  Modal, 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  StyleSheet, 
+  SafeAreaView, 
+  ScrollView 
+} from 'react-native';
 import { useApp } from '../../context/AppContext';
 import { MedicineReminderDoc } from '../../types';
-import { MedicinePhotoUploaderModal } from '../common/MedicinePhotoUploaderModal';
-import { soundFx } from '../../utils/audio';
 
 interface VolunteerMedicineManagerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  selectedMedIdForUpload?: string | null;
 }
 
 export const VolunteerMedicineManagerModal: React.FC<VolunteerMedicineManagerModalProps> = ({
   isOpen,
   onClose,
-  selectedMedIdForUpload,
 }) => {
-  const {
-    medicines,
-    editMedicine,
-    deleteMedicine,
-    resetMedicineStatus,
-    pairData,
-    volunteerProfile,
-    monitoredElders,
-    selectedElderId,
-    selectedElder,
-    selectElder,
+  const { 
+    medicines, 
+    addMedicine, 
+    deleteMedicine, 
+    resetMedicineStatus, 
+    pairData 
   } = useApp();
 
-  const [activeUploadMed, setActiveUploadMed] = useState<MedicineReminderDoc | null>(() => {
-    if (selectedMedIdForUpload) {
-      return medicines.find(m => m.id === selectedMedIdForUpload) || null;
-    }
-    return null;
-  });
-
-  const [editingMedId, setEditingMedId] = useState<string | null>(null);
-
-  // Inline Edit State
-  const [editForm, setEditForm] = useState<Partial<MedicineReminderDoc>>({});
+  const [isAdding, setIsAdding] = useState(false);
+  const [name, setName] = useState('');
+  const [time, setTime] = useState('08:00 AM');
+  const [dosage, setDosage] = useState('1 tablet');
+  const [instructions, setInstructions] = useState('Take with meal and full glass of water');
 
   if (!isOpen) return null;
 
-  const handleStartEdit = (med: MedicineReminderDoc) => {
-    soundFx.playTap();
-    setEditingMedId(med.id);
-    setEditForm({
-      medicineName: med.medicineName,
-      dosage: med.dosage,
-      scheduledTime: med.scheduledTime,
-      instructions: med.instructions,
-    });
-  };
+  const handleAdd = () => {
+    if (!name.trim()) return;
 
-  const handleSaveEdit = (id: string) => {
-    soundFx.playSuccessChime();
-    editMedicine(id, editForm);
-    setEditingMedId(null);
+    addMedicine({
+      elderId: pairData.elderId,
+      medicineName: name.trim(),
+      dosage: dosage.trim() || '1 tablet',
+      scheduledTime: time.trim() || '08:00 AM',
+      instructions: instructions.trim() || 'Take with water',
+      localPhotoRef: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&auto=format&fit=crop&q=80',
+      taken: false,
+      takenAt: null,
+    });
+
+    setName('');
+    setIsAdding(false);
   };
 
   return (
-    <>
-      <View 
-        id="volunteer-med-manager-modal"
-        
-        onClick={(e) => {
-          if (e.target === e.currentTarget) onClose();
-        }}
-      >
-        <View >
-          
-          {/* Header */}
-          <View >
-            <View >
-              <View >
-                💊
-              </View>
-              <View>
-                <Text >
-                  Elder Medication & Photo Hub
-                </Text>
-                <Text >
-                  Live verification for <Text >{pairData.elderName}</Text>
-                </Text>
-              </View>
-            </View>
-            <View >
-              <View >
-                <ShieldCheck  />
-                <Text>Managed by Elder</Text>
-              </View>
-              <TouchableOpacity
-                onClick={onClose}
-                aria-label="Close Modal"
-                
-              >
-                <X  />
-              </TouchableOpacity>
-            </View>
-          </View>
+    <Modal
+      visible={isOpen}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={onClose}
+    >
+      <SafeAreaView style={styles.overlay}>
+        <View style={styles.container}>
+          <ScrollView contentContainerStyle={styles.scroll}>
+            <Text style={styles.title}>💊 Medication Manager</Text>
+            <Text style={styles.subtitle}>
+              Manage daily prescriptions for {pairData.elderName || 'Elder'}
+            </Text>
 
-          {/* Elder Quick-Switch Strip */}
-          {monitoredElders.length > 1 && (
-            <View >
-              <Text >
-                Elders:
-              </Text>
-              {monitoredElders.map((elder) => {
-                const isSelected = elder.id === selectedElderId;
-                return (
-                  <TouchableOpacity
-                    key={elder.id}
-                    onClick={() => selectElder(elder.id)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 border transition shrink-0 cursor-pointer ${
-                      isSelected
-                        ? 'bg-[#1A2B4C] text-white border-[#1A2B4C] shadow-xs'
-                        : 'bg-white text-[#1A2B4C] border-slate-300 hover:bg-slate-50'
-                    }`}
-                  >
-                    <Text>{elder.avatarEmoji || '👵'}</Text>
-                    <Text>{elder.name}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          )}
-
-          {/* Medicines List */}
-          <View >
-            {medicines.length === 0 ? (
-              <View >
-                <Pill  />
-                <Text >No medicines currently scheduled</Text>
-                <Text >The elder can add medicine reminders directly on their screen.</Text>
-              </View>
-            ) : (
-              medicines.map((med) => {
-                const isEditing = editingMedId === med.id;
-
-                return (
-                  <View
-                    key={med.id}
-                    
-                  >
-                    {/* Top Row: Photo Thumbnail + Details + Actions */}
-                    <View >
-                      
-                      {/* Photo Thumbnail with Overlay & Upload Button */}
-                      <View >
-                        <Image
-                          src={med.localPhotoRef}
-                          alt={med.medicineName}
-                          referrerPolicy="no-referrer"
-                          
-                        />
-                        {/* Hover / Direct Click Overlay to Upload Photo */}
-                        <TouchableOpacity
-                          type="button"
-                          onClick={() => setActiveUploadMed(med)}
-                          
-                          title="Upload new photo of medicine"
-                        >
-                          <Camera  />
-                          <Text >
-                            Change Photo
-                          </Text>
-                        </TouchableOpacity>
-                        {/* Uploader Role Tag */}
-                        <View >
-                          {med.photoUploadedBy === 'volunteer' 
-                            ? '🧑‍⚕️ By Volunteer' 
-                            : med.photoUploadedBy === 'elder' 
-                            ? '👵 By Elder' 
-                            : '📸 Photo'}
-                        </View>
-                      </View>
-
-                      {/* Info & Edit Fields */}
-                      <View >
-                        {isEditing ? (
-                          <View >
-                            <input
-                              type="text"
-                              value={editForm.medicineName || ''}
-                              onChange={(e) => setEditForm({ ...editForm, medicineName: e.target.value })}
-                              placeholder="Medicine Name"
-                              
-                            />
-                            <View >
-                              <input
-                                type="text"
-                                value={editForm.dosage || ''}
-                                onChange={(e) => setEditForm({ ...editForm, dosage: e.target.value })}
-                                placeholder="Dosage"
-                                
-                              />
-                              <input
-                                type="text"
-                                value={editForm.scheduledTime || ''}
-                                onChange={(e) => setEditForm({ ...editForm, scheduledTime: e.target.value })}
-                                placeholder="Time (e.g. 08:00 AM)"
-                                
-                              />
-                            </View>
-                            <input
-                              type="text"
-                              value={editForm.instructions || ''}
-                              onChange={(e) => setEditForm({ ...editForm, instructions: e.target.value })}
-                              placeholder="Instructions"
-                              
-                            />
-                            <View >
-                              <TouchableOpacity
-                                onClick={() => handleSaveEdit(med.id)}
-                                
-                              >
-                                <Save  /> Save
-                              </TouchableOpacity>
-                              <TouchableOpacity
-                                onClick={() => setEditingMedId(null)}
-                                
-                              >
-                                Cancel
-                              </TouchableOpacity>
-                            </View>
-                          </View>
-                        ) : (
-                          <View>
-                            <View >
-                              <View>
-                                <Text >
-                                  Scheduled Dose • {med.scheduledTime}
-                                </Text>
-                                <View >
-                                  {med.dosage}
-                                </View>
-                              </View>
-                              <Text 
-                                className={`text-[10px] font-black px-2 py-0.5 rounded-full border border-[#1A2B4C] uppercase tracking-wider shrink-0 ${
-                                  med.taken ? 'bg-[#4CAF50] text-white' : 'bg-[#FFB84D] text-[#1A2B4C]'
-                                }`}
-                              >
-                                {med.taken ? '✓ Taken' : 'Pending'}
-                              </Text>
-                            </View>
-                            <View >
-                              <Info  />
-                              <Text>{med.instructions}</Text>
-                            </View>
-                          </View>
-                        )}
-                      </View>
-                    </View>
-
-                    {/* Bottom Action Strip */}
-                    <View >
-                      <View >
-                        <TouchableOpacity
-                          type="button"
-                          onClick={() => setActiveUploadMed(med)}
-                          
-                        >
-                          <Camera  />
-                          <Text>Upload / Snap Photo</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          type="button"
-                          onClick={() => handleStartEdit(med)}
-                          
-                        >
-                          <Edit3  />
-                          <Text>Edit</Text>
-                        </TouchableOpacity>
-                      </View>
-
-                      <View >
-                        {med.taken ? (
-                          <TouchableOpacity
-                            type="button"
-                            onClick={() => resetMedicineStatus(med.id)}
-                            
-                            title="Reset taken status back to pending"
-                          >
-                            <RotateCcw  />
-                            <Text>Reset to Pending</Text>
-                          </TouchableOpacity>
-                        ) : null}
-                        <TouchableOpacity
-                          type="button"
-                          onClick={() => {
-                            if (confirm(`Remove scheduled dose (${med.scheduledTime}) from schedule?`)) {
-                              deleteMedicine(med.id);
-                            }
-                          }}
-                          
-                          title="Delete medication"
-                        >
-                          <Trash2  />
-                        </TouchableOpacity>
-                      </View>
+            {/* List of existing medicines */}
+            <View style={styles.medsList}>
+              {medicines.map((med) => (
+                <View key={med.id} style={styles.medCard}>
+                  <View style={styles.medHeaderRow}>
+                    <Text style={styles.medName}>{med.medicineName}</Text>
+                    <View style={[styles.statusBadge, med.taken ? styles.statusBadgeTaken : styles.statusBadgePending]}>
+                      <Text style={[styles.statusBadgeText, med.taken ? styles.statusTextTaken : styles.statusTextPending]}>
+                        {med.taken ? 'Taken ✓' : 'Due / Pending'}
+                      </Text>
                     </View>
                   </View>
-                );
-              })
+
+                  <Text style={styles.medTime}>⏰ {med.scheduledTime} • {med.dosage}</Text>
+                  <Text style={styles.medInstructions}>{med.instructions}</Text>
+
+                  <View style={styles.medActionsRow}>
+                    <TouchableOpacity 
+                      style={styles.resetBtn}
+                      onPress={() => resetMedicineStatus(med.id)}
+                    >
+                      <Text style={styles.resetBtnText}>🔄 Reset Status</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity 
+                      style={styles.deleteBtn}
+                      onPress={() => deleteMedicine(med.id)}
+                    >
+                      <Text style={styles.deleteBtnText}>🗑️ Delete</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+            </View>
+
+            {/* Add Medicine Form */}
+            {isAdding ? (
+              <View style={styles.addForm}>
+                <Text style={styles.formTitle}>➕ Add New Medication</Text>
+                
+                <Text style={styles.inputLabel}>Medicine Name:</Text>
+                <TextInput
+                  style={styles.input}
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="e.g. Metformin 500mg"
+                  placeholderTextColor="#94A3B8"
+                />
+
+                <Text style={styles.inputLabel}>Scheduled Time:</Text>
+                <TextInput
+                  style={styles.input}
+                  value={time}
+                  onChangeText={setTime}
+                  placeholder="e.g. 01:00 PM"
+                  placeholderTextColor="#94A3B8"
+                />
+
+                <Text style={styles.inputLabel}>Dosage:</Text>
+                <TextInput
+                  style={styles.input}
+                  value={dosage}
+                  onChangeText={setDosage}
+                  placeholder="e.g. 1 tablet with food"
+                  placeholderTextColor="#94A3B8"
+                />
+
+                <Text style={styles.inputLabel}>Instructions:</Text>
+                <TextInput
+                  style={[styles.input, styles.multilineInput]}
+                  value={instructions}
+                  onChangeText={setInstructions}
+                  placeholder="Special instructions or storage location"
+                  placeholderTextColor="#94A3B8"
+                  multiline
+                />
+
+                <View style={styles.formBtnRow}>
+                  <TouchableOpacity 
+                    style={styles.cancelAddBtn} 
+                    onPress={() => setIsAdding(false)}
+                  >
+                    <Text style={styles.cancelAddText}>Cancel</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={styles.saveAddBtn} 
+                    onPress={handleAdd}
+                  >
+                    <Text style={styles.saveAddText}>Save Schedule</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <TouchableOpacity 
+                style={styles.addNewMedBtn}
+                onPress={() => setIsAdding(true)}
+              >
+                <Text style={styles.addNewMedBtnText}>+ Add New Prescription</Text>
+              </TouchableOpacity>
             )}
-          </View>
 
-          {/* Footer note */}
-          <View >
-            <Text>Any photo uploaded here updates the elder screen in real time.</Text>
-            <TouchableOpacity
-              onClick={onClose}
-              
-            >
-              Done
+            <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
+              <Text style={styles.closeBtnText}>Done / Close</Text>
             </TouchableOpacity>
-          </View>
+          </ScrollView>
         </View>
-      </View>
-
-      {/* Sub-modal for Uploading Photo */}
-      {activeUploadMed && (
-        <MedicinePhotoUploaderModal
-          medicine={activeUploadMed}
-          isOpen={true}
-          uploaderRole="volunteer"
-          onClose={() => setActiveUploadMed(null)}
-          onPhotoSaved={() => setActiveUploadMed(null)}
-        />
-      )}
-    </>
+      </SafeAreaView>
+    </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  container: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    width: '100%',
+    maxWidth: 440,
+    maxHeight: '90%',
+  },
+  scroll: {
+    padding: 20,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#64748B',
+    textAlign: 'center',
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  medsList: {
+    gap: 12,
+    marginBottom: 16,
+  },
+  medCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  medHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  medName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    flex: 1,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  statusBadgeTaken: {
+    backgroundColor: '#DCFCE7',
+  },
+  statusBadgePending: {
+    backgroundColor: '#FEF3C7',
+  },
+  statusBadgeText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  statusTextTaken: {
+    color: '#15803D',
+  },
+  statusTextPending: {
+    color: '#B45309',
+  },
+  medTime: {
+    fontSize: 13,
+    color: '#475569',
+    fontWeight: '600',
+  },
+  medInstructions: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 4,
+  },
+  medActionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 10,
+  },
+  resetBtn: {
+    backgroundColor: '#E2E8F0',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  resetBtnText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#334155',
+  },
+  deleteBtn: {
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  deleteBtnText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#991B1B',
+  },
+  addNewMedBtn: {
+    backgroundColor: '#EFF6FF',
+    borderWidth: 2,
+    borderColor: '#3B82F6',
+    borderStyle: 'dashed',
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  addNewMedBtnText: {
+    color: '#2563EB',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  addForm: {
+    backgroundColor: '#F1F5F9',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+  },
+  formTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    marginBottom: 10,
+  },
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#334155',
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  input: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#CBD5E1',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: '#0F172A',
+  },
+  multilineInput: {
+    minHeight: 60,
+    textAlignVertical: 'top',
+  },
+  formBtnRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 14,
+  },
+  cancelAddBtn: {
+    flex: 1,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  cancelAddText: {
+    color: '#475569',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  saveAddBtn: {
+    flex: 1,
+    backgroundColor: '#16A34A',
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  saveAddText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  closeBtn: {
+    backgroundColor: '#0F172A',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  closeBtnText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+});

@@ -1,9 +1,28 @@
 {
-  "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "target": "esnext",
+    "module": "esnext",
     "moduleResolution": "bundler",
-    "jsx": "react-native"
+    "customConditions": [
+      "react-native"
+    ],
+    "jsx": "react-native",
+    "lib": [
+      "es2020",
+      "dom"
+    ],
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true
   },
-  "include": ["src/**/*", "App.tsx"]
+  "include": [
+    "src/**/*",
+    "App.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "src/main.tsx"
+  ],
+  "extends": "expo/tsconfig.base"
 }

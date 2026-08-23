@@ -1,57 +1,35 @@
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React from 'react';
-import { Loader2 } from 'lucide-react-native';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 
 interface LoadingStateProps {
   message?: string;
 }
 
-export const LoadingState: React.FC<LoadingStateProps> = ({ 
-  message = 'Loading live Firestore data...' 
-}) => {
+export const LoadingState: React.FC<LoadingStateProps> = ({ message = 'Loading WellCheck...' }) => {
   return (
-    <View 
-      id="loading-skeleton-container" 
-      
-    >
-      {/* Skeleton Header */}
-      <View >
-        <View  />
-        <View  />
-      </View>
-
-      {/* Skeleton Top Banner */}
-      <View >
-        <View  />
-        <View >
-          <View  />
-          <View  />
-        </View>
-      </View>
-
-      {/* Skeleton Main Card */}
-      <View >
-        <View >
-          <View  />
-          <View  />
-        </View>
-        <View  />
-        <View  />
-      </View>
-
-      {/* Skeleton Feed List */}
-      <View >
-        <View  />
-        <View  />
-        <View  />
-      </View>
-
-      {/* Center Spinner Indicator */}
-      <View >
-        <Loader2  />
-        <Text >{message}</Text>
-        <Text >Syncing with Firestore collections</Text>
-      </View>
+    <View style={styles.container}>
+      <ActivityIndicator size="large" color="#0F172A" />
+      <Text style={styles.text}>{message}</Text>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    marginVertical: 16,
+  },
+  text: {
+    marginTop: 16,
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#0F172A',
+    textAlign: 'center',
+  },
+});

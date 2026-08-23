@@ -1,792 +1,987 @@
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React, { useState } from 'react';
-import { useApp } from '../../context/AppContext';
 import { 
-  AlertTriangle, 
-  Phone, 
-  CheckCircle2, 
-  Clock, 
-  Bell, 
-  Pill, 
-  ShieldCheck, 
-  Radio, 
-  Languages, 
-  KeyRound, 
-  Camera, 
-  Plus, 
-  Sparkles,
-  ExternalLink,
-  ChevronRight,
-  MapPin,
-  Compass,
-  CalendarClock,
-  Timer,
-  Navigation,
-  RefreshCw,
-  Users,
-  UserPlus,
-  BatteryCharging
-} from 'lucide-react-native';
+  View, 
+  Text, 
+  TouchableOpacity, 
+  StyleSheet, 
+  ScrollView, 
+  Image, 
+  SafeAreaView, 
+  TextInput,
+  ActivityIndicator 
+} from 'react-native';
+import { useApp } from '../../context/AppContext';
 import { VolunteerSosModal } from './VolunteerSosModal';
-import { VolunteerPairingView } from './VolunteerPairingView';
 import { VolunteerMedicineManagerModal } from './VolunteerMedicineManagerModal';
 import { VolunteerCheckinScheduleModal } from './VolunteerCheckinScheduleModal';
 import { VolunteerMissedCheckinModal } from './VolunteerMissedCheckinModal';
 import { VolunteerLocationTrackerModal } from './VolunteerLocationTrackerModal';
+import { VolunteerPairingView } from './VolunteerPairingView';
 import { VolunteerAddElderModal } from './VolunteerAddElderModal';
-import { MedicinePhotoUploaderModal } from '../common/MedicinePhotoUploaderModal';
-import { SUPPORTED_LANGUAGES, TRANSLATIONS, speakText } from '../../utils/speech';
-import { SupportedLanguage, MedicineReminderDoc } from '../../types';
-import { soundFx } from '../../utils/audio';
 
 export const VolunteerDashboard: React.FC = () => {
-  const {
-    activeSosAlert,
-    alerts,
-    medicines,
-    lastCheckinTime,
-    pairData,
-    volunteerLanguage,
-    setVolunteerLanguage,
-    elderProfile,
-    startCall,
+  const { 
+    monitoredElders, 
+    selectedElder, 
+    selectElder, 
+    alerts, 
+    acknowledgeAlert, 
+    resolveAlert, 
+    medicines, 
     checkinSchedules,
     triggerCheckinPrompt,
-    activeCheckinPrompt,
-    activeMissedCheckinModal,
-    closeMissedCheckinModal,
     elderLocation,
-    refreshElderLocationPing,
-    simulateMissedCheckinTimeout,
-    monitoredElders,
-    selectedElderId,
-    selectedElder,
-    selectElder,
+    startCall,
+    pairData,
+    pairVolunteerWithPin
   } = useApp();
 
-  const recentAlerts = alerts || [];
-
-  const [isSosTakeoverOpen, setIsSosTakeoverOpen] = useState(Boolean(activeSosAlert && activeSosAlert.status === 'active'));
-  const [isPairingViewOpen, setIsPairingViewOpen] = useState(false);
-  const [isMedManagerOpen, setIsMedManagerOpen] = useState(false);
+  const [isSosModalOpen, setIsSosModalOpen] = useState(false);
+  const [isMedModalOpen, setIsMedModalOpen] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [isPairingModalOpen, setIsPairingModalOpen] = useState(false);
   const [isAddElderModalOpen, setIsAddElderModalOpen] = useState(false);
-  const [uploadTargetMed, setUploadTargetMed] = useState<MedicineReminderDoc | null>(null);
-  const [requestSent, setRequestSent] = useState(false);
-  const [showLangMenu, setShowLangMenu] = useState(false);
-  const [isPingingGps, setIsPingingGps] = useState(false);
+  const [pingSent, setPingSent] = useState(false);
 
-  // Automatically take over the Volunteer screen whenever an active SOS alert is received
-  React.useEffect(() => {
-    if (activeSosAlert && activeSosAlert.status === 'active') {
-      setIsSosTakeoverOpen(true);
-    }
-  }, [activeSosAlert]);
+  // Quick inline PIN state
+  const [quickPin, setQuickPin] = useState('');
+  const [pinLoading, setPinLoading] = useState(false);
+  const [pinStatus, setPinStatus] = useState<{ text: string; error: boolean } | null>(null);
 
-  const t = TRANSLATIONS[volunteerLanguage] || TRANSLATIONS['en-US'];
-  const currentVolLang = SUPPORTED_LANGUAGES.find(l => l.code === volunteerLanguage) || SUPPORTED_LANGUAGES[0];
+  const activeSos = alerts.find(a => a.type === 'sos' && a.status === 'active');
 
-  const elderPhone = elderProfile.phoneNumber
-    ? `${elderProfile.phoneCountryCode || '+91'} ${elderProfile.phoneNumber}`
-    : '(555) 018-9923';
-  const elderName = activeSosAlert?.elderName || elderProfile.name || pairData.elderName || 'Eleanor Vance';
-
-  // Handle direct call
-  const handleDirectCallElder = () => {
-    startCall({
-      contactName: elderName,
-      phoneNumber: elderPhone,
-      contactRole: 'elder',
-      reason: 'general'
-    });
-  };
-
-  const handleRequestCheckin = () => {
-    soundFx.playTap();
+  const handlePingCheckin = () => {
     triggerCheckinPrompt();
-    setRequestSent(true);
-    speakText(`Check-in request sent to ${elderName}`, volunteerLanguage);
-    setTimeout(() => setRequestSent(false), 3500);
+    setPingSent(true);
+    setTimeout(() => setPingSent(false), 3000);
   };
 
-  const handleQuickGpsPing = () => {
-    setIsPingingGps(true);
-    refreshElderLocationPing();
-    setTimeout(() => setIsPingingGps(false), 1000);
-  };
+  const handleQuickPinConnect = async () => {
+    if (quickPin.trim().length < 4) {
+      setPinStatus({ text: 'Enter 4-digit PIN', error: true });
+      return;
+    }
 
-  const activeSlotsCount = checkinSchedules.filter(s => s.enabled).length;
+    setPinLoading(true);
+    setPinStatus(null);
+    try {
+      const success = await pairVolunteerWithPin(quickPin.trim());
+      if (success) {
+        setPinStatus({ text: `Connected to PIN ${quickPin}!`, error: false });
+        setQuickPin('');
+      } else {
+        setPinStatus({ text: 'Pair not found. Check PIN on elder device.', error: true });
+      }
+    } catch {
+      setPinStatus({ text: 'Connection error. Check PIN.', error: true });
+    } finally {
+      setPinLoading(false);
+    }
+  };
 
   return (
-    <View 
-      id="volunteer-dashboard-screen" 
-      
-    >
-      {/* Top Navbar */}
-      <View >
-        <View >
-          <View >
-            W
-          </View>
-          <View>
-            <Text >
-              {t.caregiverDashboardTitle || 'Caregiver Portal'}
-            </Text>
-            <Text >
-              <Text  />
-              Live Safety & Location Sync
-            </Text>
-          </View>
-        </View>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        {/* ===================================================================== */}
+        {/* 1. CRITICAL ACTIVE ALERTS BANNER (PRD §4.1, §5)                       */}
+        {/* ===================================================================== */}
+        {activeSos ? (
+          <View style={styles.criticalSosBanner}>
+            <View style={styles.sosBannerHeader}>
+              <Text style={styles.sosBannerIcon}>🚨</Text>
+              <View style={styles.sosBannerTextGroup}>
+                <Text style={styles.sosBannerTitle}>CRITICAL SOS ALERT TRIGGERED!</Text>
+                <Text style={styles.sosBannerSubtitle}>
+                  {pairData.elderName || 'Eleanor Vance'} pressed emergency help button
+                </Text>
+              </View>
+            </View>
 
-        <View >
-          {/* Track Location Button in Header */}
-          <TouchableOpacity
-            id="header-track-location-btn"
-            onClick={() => {
-              soundFx.playTap();
-              setIsLocationModalOpen(true);
-            }}
-            
-            title="Track Elder GPS Location"
-          >
-            <Compass  />
-            <Text >GPS Live</Text>
-          </TouchableOpacity>
-
-          {/* Pairing Info Button */}
-          <TouchableOpacity
-            id="volunteer-open-pairing-btn"
-            onClick={() => setIsPairingViewOpen(true)}
-            title="Pairing Settings"
-            
-          >
-            <KeyRound  />
-            <Text>PIN: {pairData.pinCode}</Text>
-          </TouchableOpacity>
-
-          {/* Language Selector Dropdown */}
-          <View >
-            <TouchableOpacity
-              id="volunteer-lang-selector-btn"
-              onClick={() => setShowLangMenu(!showLangMenu)}
-              aria-label="Select Volunteer Language"
-              
-            >
-              <Languages  />
-              <Text>{currentVolLang?.flag || '🌐'}</Text>
-            </TouchableOpacity>
-
-            {showLangMenu && (
-              <View 
-                id="volunteer-lang-dropdown"
-                
+            <View style={styles.sosBannerActions}>
+              <TouchableOpacity 
+                style={styles.sosViewBtn}
+                onPress={() => setIsSosModalOpen(true)}
+                activeOpacity={0.8}
               >
-                <View >
-                  <Text>Select Language</Text>
-                  <Text >10+ Regional</Text>
-                </View>
-                {SUPPORTED_LANGUAGES.map((lang) => (
-                  <TouchableOpacity
-                    key={lang.code}
-                    onClick={() => {
-                      setVolunteerLanguage(lang.code as SupportedLanguage);
-                      setShowLangMenu(false);
-                    }}
-                    className={`min-h-[40px] w-full px-3 py-1.5 text-left rounded-lg flex items-center gap-2.5 font-bold text-xs transition cursor-pointer ${
-                      volunteerLanguage === lang.code
-                        ? 'bg-[#1A2B4C] text-white'
-                        : 'hover:bg-slate-100 text-[#1A2B4C]'
-                    }`}
-                  >
-                    <Text >{lang.flag}</Text>
-                    <View >
-                      <Text >{lang.nativeLabel}</Text>
-                      <Text >{lang.label} {lang.region ? `(${lang.region})` : ''}</Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
-        </View>
-      </View>
+                <Text style={styles.sosViewBtnText}>VIEW EMERGENCY</Text>
+              </TouchableOpacity>
 
-      {/* Persistent SOS Emergency Warning Banner if Active */}
-      {activeSosAlert && (
-        <View 
-          id="volunteer-active-sos-banner"
-          onClick={() => setIsSosTakeoverOpen(true)}
-          
-        >
-          <View >
-            <View >
-              <AlertTriangle  />
+              <TouchableOpacity 
+                style={styles.sosCallBtn}
+                onPress={() => startCall({ contactName: pairData.elderName, contactRole: 'elder', reason: 'sos' })}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.sosCallBtnText}>📞 CALL NOW</Text>
+              </TouchableOpacity>
             </View>
-            <View>
-              <Text >
-                {t.sosTakeoverTitle || 'ACTIVE SOS EMERGENCY'}
-              </Text>
-              <Text >
-                {activeSosAlert.elderName} Needs Help!
+          </View>
+        ) : null}
+
+        {/* ===================================================================== */}
+        {/* 2. PROMINENT PIN PAIRING SECTION (PRD §2, §3)                         */}
+        {/* ===================================================================== */}
+        <View style={styles.pinSectionCard}>
+          <View style={styles.pinCardHeader}>
+            <Text style={styles.pinSectionTitle}>🔑 Connect to Elder via PIN</Text>
+            <View style={styles.pinLiveStatus}>
+              <Text style={styles.pinLiveStatusText}>
+                Active: PIN {pairData.pinCode}
               </Text>
             </View>
           </View>
-          <TouchableOpacity 
-            
-          >
-            Open Takeover
-          </TouchableOpacity>
-        </View>
-      )}
 
-      {/* Main Dashboard Content */}
-      <View >
-        
-        {/* Multi-Elder Management Strip */}
-        <View 
-          id="volunteer-multi-elder-selector-strip"
-          
-        >
-          <View >
-            <View >
-              <View >
-                <Users  />
-              </View>
-              <View>
-                <Text >
-                  Monitored Elders ({monitoredElders.length})
-                </Text>
-                <Text >
-                  Select elder to monitor location, medicines & schedules
-                </Text>
-              </View>
-            </View>
+          <View style={styles.pinInputRow}>
+            <TextInput
+              style={styles.pinInput}
+              value={quickPin}
+              onChangeText={(t) => {
+                setQuickPin(t);
+                if (pinStatus) setPinStatus(null);
+              }}
+              placeholder="Enter 4-digit PIN"
+              placeholderTextColor="#94A3B8"
+              keyboardType="number-pad"
+              maxLength={6}
+            />
 
-            <TouchableOpacity
-              id="volunteer-add-elder-btn"
-              onClick={() => setIsAddElderModalOpen(true)}
-              
+            <TouchableOpacity 
+              style={[styles.pinConnectBtn, pinLoading && styles.pinConnectBtnDisabled]}
+              onPress={handleQuickPinConnect}
+              disabled={pinLoading}
+              activeOpacity={0.8}
             >
-              <UserPlus  />
-              <Text>Add Elder</Text>
+              {pinLoading ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text style={styles.pinConnectBtnText}>Connect PIN</Text>
+              )}
             </TouchableOpacity>
           </View>
 
-          {/* Horizontal list of elders */}
-          <View >
+          {pinStatus ? (
+            <View style={[styles.pinStatusMsg, pinStatus.error ? styles.pinStatusMsgError : styles.pinStatusMsgSuccess]}>
+              <Text style={[styles.pinStatusMsgText, pinStatus.error ? styles.pinStatusErrorText : styles.pinStatusSuccessText]}>
+                {pinStatus.text}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+
+        {/* ===================================================================== */}
+        {/* 3. ELDER SELECTOR & MULTI-ELDER SWITCHER                              */}
+        {/* ===================================================================== */}
+        <View style={styles.sectionCard}>
+          <View style={styles.cardHeaderRow}>
+            <Text style={styles.sectionTitle}>👥 Monitored Elders</Text>
+            <TouchableOpacity 
+              style={styles.addElderSmallBtn}
+              onPress={() => setIsPairingModalOpen(true)}
+            >
+              <Text style={styles.addElderSmallBtnText}>+ Keypad PIN</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.elderScroll}>
             {monitoredElders.map((elder) => {
-              const isSelected = elder.id === selectedElderId;
+              const isSelected = elder.id === selectedElder.id;
               return (
                 <TouchableOpacity
                   key={elder.id}
-                  id={`volunteer-select-elder-${elder.id}`}
-                  onClick={() => selectElder(elder.id)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all shrink-0 cursor-pointer text-left ${
-                    isSelected
-                      ? 'bg-[#1A2B4C] text-white border-[#1A2B4C] shadow-[2px_2px_0px_#FF6B4A]'
-                      : 'bg-[#FAF7F2] text-[#1A2B4C] border-[#1A2B4C]/30 hover:border-[#1A2B4C] hover:bg-white'
-                  }`}
+                  style={[styles.elderChip, isSelected && styles.elderChipSelected]}
+                  onPress={() => selectElder(elder.id)}
+                  activeOpacity={0.8}
                 >
-                  <Text >{elder.avatarEmoji || '👵'}</Text>
-                  <View >
-                    <View >
-                      <Text >
-                        {elder.name}
-                      </Text>
-                      <Text className={`w-2 h-2 rounded-full ${isSelected ? 'bg-[#4CAF50]' : 'bg-[#4CAF50]/70'}`} />
-                    </View>
-                    <Text className={`text-[10px] font-bold ${isSelected ? 'text-white/80' : 'text-[#1A2B4C]/60'}`}>
-                      {elder.relationship} • PIN: {elder.pinCode}
+                  <Text style={styles.elderChipAvatar}>{elder.avatarEmoji || '👵'}</Text>
+                  <View>
+                    <Text style={[styles.elderChipName, isSelected && styles.elderChipNameSelected]}>
+                      {elder.name}
                     </Text>
+                    <Text style={styles.elderChipRel}>{elder.relationship || 'Elder'} • PIN: {elder.pinCode}</Text>
                   </View>
                 </TouchableOpacity>
               );
             })}
+          </ScrollView>
+        </View>
+
+        {/* ===================================================================== */}
+        {/* 4. CURRENT ELDER LIVE STATUS CARD                                     */}
+        {/* ===================================================================== */}
+        <View style={styles.elderStatusCard}>
+          <View style={styles.elderStatusTop}>
+            <View style={styles.elderAvatarCircle}>
+              <Text style={styles.elderAvatarText}>{selectedElder.avatarEmoji || '👵'}</Text>
+            </View>
+            
+            <View style={styles.elderInfoGroup}>
+              <View style={styles.elderNameRow}>
+                <Text style={styles.elderMainName}>{selectedElder.name}</Text>
+                <View style={styles.safeBadge}>
+                  <Text style={styles.safeBadgeText}>
+                    {activeSos ? '🔴 SOS ACTIVE' : '🟢 SAFE • ALL CLEAR'}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.elderSubDetail}>
+                Age: {selectedElder.age || 78} • Phone: {selectedElder.phoneNumber || '+91 98450 12345'}
+              </Text>
+              <Text style={styles.elderLocationDetail}>
+                📍 {elderLocation.landmark || 'Home Safe Zone'} ({elderLocation.lastUpdated})
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.statusMetricsRow}>
+            <View style={styles.metricItem}>
+              <Text style={styles.metricLabel}>Battery</Text>
+              <Text style={styles.metricValue}>🔋 {elderLocation.batteryLevel || 88}%</Text>
+            </View>
+            <View style={styles.metricDivider} />
+            <View style={styles.metricItem}>
+              <Text style={styles.metricLabel}>Last Check-In</Text>
+              <Text style={styles.metricValue}>⏱️ 2h ago</Text>
+            </View>
+            <View style={styles.metricDivider} />
+            <View style={styles.metricItem}>
+              <Text style={styles.metricLabel}>Pairing PIN</Text>
+              <Text style={styles.metricValue}>🔑 {pairData.pinCode}</Text>
+            </View>
           </View>
         </View>
 
-        {/* 1. Elder Profile & Health Status Card */}
-        <View 
-          id="volunteer-elder-status-card"
-          
-        >
-          <View >
-            <View >
-              <View >
-                {selectedElder?.avatarEmoji || selectedElder?.name?.charAt(0) || elderName.charAt(0)}
-              </View>
-              <View>
-                <View >
-                  <Text >
-                    {selectedElder?.name || elderName}
-                  </Text>
-                  <Text  />
-                </View>
-                <Text >
-                  {selectedElder?.relationship ? `${selectedElder.relationship} • ` : ''}Age {selectedElder?.age || 78} • PIN: {selectedElder?.pinCode || pairData.pinCode}
-                </Text>
-              </View>
-            </View>
-            <Text >
-              {t.connectedLiveText || 'Live Paired'}
+        {/* ===================================================================== */}
+        {/* 5. QUICK ACTION SHORTCUTS GRID                                       */}
+        {/* ===================================================================== */}
+        <View style={styles.quickActionsGrid}>
+          <TouchableOpacity 
+            style={[styles.actionGridCard, styles.actionCall]}
+            onPress={() => startCall({ contactName: selectedElder.name, contactRole: 'elder' })}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.actionGridIcon}>📞</Text>
+            <Text style={styles.actionGridTitle}>Call Elder</Text>
+            <Text style={styles.actionGridSub}>Direct audio line</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.actionGridCard, styles.actionPing]}
+            onPress={handlePingCheckin}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.actionGridIcon}>🔔</Text>
+            <Text style={styles.actionGridTitle}>
+              {pingSent ? 'Ping Sent ✓' : 'Ping Check-In'}
             </Text>
+            <Text style={styles.actionGridSub}>Prompt on elder phone</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.actionGridCard, styles.actionMeds]}
+            onPress={() => setIsMedModalOpen(true)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.actionGridIcon}>💊</Text>
+            <Text style={styles.actionGridTitle}>Manage Meds</Text>
+            <Text style={styles.actionGridSub}>{medicines.length} scheduled</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.actionGridCard, styles.actionSchedule]}
+            onPress={() => setIsScheduleModalOpen(true)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.actionGridIcon}>📅</Text>
+            <Text style={styles.actionGridTitle}>Check-in Slots</Text>
+            <Text style={styles.actionGridSub}>{checkinSchedules.length} active times</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* ===================================================================== */}
+        {/* 6. LIVE ALERT ACTIVITY FEED (PRD §3, §6)                               */}
+        {/* ===================================================================== */}
+        <View style={styles.sectionCard}>
+          <View style={styles.cardHeaderRow}>
+            <Text style={styles.sectionTitle}>🔔 Live Alert Feed</Text>
+            <View style={styles.alertCountBadge}>
+              <Text style={styles.alertCountText}>{alerts.length} Total</Text>
+            </View>
           </View>
 
-          {/* Medical Conditions Badges if present */}
-          {selectedElder?.medicalConditions && selectedElder.medicalConditions.length > 0 && (
-            <View >
-              {selectedElder.medicalConditions.map((cond, idx) => (
-                <Text 
-                  key={idx} 
-                  
+          {alerts.length === 0 ? (
+            <Text style={styles.emptyFeedText}>No alerts recorded. All systems normal.</Text>
+          ) : (
+            <View style={styles.alertsList}>
+              {alerts.slice(0, 5).map((alert) => (
+                <View 
+                  key={alert.id} 
+                  style={[
+                    styles.alertItem, 
+                    alert.status === 'active' && styles.alertItemActive,
+                    alert.type === 'sos' && styles.alertItemSos
+                  ]}
                 >
-                  {cond}
-                </Text>
+                  <Text style={styles.alertItemEmoji}>
+                    {alert.type === 'sos' ? '🚨' : alert.type === 'checkin_missed' ? '⚠️' : '💊'}
+                  </Text>
+                  <View style={styles.alertItemDetails}>
+                    <View style={styles.alertItemTopRow}>
+                      <Text style={styles.alertItemType}>
+                        {alert.type === 'sos' ? 'EMERGENCY SOS' : alert.type === 'checkin_missed' ? 'MISSED CHECK-IN' : 'MEDICATION MISSED'}
+                      </Text>
+                      <View style={[styles.statusPill, alert.status === 'active' ? styles.statusPillActive : styles.statusPillResolved]}>
+                        <Text style={[styles.statusPillText, alert.status === 'active' ? styles.statusPillTextActive : styles.statusPillTextResolved]}>
+                          {alert.status.toUpperCase()}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={styles.alertItemNotes}>
+                      {alert.notes || `Alert generated for ${alert.elderName || 'Elder'}`}
+                    </Text>
+                    <Text style={styles.alertItemTime}>
+                      {new Date(alert.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                  </View>
+
+                  {alert.status === 'active' ? (
+                    <View style={styles.alertActionButtons}>
+                      <TouchableOpacity 
+                        style={styles.ackBtn}
+                        onPress={() => acknowledgeAlert(alert.id)}
+                      >
+                        <Text style={styles.ackBtnText}>ACK</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={styles.resolveBtn}
+                        onPress={() => resolveAlert(alert.id)}
+                      >
+                        <Text style={styles.resolveBtnText}>Resolve</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : alert.status === 'acknowledged' ? (
+                    <TouchableOpacity 
+                      style={styles.resolveBtnOnly}
+                      onPress={() => resolveAlert(alert.id)}
+                    >
+                      <Text style={styles.resolveBtnText}>Resolve</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                </View>
               ))}
             </View>
           )}
-
-          {/* Quick Stats Grid */}
-          <View >
-            <View >
-              <Text >
-                <Clock  /> Last Check-In
-              </Text>
-              <Text >
-                {lastCheckinTime}
-              </Text>
-            </View>
-            <View >
-              <Text >
-                <Pill  /> Daily Medicines
-              </Text>
-              <Text >
-                {medicines.filter(m => m.taken).length} of {medicines.length} Taken
-              </Text>
-            </View>
-          </View>
-
-          {/* Actions: Direct VoIP / Phone Call + Request Check-In */}
-          <View >
-            <TouchableOpacity
-              id="volunteer-call-elder-btn"
-              onClick={handleDirectCallElder}
-              
-            >
-              <Phone  />
-              <Text>{t.callText || 'Call'} {elderName.split(' ')[0]}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              id="volunteer-request-checkin-btn"
-              onClick={handleRequestCheckin}
-              className={`min-h-[46px] font-black text-xs uppercase tracking-wider rounded-xl border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer ${
-                requestSent 
-                  ? 'bg-[#4CAF50] text-white border-[#4CAF50]' 
-                  : 'bg-white hover:bg-slate-50 text-[#1A2B4C]'
-              }`}
-            >
-              <Radio className={`w-4 h-4 ${requestSent ? 'animate-ping' : 'text-[#FF6B4A]'}`} />
-              <Text>{requestSent ? 'Ping Transmitted!' : 'Ping Check-In'}</Text>
-            </TouchableOpacity>
-          </View>
         </View>
 
-        {/* 2. Scheduled Check-Ins Manager (Feature for Volunteer to Set Multiple Times & 3-Min Alert) */}
-        <View 
-          id="volunteer-checkin-scheduler-card"
-          
-        >
-          <View >
-            <View >
-              <View >
-                <CalendarClock  />
-              </View>
-              <View>
-                <Text >
-                  Scheduled Check-In Times
-                </Text>
-                <Text >
-                  {activeSlotsCount} daily times • 3-min missed check-in escalation
-                </Text>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              id="volunteer-manage-schedules-btn"
-              onClick={() => {
-                soundFx.playTap();
-                setIsScheduleModalOpen(true);
-              }}
-              
-            >
-              <Plus  />
-              <Text>Set Times</Text>
+        {/* ===================================================================== */}
+        {/* 7. TODAY'S MEDICATION COMPLIANCE                                     */}
+        {/* ===================================================================== */}
+        <View style={styles.sectionCard}>
+          <View style={styles.cardHeaderRow}>
+            <Text style={styles.sectionTitle}>💊 Today's Medication Tracker</Text>
+            <TouchableOpacity onPress={() => setIsMedModalOpen(true)}>
+              <Text style={styles.linkActionText}>+ Add Med</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Schedule Slots Chips */}
-          <View >
-            {checkinSchedules.slice(0, 3).map((slot) => (
-              <View
-                key={slot.id}
-                
-              >
-                <View>
-                  <Text >{slot.time}</Text>
-                  <Text >{slot.label}</Text>
-                </View>
-                <Text className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
-                  slot.enabled ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-500'
-                }`}>
-                  {slot.enabled ? 'Active' : 'Off'}
-                </Text>
-              </View>
-            ))}
-          </View>
-
-          {/* 3-Min Escalation Indicator & Demo trigger */}
-          <View >
-            <View >
-              <Timer  />
-              <Text >
-                Elder gets 3 mins to check in before pop-up escalation
-              </Text>
-            </View>
-
-            <TouchableOpacity
-              id="dashboard-simulate-missed-checkin-btn"
-              onClick={() => {
-                soundFx.playTap();
-                simulateMissedCheckinTimeout();
-              }}
-              
-              title="Test 3-Minute Missed Check-In Alert Pop-up"
-            >
-              Test Alert Pop-up
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* 3. Elder Live Location GPS Tracker Card */}
-        <View 
-          id="volunteer-location-tracking-card"
-          
-        >
-          <View >
-            <View >
-              <View >
-                <MapPin  />
-              </View>
-              <View>
-                <Text >
-                  Elder Location Tracking
-                </Text>
-                <Text >
-                  Live GPS geofence & waypoint monitoring
-                </Text>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              id="volunteer-open-location-map-btn"
-              onClick={() => {
-                soundFx.playTap();
-                setIsLocationModalOpen(true);
-              }}
-              
-            >
-              <Navigation  />
-              <Text>Full Map</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Location Snapshot Card */}
-          <View >
-            <View >
-              <View >
-                <Compass  />
-                <View>
-                  <Text >
-                    {elderLocation.address}
-                  </Text>
-                  <Text >
-                    {elderLocation.landmark}
-                  </Text>
-                </View>
-              </View>
-
-              <Text className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-lg border ${
-                elderLocation.safeZoneStatus === 'inside_home'
-                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                  : elderLocation.safeZoneStatus === 'safe_zone'
-                  ? 'bg-blue-100 text-blue-800 border-blue-300'
-                  : 'bg-amber-100 text-amber-800 border-amber-300'
-              }`}>
-                {elderLocation.safeZoneStatus === 'inside_home' ? 'Safe at Home' : elderLocation.safeZoneStatus === 'safe_zone' ? 'In Safe Zone' : 'Outside Area'}
-              </Text>
-            </View>
-
-            <View >
-              <Text>Updated: {elderLocation.lastUpdated}</Text>
-              <Text>Accuracy: ±{elderLocation.accuracyMeters}m • Battery: {elderLocation.batteryLevel}%</Text>
-              <TouchableOpacity
-                onClick={handleQuickGpsPing}
-                disabled={isPingingGps}
-                
-              >
-                <RefreshCw className={`w-3 h-3 ${isPingingGps ? 'animate-spin' : ''}`} />
-                <Text>{isPingingGps ? 'Pinging...' : 'Ping GPS'}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-
-        {/* 4. Medication Adherence & Photo Verification Section */}
-        <View 
-          id="volunteer-medicine-section"
-          
-        >
-          <View >
-            <View >
-              <View >
-                <Pill  />
-              </View>
-              <View>
-                <Text >
-                  Medication & Pill Verification
-                </Text>
-                <Text >
-                  Live adherence & uploaded photos
-                </Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              id="volunteer-manage-meds-btn"
-              onClick={() => setIsMedManagerOpen(true)}
-              
-            >
-              <Camera  />
-              <Text>Review & Photos</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Medicines Adherence List */}
-          <View >
+          <View style={styles.medsList}>
             {medicines.map((med) => (
-              <View
-                key={med.id}
-                
-              >
-                <View >
-                  {/* Photo thumbnail with upload trigger */}
-                  <TouchableOpacity
-                    type="button"
-                    onClick={() => setUploadTargetMed(med)}
-                    title="Click to change or upload pill photo"
-                    
-                  >
-                    <Image
-                      src={med.localPhotoRef}
-                      alt={med.medicineName}
-                      referrerPolicy="no-referrer"
-                      
-                    />
-                    <View >
-                      <Camera  />
-                    </View>
-                  </TouchableOpacity>
-
-                  {/* Medicine Info */}
-                  <View >
-                    <View >
-                      {med.medicineName}
-                    </View>
-                    <View >
-                      {med.dosage} • <Text >{med.scheduledTime}</Text>
-                    </View>
-                    <View >
-                      Photo: {med.photoUploadedBy === 'volunteer' ? '🧑‍⚕️ By You' : med.photoUploadedBy === 'elder' ? '👵 By Elder' : 'Verified'}
-                    </View>
-                  </View>
+              <View key={med.id} style={styles.medItemRow}>
+                <Image 
+                  source={{ uri: med.localPhotoRef || 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&auto=format&fit=crop&q=80' }} 
+                  style={styles.medThumb} 
+                />
+                <View style={styles.medItemInfo}>
+                  <Text style={styles.medItemName}>{med.medicineName}</Text>
+                  <Text style={styles.medItemTime}>⏰ {med.scheduledTime} • {med.dosage}</Text>
                 </View>
-
-                {/* Status Badge + Photo Upload Action */}
-                <View >
-                  <TouchableOpacity
-                    type="button"
-                    onClick={() => setUploadTargetMed(med)}
-                    title="Upload photo for this pill"
-                    
-                  >
-                    <Camera  />
-                    <Text >Photo</Text>
-                  </TouchableOpacity>
-
-                  <Text
-                    className={`text-[10px] font-black uppercase px-2 py-1 rounded-lg border border-[#1A2B4C] ${
-                      med.taken
-                        ? 'bg-[#4CAF50] text-white'
-                        : 'bg-[#FFB84D] text-[#1A2B4C]'
-                    }`}
-                  >
-                    {med.taken ? '✓ Taken' : 'Pending'}
+                <View style={[styles.medStatusChip, med.taken ? styles.medStatusChipTaken : styles.medStatusChipPending]}>
+                  <Text style={[styles.medStatusChipText, med.taken ? styles.medStatusChipTextTaken : styles.medStatusChipTextPending]}>
+                    {med.taken ? '✓ Taken' : '⏳ Pending'}
                   </Text>
                 </View>
               </View>
             ))}
           </View>
         </View>
+      </ScrollView>
 
-        {/* 5. Safety Feed & Recent Alerts Log */}
-        <View 
-          id="volunteer-feed-section"
-          
-        >
-          <View >
-            <View >
-              <View >
-                <Bell  />
-              </View>
-              <Text >
-                Activity Feed & Event History
-              </Text>
-            </View>
-            <Text >
-              {recentAlerts.length} Events
-            </Text>
-          </View>
+      {/* Modals */}
+      <VolunteerSosModal
+        isOpen={isSosModalOpen || Boolean(activeSos)}
+        onClose={() => setIsSosModalOpen(false)}
+      />
 
-          <View >
-            {recentAlerts.length === 0 ? (
-              <Text >No alerts logged yet.</Text>
-            ) : (
-              recentAlerts.map((alert) => (
-                <View
-                  key={alert.id}
-                  className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 ${
-                    alert.type === 'sos'
-                      ? 'bg-red-50/80 border-red-300'
-                      : alert.type === 'checkin_missed'
-                      ? 'bg-rose-50 border-rose-300'
-                      : alert.type === 'medicine_missed'
-                      ? 'bg-amber-50/80 border-amber-300'
-                      : 'bg-[#FAF7F2] border-slate-200'
-                  }`}
-                >
-                  <View >
-                    <Text >
-                      {alert.type === 'sos' ? '🚨' : alert.type === 'checkin_missed' ? '⚠️' : alert.type === 'checkin_response' ? '✅' : '💊'}
-                    </Text>
-                    <View >
-                      <View >
-                        {alert.type === 'sos'
-                          ? `SOS Alert: ${alert.elderName}`
-                          : alert.type === 'checkin_missed'
-                          ? `Missed Check-In Alert (${alert.elderName})`
-                          : alert.type === 'checkin_response'
-                          ? `Check-in OK from ${alert.elderName}`
-                          : `Medication Adherence Event`}
-                      </View>
-                      <View >
-                        {new Date(alert.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </View>
-                    </View>
-                  </View>
+      <VolunteerMedicineManagerModal
+        isOpen={isMedModalOpen}
+        onClose={() => setIsMedModalOpen(false)}
+      />
 
-                  <Text className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md border ${
-                    alert.status === 'active'
-                      ? 'bg-red-600 text-white border-red-700'
-                      : 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                  }`}>
-                    {alert.status}
-                  </Text>
-                </View>
-              ))
-            )}
-          </View>
-        </View>
-      </View>
+      <VolunteerCheckinScheduleModal
+        isOpen={isScheduleModalOpen}
+        onClose={() => setIsScheduleModalOpen(false)}
+      />
 
-      {/* Volunteer SOS Takeover Modal */}
-      {(isSosTakeoverOpen || Boolean(activeSosAlert && activeSosAlert.status === 'active')) && (
-        <VolunteerSosModal
-          onDismiss={() => setIsSosTakeoverOpen(false)}
-        />
-      )}
+      <VolunteerLocationTrackerModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+      />
 
-      {/* Volunteer Missed Check-In Escalation Pop-Up Modal (Triggers on 3-Min Timeout) */}
-      {activeMissedCheckinModal && (
-        <VolunteerMissedCheckinModal
-          isOpen={activeMissedCheckinModal.isOpen}
-          onClose={closeMissedCheckinModal}
-          scheduledTime={activeMissedCheckinModal.scheduledTime}
-          alertId={activeMissedCheckinModal.alertId}
-          onOpenLocationTracker={() => setIsLocationModalOpen(true)}
-        />
-      )}
+      <VolunteerPairingView
+        isOpen={isPairingModalOpen}
+        onClose={() => setIsPairingModalOpen(false)}
+      />
 
-      {/* Volunteer Checkin Schedule Modal */}
-      {isScheduleModalOpen && (
-        <VolunteerCheckinScheduleModal
-          isOpen={isScheduleModalOpen}
-          onClose={() => setIsScheduleModalOpen(false)}
-        />
-      )}
-
-      {/* Volunteer Location GPS Tracker Modal */}
-      {isLocationModalOpen && (
-        <VolunteerLocationTrackerModal
-          isOpen={isLocationModalOpen}
-          onClose={() => setIsLocationModalOpen(false)}
-        />
-      )}
-
-      {/* Volunteer Pairing Modal */}
-      {isPairingViewOpen && (
-        <View >
-          <View >
-            <VolunteerPairingView onSuccess={() => setIsPairingViewOpen(false)} />
-            <View >
-              <TouchableOpacity
-                onClick={() => setIsPairingViewOpen(false)}
-                
-              >
-                Close
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      )}
-
-      {/* Volunteer Add Elder Modal */}
-      {isAddElderModalOpen && (
-        <VolunteerAddElderModal
-          isOpen={isAddElderModalOpen}
-          onClose={() => setIsAddElderModalOpen(false)}
-        />
-      )}
-
-      {/* Volunteer Medicine Manager Modal */}
-      {isMedManagerOpen && (
-        <VolunteerMedicineManagerModal
-          isOpen={isMedManagerOpen}
-          onClose={() => setIsMedManagerOpen(false)}
-        />
-      )}
-
-      {/* Single Medicine Photo Uploader Modal */}
-      {uploadTargetMed && (
-        <MedicinePhotoUploaderModal
-          medicine={uploadTargetMed}
-          isOpen={true}
-          uploaderRole="volunteer"
-          onClose={() => setUploadTargetMed(null)}
-          onPhotoSaved={() => setUploadTargetMed(null)}
-        />
-      )}
-    </View>
+      <VolunteerAddElderModal
+        isOpen={isAddElderModalOpen}
+        onClose={() => setIsAddElderModalOpen(false)}
+      />
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+  container: {
+    flex: 1,
+  },
+  content: {
+    padding: 16,
+    paddingBottom: 40,
+    gap: 14,
+  },
+  criticalSosBanner: {
+    backgroundColor: '#DC2626',
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 3,
+    borderColor: '#991B1B',
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  sosBannerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  sosBannerIcon: {
+    fontSize: 34,
+    marginRight: 10,
+  },
+  sosBannerTextGroup: {
+    flex: 1,
+  },
+  sosBannerTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  sosBannerSubtitle: {
+    color: '#FEE2E2',
+    fontSize: 13,
+    marginTop: 2,
+    fontWeight: '600',
+  },
+  sosBannerActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  sosViewBtn: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
+  },
+  sosViewBtnText: {
+    color: '#DC2626',
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  sosCallBtn: {
+    flex: 1,
+    backgroundColor: '#1E293B',
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
+  },
+  sosCallBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  pinSectionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 14,
+    borderWidth: 2,
+    borderColor: '#2563EB',
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  pinCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  pinSectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#0F172A',
+  },
+  pinLiveStatus: {
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  pinLiveStatusText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#1D4ED8',
+  },
+  pinInputRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  pinInput: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 2,
+    borderColor: '#CBD5E1',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    letterSpacing: 2,
+  },
+  pinConnectBtn: {
+    backgroundColor: '#2563EB',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
+  },
+  pinConnectBtnDisabled: {
+    backgroundColor: '#94A3B8',
+  },
+  pinConnectBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  pinStatusMsg: {
+    padding: 8,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  pinStatusMsgSuccess: {
+    backgroundColor: '#DCFCE7',
+  },
+  pinStatusMsgError: {
+    backgroundColor: '#FEE2E2',
+  },
+  pinStatusMsgText: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  pinStatusSuccessText: {
+    color: '#15803D',
+  },
+  pinStatusErrorText: {
+    color: '#991B1B',
+  },
+  sectionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 14,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    color: '#0F172A',
+  },
+  addElderSmallBtn: {
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  addElderSmallBtnText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#2563EB',
+  },
+  elderScroll: {
+    flexDirection: 'row',
+  },
+  elderChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    marginRight: 8,
+    gap: 8,
+  },
+  elderChipSelected: {
+    backgroundColor: '#EFF6FF',
+    borderColor: '#2563EB',
+  },
+  elderChipAvatar: {
+    fontSize: 24,
+  },
+  elderChipName: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1E293B',
+  },
+  elderChipNameSelected: {
+    color: '#1D4ED8',
+  },
+  elderChipRel: {
+    fontSize: 11,
+    color: '#64748B',
+  },
+  elderStatusCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: '#CBD5E1',
+  },
+  elderStatusTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 12,
+  },
+  elderAvatarCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FEF3C7',
+    borderWidth: 2,
+    borderColor: '#F59E0B',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  elderAvatarText: {
+    fontSize: 30,
+  },
+  elderInfoGroup: {
+    flex: 1,
+  },
+  elderNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  elderMainName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#0F172A',
+  },
+  safeBadge: {
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  safeBadgeText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#15803D',
+  },
+  elderSubDetail: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  elderLocationDetail: {
+    fontSize: 12,
+    color: '#2563EB',
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  statusMetricsRow: {
+    flexDirection: 'row',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  metricItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  metricDivider: {
+    width: 1,
+    backgroundColor: '#CBD5E1',
+  },
+  metricLabel: {
+    fontSize: 11,
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  metricValue: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    marginTop: 2,
+  },
+  quickActionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  actionGridCard: {
+    width: '48%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    alignItems: 'flex-start',
+    minHeight: 100,
+    justifyContent: 'space-between',
+  },
+  actionCall: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#16A34A',
+  },
+  actionPing: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#D97706',
+  },
+  actionMeds: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#2563EB',
+  },
+  actionSchedule: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#9333EA',
+  },
+  actionGridIcon: {
+    fontSize: 24,
+  },
+  actionGridTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    marginTop: 2,
+  },
+  actionGridSub: {
+    fontSize: 11,
+    color: '#64748B',
+  },
+  alertCountBadge: {
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  alertCountText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#2563EB',
+  },
+  emptyFeedText: {
+    fontSize: 13,
+    color: '#64748B',
+    textAlign: 'center',
+    paddingVertical: 14,
+  },
+  alertsList: {
+    gap: 8,
+  },
+  alertItem: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    gap: 8,
+  },
+  alertItemActive: {
+    backgroundColor: '#FFFBEB',
+    borderColor: '#F59E0B',
+  },
+  alertItemSos: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#DC2626',
+  },
+  alertItemEmoji: {
+    fontSize: 22,
+  },
+  alertItemDetails: {
+    flex: 1,
+  },
+  alertItemTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  alertItemType: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#0F172A',
+  },
+  statusPill: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  statusPillActive: {
+    backgroundColor: '#FEE2E2',
+  },
+  statusPillResolved: {
+    backgroundColor: '#DCFCE7',
+  },
+  statusPillText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  statusPillTextActive: {
+    color: '#991B1B',
+  },
+  statusPillTextResolved: {
+    color: '#15803D',
+  },
+  alertItemNotes: {
+    fontSize: 11,
+    color: '#475569',
+    marginTop: 2,
+  },
+  alertItemTime: {
+    fontSize: 10,
+    color: '#94A3B8',
+    marginTop: 2,
+  },
+  alertActionButtons: {
+    flexDirection: 'column',
+    gap: 4,
+  },
+  ackBtn: {
+    backgroundColor: '#F59E0B',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  ackBtnText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  resolveBtn: {
+    backgroundColor: '#16A34A',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  resolveBtnOnly: {
+    backgroundColor: '#16A34A',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  resolveBtnText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  linkActionText: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#2563EB',
+  },
+  medsList: {
+    gap: 8,
+  },
+  medItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    gap: 10,
+  },
+  medThumb: {
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    backgroundColor: '#CBD5E1',
+  },
+  medItemInfo: {
+    flex: 1,
+  },
+  medItemName: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#0F172A',
+  },
+  medItemTime: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  medStatusChip: {
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  medStatusChipTaken: {
+    backgroundColor: '#DCFCE7',
+  },
+  medStatusChipPending: {
+    backgroundColor: '#FEF3C7',
+  },
+  medStatusChipText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  medStatusChipTextTaken: {
+    color: '#15803D',
+  },
+  medStatusChipTextPending: {
+    color: '#B45309',
+  },
+});

@@ -1,36 +1,76 @@
-import React, { useState } from 'react';
-import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { 
+  SafeAreaView, 
+  View, 
+  StyleSheet, 
+  StatusBar,
+  Platform 
+} from 'react-native';
 import { AppProvider, useApp } from './src/context/AppContext';
-import { ElderHome } from './src/components/elder/ElderHome';
-import { VolunteerDashboard } from './src/components/volunteer/VolunteerDashboard';
 import { HeaderNav } from './src/components/HeaderNav';
 import { TtsSubtitleBanner } from './src/components/common/TtsSubtitleBanner';
 import { CallModal } from './src/components/common/CallModal';
 import { AuthModal } from './src/components/common/AuthModal';
 import { LoginPage } from './src/components/common/LoginPage';
+import { ElderHome } from './src/components/elder/ElderHome';
+import { ElderSosCountdown } from './src/components/elder/ElderSosCountdown';
+import { ElderSosConfirmation } from './src/components/elder/ElderSosConfirmation';
+import { ElderMedicineDetail } from './src/components/elder/ElderMedicineDetail';
+import { ElderPairingView } from './src/components/elder/ElderPairingView';
+import { VolunteerDashboard } from './src/components/volunteer/VolunteerDashboard';
+import { VolunteerMissedCheckinModal } from './src/components/volunteer/VolunteerMissedCheckinModal';
 
-const MainContent = () => {
-  const { activeRole, isAuthModalOpen, setIsAuthModalOpen } = useApp();
-  const [viewLayout, setViewLayout] = useState('dual_live');
+const MainScreen: React.FC = () => {
+  const { 
+    activeRole, 
+    elderScreen, 
+    isAuthModalOpen, 
+    setIsAuthModalOpen 
+  } = useApp();
 
-  if (!activeRole) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.content}>
-          <Text style={styles.welcome}>Welcome to WellCheck</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  const renderElderContent = () => {
+    switch (elderScreen) {
+      case 'sos_countdown':
+        return <ElderSosCountdown />;
+      case 'sos_sent':
+        return <ElderSosConfirmation />;
+      case 'medicine_detail':
+        return <ElderMedicineDetail />;
+      case 'pairing':
+        return <ElderPairingView />;
+      case 'login':
+        return <LoginPage />;
+      case 'home':
+      default:
+        return <ElderHome />;
+    }
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {activeRole === 'elder' ? <ElderHome /> : <VolunteerDashboard />}
-      <CallModal />
-      <AuthModal 
-        isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
-      />
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      
+      {/* Mobile-constrained centered wrapper (Max width 480px) */}
+      <View style={styles.centerContainer}>
+        {/* Universal Top Header & Role Switcher */}
+        <HeaderNav />
+
+        {/* Realtime TTS Subtitles Bar */}
+        <TtsSubtitleBanner />
+
+        {/* Main View Area */}
+        <View style={styles.mainContainer}>
+          {activeRole === 'elder' ? renderElderContent() : <VolunteerDashboard />}
+        </View>
+
+        {/* Global Modals */}
+        <CallModal />
+        <VolunteerMissedCheckinModal />
+        <AuthModal 
+          isOpen={isAuthModalOpen} 
+          onClose={() => setIsAuthModalOpen(false)} 
+        />
+      </View>
     </SafeAreaView>
   );
 };
@@ -38,13 +78,26 @@ const MainContent = () => {
 export default function App() {
   return (
     <AppProvider>
-      <MainContent />
+      <MainScreen />
     </AppProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAF7F2' },
-  content: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  welcome: { fontSize: 22, fontWeight: 'bold', color: '#1A2B4C', marginBottom: 30 },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#0F172A', // Dark stylish backdrop on web/tablet borders
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 28) + 4 : 0,
+  },
+  centerContainer: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 480,
+    alignSelf: 'center',
+    backgroundColor: '#FAF7F2',
+    overflow: 'hidden',
+  },
+  mainContainer: {
+    flex: 1,
+  },
 });

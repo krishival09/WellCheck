@@ -1,389 +1,196 @@
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React, { useState } from 'react';
 import { 
-  X, 
-  Pill, 
-  Plus, 
-  Camera, 
-  Clock, 
-  Check, 
-  Volume2, 
-  Sparkles,
-  Upload,
-  Image as ImageIcon
-} from 'lucide-react-native';
+  Modal, 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  StyleSheet, 
+  SafeAreaView, 
+  ScrollView 
+} from 'react-native';
 import { useApp } from '../../context/AppContext';
-import { PRESET_MEDICINE_PHOTOS } from '../common/MedicinePhotoUploaderModal';
-import { soundFx } from '../../utils/audio';
-import { speakText, TRANSLATIONS } from '../../utils/speech';
 
 interface ElderAddMedicineModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const COMMON_TIME_PRESETS = [
-  { label: 'Morning (08:00 AM)', time: '08:00 AM', icon: '🌅' },
-  { label: 'Afternoon (01:00 PM)', time: '01:00 PM', icon: '☀️' },
-  { label: 'Evening (05:00 PM)', time: '05:00 PM', icon: '🌇' },
-  { label: 'Night (09:00 PM)', time: '09:00 PM', icon: '🌙' },
-];
-
-const COMMON_DOSAGE_PRESETS = [
-  '1 Tablet with water',
-  '2 Tablets with water',
-  '1 Capsule',
-  '1 Spoon syrup (5ml)',
-  'Half tablet (1/2)',
-];
-
-const COMMON_INSTRUCTIONS_PRESETS = [
-  'Take after breakfast / food with a glass of water.',
-  'Take on an empty stomach in the morning.',
-  'Take right after dinner before sleep.',
-  'Take with warm milk or water.',
-];
-
-const COMMON_MED_NAME_SUGGESTIONS = [
-  'Blood Pressure Pill',
-  'Diabetes Tablet',
-  'Morning Vitamin',
-  'Heart Medicine',
-  'Calcium Supplement',
-  'Pain Relief Tablet',
-];
-
 export const ElderAddMedicineModal: React.FC<ElderAddMedicineModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { addMedicine, pairData, language } = useApp();
-  const t = TRANSLATIONS[language] || TRANSLATIONS['en-US'];
+  const { addMedicine, pairData } = useApp();
+  const [name, setName] = useState('');
+  const [time, setTime] = useState('08:00 AM');
+  const [dosage, setDosage] = useState('1 tablet');
+  const [instructions, setInstructions] = useState('Take with water after food');
 
-  const [medicineName, setMedicineName] = useState('');
-  const [scheduledTime, setScheduledTime] = useState('08:00 AM');
-  const [dosage, setDosage] = useState('1 Tablet with water');
-  const [instructions, setInstructions] = useState('Take after breakfast / food with a glass of water.');
-  const [selectedPhoto, setSelectedPhoto] = useState(PRESET_MEDICINE_PHOTOS[0].url);
-  const [customPhotoUpload, setCustomPhotoUpload] = useState<string | null>(null);
+  const handleSave = () => {
+    if (!name.trim()) return;
 
-  if (!isOpen) return null;
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    soundFx.playTap();
-    const reader = new FileReader();
-    reader.onload = (uploadEvent) => {
-      const dataUrl = uploadEvent.target?.result as string;
-      if (dataUrl) {
-        setCustomPhotoUpload(dataUrl);
-        setSelectedPhoto(dataUrl);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleReadFormAloud = () => {
-    soundFx.playTap();
-    const promptText = `Add your new medicine. Enter medicine name, choose scheduled time like Morning 8 AM or Night 9 PM, choose dosage, and pick pill picture. Then press the green Save button.`;
-    speakText(promptText, language);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const finalName = medicineName.trim() || 'Daily Tablet';
-
-    soundFx.playSuccessChime();
     addMedicine({
-      elderId: pairData.elderId || 'elder-8841',
-      medicineName: finalName,
-      dosage: dosage.trim() || '1 tablet with water',
-      scheduledTime: scheduledTime.trim() || '08:00 AM',
-      instructions: instructions.trim() || 'Take as prescribed with water.',
-      localPhotoRef: selectedPhoto,
-      photoUploadedBy: 'elder',
-      photoUploadedAt: new Date().toISOString(),
+      elderId: pairData.elderId,
+      medicineName: name.trim(),
+      dosage: dosage.trim() || '1 tablet',
+      scheduledTime: time.trim() || '08:00 AM',
+      instructions: instructions.trim() || 'Take with water',
+      localPhotoRef: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&auto=format&fit=crop&q=80',
       taken: false,
       takenAt: null,
     });
 
-    speakText(`New medicine ${finalName} added for ${scheduledTime}`, language);
+    setName('');
     onClose();
   };
 
   return (
-    <View 
-      id="elder-add-medicine-modal"
-      
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+    <Modal
+      visible={isOpen}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={onClose}
     >
-      <View >
-        
-        {/* Header */}
-        <View >
-          <View >
-            <View >
-              💊
-            </View>
-            <View>
-              <Text >
-                Add New Medicine
-              </Text>
-              <Text >
-                Set up your dose schedule & picture
-              </Text>
-            </View>
-          </View>
+      <SafeAreaView style={styles.overlay}>
+        <View style={styles.container}>
+          <ScrollView contentContainerStyle={styles.scroll}>
+            <Text style={styles.title}>💊 Add Medication</Text>
+            <Text style={styles.subtitle}>Schedule medication reminder for elder</Text>
 
-          <View >
-            <TouchableOpacity
-              type="button"
-              id="elder-add-med-listen-btn"
-              onClick={handleReadFormAloud}
-              title="Listen to Instructions"
-              
-            >
-              <Volume2  />
-              <Text >Listen</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onClick={onClose}
-              aria-label="Close"
-              
-            >
-              <X  />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} >
-          
-          {/* 1. Medicine Name */}
-          <View >
-            <Text >
-              1. Medicine / Tablet Name *
-            </Text>
-            <input
-              id="elder-input-med-name"
-              type="text"
-              required
-              value={medicineName}
-              onChange={(e) => setMedicineName(e.target.value)}
-              placeholder="Type name (e.g. Blood Pressure Pill)"
-              
+            <Text style={styles.label}>Medicine Name:</Text>
+            <TextInput
+              style={styles.input}
+              value={name}
+              onChangeText={setName}
+              placeholder="e.g. Lisinopril 10mg"
+              placeholderTextColor="#94A3B8"
             />
-            {/* Quick Name Suggestions */}
-            <View >
-              {COMMON_MED_NAME_SUGGESTIONS.map((suggestion) => (
-                <TouchableOpacity
-                  key={suggestion}
-                  type="button"
-                  onClick={() => {
-                    soundFx.playTap();
-                    setMedicineName(suggestion);
-                  }}
-                  className={`text-[11px] font-bold px-2 py-1 rounded-lg border transition cursor-pointer ${
-                    medicineName === suggestion
-                      ? 'bg-[#1A2B4C] text-white border-[#1A2B4C]'
-                      : 'bg-[#FAF7F2] text-[#1A2B4C] border-[#1A2B4C]/40 hover:bg-slate-100'
-                  }`}
-                >
-                  + {suggestion}
-                </TouchableOpacity>
-              ))}
+
+            <Text style={styles.label}>Scheduled Time:</Text>
+            <TextInput
+              style={styles.input}
+              value={time}
+              onChangeText={setTime}
+              placeholder="e.g. 08:00 AM"
+              placeholderTextColor="#94A3B8"
+            />
+
+            <Text style={styles.label}>Dosage:</Text>
+            <TextInput
+              style={styles.input}
+              value={dosage}
+              onChangeText={setDosage}
+              placeholder="e.g. 1 tablet with water"
+              placeholderTextColor="#94A3B8"
+            />
+
+            <Text style={styles.label}>Instructions:</Text>
+            <TextInput
+              style={[styles.input, styles.multilineInput]}
+              value={instructions}
+              onChangeText={setInstructions}
+              placeholder="e.g. Take after breakfast. Stored in blue pill box."
+              placeholderTextColor="#94A3B8"
+              multiline
+            />
+
+            <View style={styles.buttonRow}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+                <Text style={styles.saveBtnText}>Save Reminder</Text>
+              </TouchableOpacity>
             </View>
-          </View>
-
-          {/* 2. Scheduled Time Selection */}
-          <View >
-            <Text >
-              <Text>2. When should you take it? *</Text>
-              <Text >
-                {scheduledTime}
-              </Text>
-            </Text>
-            
-            {/* One-tap Time Slots */}
-            <View >
-              {COMMON_TIME_PRESETS.map((slot) => (
-                <TouchableOpacity
-                  key={slot.time}
-                  type="button"
-                  onClick={() => {
-                    soundFx.playTap();
-                    setScheduledTime(slot.time);
-                  }}
-                  className={`min-h-[46px] p-2 rounded-xl border-2 font-black text-xs flex items-center gap-2 transition cursor-pointer ${
-                    scheduledTime === slot.time
-                      ? 'bg-[#1A2B4C] text-white border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C]'
-                      : 'bg-[#FAF7F2] hover:bg-amber-50 text-[#1A2B4C] border-[#1A2B4C]/40'
-                  }`}
-                >
-                  <Text >{slot.icon}</Text>
-                  <Text >{slot.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* Custom Time Input */}
-            <View >
-              <Text >Or custom time:</Text>
-              <input
-                type="text"
-                value={scheduledTime}
-                onChange={(e) => setScheduledTime(e.target.value)}
-                placeholder="e.g. 02:30 PM"
-                
-              />
-            </View>
-          </View>
-
-          {/* 3. Dosage & Instructions */}
-          <View >
-            <View>
-              <Text >
-                3. How much to take (Dosage)?
-              </Text>
-              <input
-                type="text"
-                value={dosage}
-                onChange={(e) => setDosage(e.target.value)}
-                placeholder="e.g. 1 Tablet with water"
-                
-              />
-              <View >
-                {COMMON_DOSAGE_PRESETS.map((d) => (
-                  <TouchableOpacity
-                    key={d}
-                    type="button"
-                    onClick={() => {
-                      soundFx.playTap();
-                      setDosage(d);
-                    }}
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border cursor-pointer ${
-                      dosage === d
-                        ? 'bg-[#4CAF50] text-white border-[#4CAF50]'
-                        : 'bg-[#FAF7F2] text-[#1A2B4C] border-slate-300'
-                    }`}
-                  >
-                    {d}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            <View>
-              <Text >
-                4. Instructions / With Food?
-              </Text>
-              <input
-                type="text"
-                value={instructions}
-                onChange={(e) => setInstructions(e.target.value)}
-                placeholder="e.g. Take after food with warm water"
-                
-              />
-              <View >
-                {COMMON_INSTRUCTIONS_PRESETS.map((inst) => (
-                  <TouchableOpacity
-                    key={inst}
-                    type="button"
-                    onClick={() => {
-                      soundFx.playTap();
-                      setInstructions(inst);
-                    }}
-                    className={`text-[10px] font-semibold px-2 py-0.5 rounded-lg border cursor-pointer text-left ${
-                      instructions === inst
-                        ? 'bg-[#1A2B4C] text-white border-[#1A2B4C]'
-                        : 'bg-[#FAF7F2] text-[#1A2B4C] border-slate-300'
-                    }`}
-                  >
-                    {inst}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          </View>
-
-          {/* 4. Choose Pill Picture */}
-          <View >
-            <View >
-              <Text >
-                5. Pill Picture (So you recognize it easily)
-              </Text>
-              <Text >
-                <Camera  />
-                <Text>Snap / Upload</Text>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                  
-                />
-              </Text>
-            </View>
-
-            {/* Photo Preset Grid */}
-            <View >
-              {PRESET_MEDICINE_PHOTOS.map((preset) => (
-                <TouchableOpacity
-                  key={preset.id}
-                  type="button"
-                  onClick={() => {
-                    soundFx.playTap();
-                    setSelectedPhoto(preset.url);
-                  }}
-                  className={`relative aspect-square rounded-xl overflow-hidden border-3 transition cursor-pointer ${
-                    selectedPhoto === preset.url
-                      ? 'border-[#4CAF50] ring-3 ring-[#4CAF50]/30 shadow-md scale-102'
-                      : 'border-[#1A2B4C]/40 hover:border-[#1A2B4C]'
-                  }`}
-                >
-                  <Image
-                    src={preset.url}
-                    alt={preset.title}
-                    referrerPolicy="no-referrer"
-                    
-                  />
-                  {selectedPhoto === preset.url && (
-                    <View >
-                      <Check  />
-                    </View>
-                  )}
-                  <Text >
-                    {preset.category}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          {/* Submit Button */}
-          <View >
-            <TouchableOpacity
-              id="elder-submit-add-med-btn"
-              type="submit"
-              
-            >
-              <Check  />
-              <Text>✓ Save & Add to My Schedule</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              type="button"
-              onClick={onClose}
-              
-            >
-              Cancel
-            </TouchableOpacity>
-          </View>
-        </form>
-      </View>
-    </View>
+          </ScrollView>
+        </View>
+      </SafeAreaView>
+    </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  container: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    width: '100%',
+    maxWidth: 420,
+    maxHeight: '90%',
+  },
+  scroll: {
+    padding: 24,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 15,
+    color: '#64748B',
+    textAlign: 'center',
+    marginBottom: 20,
+    marginTop: 4,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1E293B',
+    marginTop: 12,
+    marginBottom: 6,
+  },
+  input: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 2,
+    borderColor: '#CBD5E1',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#0F172A',
+  },
+  multilineInput: {
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 24,
+  },
+  cancelBtn: {
+    flex: 1,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    minHeight: 50,
+  },
+  cancelBtnText: {
+    color: '#475569',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  saveBtn: {
+    flex: 1,
+    backgroundColor: '#2563EB',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    minHeight: 50,
+  },
+  saveBtnText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+});

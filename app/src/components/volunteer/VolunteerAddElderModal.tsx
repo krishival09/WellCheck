@@ -1,23 +1,15 @@
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React, { useState } from 'react';
 import { 
-  X, 
-  UserPlus, 
-  KeyRound, 
-  HeartHandshake, 
-  Phone, 
-  MapPin, 
-  Languages, 
-  Plus, 
-  Check, 
-  Sparkles,
-  ShieldCheck,
-  UserCheck
-} from 'lucide-react-native';
+  Modal, 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  StyleSheet, 
+  SafeAreaView, 
+  ScrollView 
+} from 'react-native';
 import { useApp } from '../../context/AppContext';
-import { soundFx } from '../../utils/audio';
-import { SUPPORTED_LANGUAGES } from '../../utils/speech';
-import { SupportedLanguage } from '../../types';
 
 interface VolunteerAddElderModalProps {
   isOpen: boolean;
@@ -28,438 +20,173 @@ export const VolunteerAddElderModal: React.FC<VolunteerAddElderModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { addElderByPin, addNewElder, selectElder, volunteerLanguage } = useApp();
-
-  const [tab, setTab] = useState<'pin' | 'profile'>('pin');
-
-  // PIN Pair Tab State
-  const [pinCode, setPinCode] = useState('');
-  const [pinElderName, setPinElderName] = useState('');
-  const [pinRelationship, setPinRelationship] = useState('Mother');
-  const [pinError, setPinError] = useState('');
-
-  // Profile Create Tab State
+  const { addNewElder } = useApp();
   const [name, setName] = useState('');
   const [relationship, setRelationship] = useState('Mother');
-  const [age, setAge] = useState<string>('78');
-  const [phoneCountryCode, setPhoneCountryCode] = useState('+1');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [preferredLang, setPreferredLang] = useState<SupportedLanguage>('en-US');
+  const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
-  const [landmark, setLandmark] = useState('');
-  const [medicalConditionsStr, setMedicalConditionsStr] = useState('Hypertension, Arthritis');
-  const [emergencyContactName, setEmergencyContactName] = useState('Sarah Chen');
-  const [emergencyContactPhone, setEmergencyContactPhone] = useState('(555) 019-2834');
-  const [profileError, setProfileError] = useState('');
 
   if (!isOpen) return null;
 
-  const handlePairWithPin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (pinCode.trim().length < 4) {
-      setPinError('Please enter a 4-digit PIN code.');
-      return;
-    }
+  const handleSave = () => {
+    if (!name.trim()) return;
 
-    const res = addElderByPin(pinCode.trim(), pinElderName.trim() || undefined, pinRelationship.trim());
-    if (res.success) {
-      soundFx.playSuccessChime();
-      if (res.elder) {
-        selectElder(res.elder.id);
-      }
-      onClose();
-    } else {
-      setPinError(res.message || 'Could not pair with this PIN. Please check the code.');
-    }
-  };
-
-  const handleCreateProfile = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) {
-      setProfileError('Please enter the elder’s full name.');
-      return;
-    }
-
-    const conditions = medicalConditionsStr
-      .split(',')
-      .map(c => c.trim())
-      .filter(Boolean);
-
-    const newElderId = addNewElder({
+    addNewElder({
       name: name.trim(),
-      relationship: relationship.trim(),
-      age: parseInt(age, 10) || 75,
-      phoneCountryCode,
-      phoneNumber: phoneNumber.trim() || '4155559811',
-      preferredLanguage: preferredLang,
-      address: address.trim() || 'Apartment 2B, 108 Oakwood Lane',
-      landmark: landmark.trim() || 'Near Community Health Clinic',
-      medicalConditions: conditions,
-      emergencyContactName: emergencyContactName.trim(),
-      emergencyContactPhone: emergencyContactPhone.trim(),
+      relationship: relationship.trim() || 'Elder',
+      phoneNumber: phone.trim() || '4155550192',
+      address: address.trim() || '108 Oakwood Lane, Apt 2B',
     });
 
-    soundFx.playSuccessChime();
-    selectElder(newElderId);
+    setName('');
+    setPhone('');
+    setAddress('');
     onClose();
   };
 
-  const quickDemoPins = [
-    { pin: '7492', name: 'Eleanor Vance', rel: 'Mother', age: 78, icon: '👵' },
-    { pin: '1234', name: 'Arthur Pendelton', rel: 'Father', age: 82, icon: '👴' },
-    { pin: '5521', name: 'Grace Hopper-Chen', rel: 'Aunt', age: 76, icon: '🧓' },
-    { pin: '8833', name: 'Robert Tanaka', rel: 'Grandfather', age: 85, icon: '👴' },
-  ];
-
   return (
-    <View 
-      id="volunteer-add-elder-modal"
-      
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+    <Modal
+      visible={isOpen}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={onClose}
     >
-      <View >
-        
-        {/* Header */}
-        <View >
-          <View >
-            <View >
-              <UserPlus  />
-            </View>
-            <View>
-              <Text >
-                Add Elder to Account
-              </Text>
-              <Text >
-                Care for and monitor multiple family members or clients
-              </Text>
-            </View>
-          </View>
+      <SafeAreaView style={styles.overlay}>
+        <View style={styles.container}>
+          <ScrollView contentContainerStyle={styles.scroll}>
+            <Text style={styles.title}>👥 Add Monitored Elder</Text>
+            <Text style={styles.subtitle}>Register a new elder family member or client</Text>
 
-          <TouchableOpacity
-            id="close-add-elder-modal-btn"
-            onClick={onClose}
-            
-          >
-            <X  />
-          </TouchableOpacity>
-        </View>
+            <Text style={styles.label}>Elder Name:</Text>
+            <TextInput
+              style={styles.input}
+              value={name}
+              onChangeText={setName}
+              placeholder="e.g. Arthur Pendelton"
+              placeholderTextColor="#94A3B8"
+            />
 
-        {/* Tab Switcher */}
-        <View >
-          <TouchableOpacity
-            id="add-elder-tab-pin-btn"
-            onClick={() => {
-              soundFx.playTap();
-              setTab('pin');
-            }}
-            className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 border-2 transition cursor-pointer ${
-              tab === 'pin'
-                ? 'bg-[#1A2B4C] text-white border-[#1A2B4C] shadow-sm'
-                : 'bg-[#FAF7F2] text-[#1A2B4C] border-transparent hover:bg-slate-100'
-            }`}
-          >
-            <KeyRound  />
-            <Text>Connect via PIN</Text>
-          </TouchableOpacity>
+            <Text style={styles.label}>Relationship:</Text>
+            <TextInput
+              style={styles.input}
+              value={relationship}
+              onChangeText={setRelationship}
+              placeholder="e.g. Mother, Father, Client"
+              placeholderTextColor="#94A3B8"
+            />
 
-          <TouchableOpacity
-            id="add-elder-tab-profile-btn"
-            onClick={() => {
-              soundFx.playTap();
-              setTab('profile');
-            }}
-            className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 border-2 transition cursor-pointer ${
-              tab === 'profile'
-                ? 'bg-[#1A2B4C] text-white border-[#1A2B4C] shadow-sm'
-                : 'bg-[#FAF7F2] text-[#1A2B4C] border-transparent hover:bg-slate-100'
-            }`}
-          >
-            <UserCheck  />
-            <Text>New Profile</Text>
-          </TouchableOpacity>
-        </View>
+            <Text style={styles.label}>Phone Number:</Text>
+            <TextInput
+              style={styles.input}
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="e.g. +91 98450 12345"
+              placeholderTextColor="#94A3B8"
+              keyboardType="phone-pad"
+            />
 
-        {/* Modal Body */}
-        <View >
+            <Text style={styles.label}>Home Address:</Text>
+            <TextInput
+              style={styles.input}
+              value={address}
+              onChangeText={setAddress}
+              placeholder="e.g. 742 Evergreen Terrace, Springfield"
+              placeholderTextColor="#94A3B8"
+            />
 
-          {/* TAB 1: CONNECT VIA PIN CODE */}
-          {tab === 'pin' && (
-            <form onSubmit={handlePairWithPin} >
-              <View >
-                <Text >
-                  Elder Pairing PIN Code
-                </Text>
-                <Text >
-                  Enter the 4-digit PIN code displayed on the elder's device screen.
-                </Text>
-
-                <input
-                  id="add-elder-pin-input"
-                  type="text"
-                  maxLength={6}
-                  value={pinCode}
-                  onChange={(e) => {
-                    setPinCode(e.target.value.replace(/\D/g, ''));
-                    setPinError('');
-                  }}
-                  placeholder="e.g. 7492"
-                  
-                />
-
-                <View >
-                  <View>
-                    <Text >
-                      Elder Name (Optional)
-                    </Text>
-                    <input
-                      type="text"
-                      value={pinElderName}
-                      onChange={(e) => setPinElderName(e.target.value)}
-                      placeholder="e.g. Arthur"
-                      
-                    />
-                  </View>
-                  <View>
-                    <Text >
-                      Relationship
-                    </Text>
-                    <select
-                      value={pinRelationship}
-                      onChange={(e) => setPinRelationship(e.target.value)}
-                      
-                    >
-                      <option value="Mother">Mother</option>
-                      <option value="Father">Father</option>
-                      <option value="Grandmother">Grandmother</option>
-                      <option value="Grandfather">Grandfather</option>
-                      <option value="Aunt / Uncle">Aunt / Uncle</option>
-                      <option value="Spouse">Spouse</option>
-                      <option value="Client / Ward">Client / Ward</option>
-                      <option value="Neighbor">Neighbor</option>
-                    </select>
-                  </View>
-                </View>
-
-                {pinError && (
-                  <Text >
-                    {pinError}
-                  </Text>
-                )}
-              </View>
-
-              {/* Quick Demo PIN Chips */}
-              <View >
-                <Text >
-                  Quick Demo Elders (Tap to Auto-Fill):
-                </Text>
-                <View >
-                  {quickDemoPins.map((item) => (
-                    <TouchableOpacity
-                      key={item.pin}
-                      type="button"
-                      onClick={() => {
-                        soundFx.playTap();
-                        setPinCode(item.pin);
-                        setPinElderName(item.name);
-                        setPinRelationship(item.rel);
-                        setPinError('');
-                      }}
-                      
-                    >
-                      <Text >{item.icon}</Text>
-                      <View >
-                        <View >{item.name}</View>
-                        <View >
-                          {item.rel} • PIN <Text >{item.pin}</Text>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-
-              <TouchableOpacity
-                id="submit-add-elder-pin-btn"
-                type="submit"
-                
-              >
-                <KeyRound  />
-                <Text>Pair & Add Elder</Text>
+            <View style={styles.buttonRow}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
+                <Text style={styles.cancelBtnText}>Cancel</Text>
               </TouchableOpacity>
-            </form>
-          )}
 
-          {/* TAB 2: REGISTER FULL NEW ELDER PROFILE */}
-          {tab === 'profile' && (
-            <form onSubmit={handleCreateProfile} >
-              <View >
-                
-                {/* Full Name & Relationship */}
-                <View >
-                  <View>
-                    <Text >
-                      Full Name *
-                    </Text>
-                    <input
-                      id="new-elder-name-input"
-                      type="text"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="e.g. Margaret Smith"
-                      
-                    />
-                  </View>
-                  <View>
-                    <Text >
-                      Relationship
-                    </Text>
-                    <select
-                      value={relationship}
-                      onChange={(e) => setRelationship(e.target.value)}
-                      
-                    >
-                      <option value="Mother">Mother</option>
-                      <option value="Father">Father</option>
-                      <option value="Grandmother">Grandmother</option>
-                      <option value="Grandfather">Grandfather</option>
-                      <option value="Aunt">Aunt</option>
-                      <option value="Uncle">Uncle</option>
-                      <option value="Spouse">Spouse</option>
-                      <option value="Client / Ward">Client / Ward</option>
-                      <option value="Neighbor">Neighbor</option>
-                    </select>
-                  </View>
-                </View>
-
-                {/* Age & Preferred Language */}
-                <View >
-                  <View>
-                    <Text >
-                      Age
-                    </Text>
-                    <input
-                      type="number"
-                      value={age}
-                      onChange={(e) => setAge(e.target.value)}
-                      placeholder="78"
-                      
-                    />
-                  </View>
-                  <View>
-                    <Text >
-                      Language
-                    </Text>
-                    <select
-                      value={preferredLang}
-                      onChange={(e) => setPreferredLang(e.target.value as SupportedLanguage)}
-                      
-                    >
-                      {SUPPORTED_LANGUAGES.map(lang => (
-                        <option key={lang.code} value={lang.code}>
-                          {lang.flag} {lang.nativeLabel} ({lang.label})
-                        </option>
-                      ))}
-                    </select>
-                  </View>
-                </View>
-
-                {/* Phone Number */}
-                <View >
-                  <View >
-                    <Text >
-                      Code
-                    </Text>
-                    <input
-                      type="text"
-                      value={phoneCountryCode}
-                      onChange={(e) => setPhoneCountryCode(e.target.value)}
-                      placeholder="+1"
-                      
-                    />
-                  </View>
-                  <View >
-                    <Text >
-                      Phone Number
-                    </Text>
-                    <input
-                      type="tel"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="415-555-0192"
-                      
-                    />
-                  </View>
-                </View>
-
-                {/* Address & Landmark */}
-                <View>
-                  <Text >
-                    Home Address (For Safe Zone & GPS)
-                  </Text>
-                  <input
-                    type="text"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="e.g. 512 Willow Street, Apt 3A"
-                    
-                  />
-                </View>
-
-                <View>
-                  <Text >
-                    Landmark / Nearby Safe Zone
-                  </Text>
-                  <input
-                    type="text"
-                    value={landmark}
-                    onChange={(e) => setLandmark(e.target.value)}
-                    placeholder="e.g. Near Willow Creek Community Center"
-                    
-                  />
-                </View>
-
-                {/* Medical Conditions */}
-                <View>
-                  <Text >
-                    Medical Notes / Conditions (Comma-separated)
-                  </Text>
-                  <input
-                    type="text"
-                    value={medicalConditionsStr}
-                    onChange={(e) => setMedicalConditionsStr(e.target.value)}
-                    placeholder="e.g. Hypertension, Diabetes, Pacemaker"
-                    
-                  />
-                </View>
-
-                {profileError && (
-                  <Text >
-                    {profileError}
-                  </Text>
-                )}
-              </View>
-
-              <TouchableOpacity
-                id="submit-create-elder-profile-btn"
-                type="submit"
-                
-              >
-                <UserCheck  />
-                <Text>Create & Add Elder Profile</Text>
+              <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+                <Text style={styles.saveBtnText}>Register Elder</Text>
               </TouchableOpacity>
-            </form>
-          )}
+            </View>
+          </ScrollView>
         </View>
-
-        {/* Footer info */}
-        <View >
-          <ShieldCheck  />
-          <Text>All elders synced in real-time with GPS safety & medicine alerts</Text>
-        </View>
-      </View>
-    </View>
+      </SafeAreaView>
+    </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  container: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    width: '100%',
+    maxWidth: 420,
+    maxHeight: '90%',
+  },
+  scroll: {
+    padding: 24,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#64748B',
+    textAlign: 'center',
+    marginBottom: 16,
+    marginTop: 4,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1E293B',
+    marginTop: 12,
+    marginBottom: 6,
+  },
+  input: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1.5,
+    borderColor: '#CBD5E1',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 15,
+    color: '#0F172A',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 24,
+  },
+  cancelBtn: {
+    flex: 1,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    minHeight: 50,
+  },
+  cancelBtnText: {
+    color: '#475569',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  saveBtn: {
+    flex: 1,
+    backgroundColor: '#2563EB',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    minHeight: 50,
+  },
+  saveBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+});

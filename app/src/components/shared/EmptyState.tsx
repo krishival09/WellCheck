@@ -1,70 +1,52 @@
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React from 'react';
-import { BellOff, Pill, ShieldCheck, Plus } from 'lucide-react-native';
+import { View, Text, StyleSheet } from 'react-native';
 
 interface EmptyStateProps {
-  type: 'alerts' | 'medicines' | 'general';
-  title?: string;
+  icon?: string;
+  title: string;
   description?: string;
-  actionText?: string;
-  onAction?: () => void;
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({
-  type,
-  title,
-  description,
-  actionText,
-  onAction,
+export const EmptyState: React.FC<EmptyStateProps> = ({ 
+  icon = '📋', 
+  title, 
+  description 
 }) => {
-  const getIcon = () => {
-    switch (type) {
-      case 'alerts':
-        return <BellOff  />;
-      case 'medicines':
-        return <Pill  />;
-      default:
-        return <ShieldCheck  />;
-    }
-  };
-
-  const defaultTitle = 
-    type === 'alerts' 
-      ? 'No Active Alerts' 
-      : type === 'medicines' 
-      ? 'No Medicine Reminders Set' 
-      : 'All Clear';
-
-  const defaultDesc = 
-    type === 'alerts'
-      ? 'Everything is quiet and safe. Past events will show up here.'
-      : type === 'medicines'
-      ? 'Add daily prescriptions and vitamins to track adherence.'
-      : 'No pending items at this time.';
-
   return (
-    <View 
-      id={`empty-state-${type}`}
-      
-    >
-      <View >
-        {getIcon()}
-      </View>
-      <Text >
-        {title || defaultTitle}
-      </Text>
-      <Text >
-        {description || defaultDesc}
-      </Text>
-      {actionText && onAction && (
-        <TouchableOpacity
-          onClick={onAction}
-          
-        >
-          <Plus  />
-          <Text>{actionText}</Text>
-        </TouchableOpacity>
-      )}
+    <View style={styles.container}>
+      <Text style={styles.icon}>{icon}</Text>
+      <Text style={styles.title}>{title}</Text>
+      {description ? <Text style={styles.description}>{description}</Text> : null}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    marginVertical: 12,
+  },
+  icon: {
+    fontSize: 40,
+    marginBottom: 12,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    textAlign: 'center',
+  },
+  description: {
+    marginTop: 8,
+    fontSize: 16,
+    color: '#475569',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+});

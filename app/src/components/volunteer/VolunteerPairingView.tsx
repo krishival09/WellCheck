@@ -1,154 +1,236 @@
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React, { useState } from 'react';
+import { 
+  Modal, 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  StyleSheet, 
+  SafeAreaView, 
+  ActivityIndicator 
+} from 'react-native';
 import { useApp } from '../../context/AppContext';
-import { KeyRound, ArrowRight, UserCheck, Languages } from 'lucide-react-native';
-import { SUPPORTED_LANGUAGES, TRANSLATIONS } from '../../utils/speech';
-import { SupportedLanguage } from '../../types';
 
 interface VolunteerPairingViewProps {
-  onSuccess: () => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export const VolunteerPairingView: React.FC<VolunteerPairingViewProps> = ({ onSuccess }) => {
-  const { pairData, pairVolunteerWithPin, volunteerLanguage, setVolunteerLanguage } = useApp();
-  const [pinInput, setPinInput] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
-  const [showLangMenu, setShowLangMenu] = useState(false);
+export const VolunteerPairingView: React.FC<VolunteerPairingViewProps> = ({
+  isOpen,
+  onClose,
+}) => {
+  const { pairVolunteerWithPin } = useApp();
+  const [pin, setPin] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<{ text: string; error: boolean } | null>(null);
 
-  const t = TRANSLATIONS[volunteerLanguage] || TRANSLATIONS['en-US'];
-  const currentVolLang = SUPPORTED_LANGUAGES.find(l => l.code === volunteerLanguage) || SUPPORTED_LANGUAGES[0];
+  if (!isOpen) return null;
 
-  const handlePair = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (pinInput.trim().length < 4) {
-      setErrorMsg('Please enter a valid 4-digit PIN code.');
+  const handlePair = async () => {
+    if (pin.trim().length < 4) {
+      setMessage({ text: 'Please enter a valid 4-digit PIN code.', error: true });
       return;
     }
-    const success = pairVolunteerWithPin(pinInput);
-    if (success) {
-      setErrorMsg('');
-      onSuccess();
-    } else {
-      setErrorMsg('Pair not found. Check the PIN shown on Elder device.');
+
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      const success = await pairVolunteerWithPin(pin.trim());
+      if (success) {
+        setMessage({ text: 'Device successfully paired and synchronized!', error: false });
+        setTimeout(() => {
+          onClose();
+          setPin('');
+          setMessage(null);
+        }, 1500);
+      } else {
+        setMessage({ text: 'Pair not found. Please verify the PIN on the elder phone.', error: true });
+      }
+    } catch (err) {
+      setMessage({ text: 'Error connecting device. Please check PIN.', error: true });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <View 
-      id="volunteer-pairing-screen" 
-      
+    <Modal
+      visible={isOpen}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={onClose}
     >
-      <View >
-        <View>
-          <Text >WellCheck</Text>
-          <Text >{t.caregiverSetupText || 'Caregiver Setup'}</Text>
-        </View>
-        
-        {/* Volunteer Language Selector Dropdown (Identical to Elder UI) */}
-        <View >
-          <TouchableOpacity
-            id="volunteer-pairing-lang-btn"
-            onClick={() => setShowLangMenu(!showLangMenu)}
-            aria-label="Select Volunteer Language"
-            
-          >
-            <Languages  />
-            <Text>{currentVolLang?.flag || '🌐'}</Text>
-          </TouchableOpacity>
+      <SafeAreaView style={styles.overlay}>
+        <View style={styles.container}>
+          <Text style={styles.title}>🔗 Connect to Elder Phone</Text>
+          <Text style={styles.subtitle}>
+            Enter the 4-digit PIN displayed on the elder's WellCheck screen:
+          </Text>
 
-          {showLangMenu && (
-            <View 
-              id="volunteer-pairing-lang-dropdown"
-              
-            >
-              <View >
-                <Text>Select Language</Text>
-                <Text >Volunteer Mode</Text>
-              </View>
-              {SUPPORTED_LANGUAGES.map((lang) => (
-                <TouchableOpacity
-                  key={lang.code}
-                  onClick={() => {
-                    setVolunteerLanguage(lang.code as SupportedLanguage);
-                    setShowLangMenu(false);
-                  }}
-                  className={`min-h-[40px] w-full px-3 py-1.5 text-left rounded-lg flex items-center gap-2.5 font-bold text-xs transition cursor-pointer ${
-                    volunteerLanguage === lang.code
-                      ? 'bg-[#1A2B4C] text-white'
-                      : 'hover:bg-slate-100 text-[#1A2B4C]'
-                  }`}
-                >
-                  <Text >{lang.flag}</Text>
-                  <View >
-                    <Text >{lang.nativeLabel}</Text>
-                    <Text >{lang.label} {lang.region ? `(${lang.region})` : ''}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
+          {/* PIN Input */}
+          <TextInput
+            style={styles.pinInput}
+            value={pin}
+            onChangeText={(val) => {
+              setPin(val);
+              if (message) setMessage(null);
+            }}
+            placeholder="e.g. 7492"
+            placeholderTextColor="#94A3B8"
+            keyboardType="number-pad"
+            maxLength={6}
+            autoFocus
+          />
+
+          {message ? (
+            <View style={[styles.messageBox, message.error ? styles.errorBox : styles.successBox]}>
+              <Text style={[styles.messageText, message.error ? styles.errorText : styles.successText]}>
+                {message.text}
+              </Text>
             </View>
-          )}
-        </View>
-      </View>
+          ) : null}
 
-      <View >
-        <View >
-          <KeyRound  />
-        </View>
+          {/* Buttons */}
+          <View style={styles.buttonRow}>
+            <TouchableOpacity 
+              style={styles.cancelBtn} 
+              onPress={onClose}
+              disabled={loading}
+            >
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
 
-        <Text >
-          {t.connectToElderText || 'Connect to Elder'}
-        </Text>
-        <Text >
-          {t.enter4DigitPinText || "Enter the 4-digit code generated on your family member's phone."}
-        </Text>
-
-        <form onSubmit={handlePair} >
-          <View>
-            <input
-              id="volunteer-pin-input"
-              type="text"
-              maxLength={6}
-              value={pinInput}
-              onChange={(e) => {
-                setPinInput(e.target.value.replace(/\D/g, ''));
-                setErrorMsg('');
-              }}
-              placeholder={pairData.pinCode || '7492'}
-              
-            />
-            <Text >
-              Default demo PIN: <Text >{pairData.pinCode}</Text>
-            </Text>
+            <TouchableOpacity 
+              style={[styles.connectBtn, loading && styles.connectBtnDisabled]} 
+              onPress={handlePair}
+              disabled={loading}
+              activeOpacity={0.8}
+            >
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.connectText}>Connect Device</Text>
+              )}
+            </TouchableOpacity>
           </View>
 
-          {errorMsg && (
-            <Text >
-              {errorMsg}
-            </Text>
-          )}
-
-          <TouchableOpacity
-            id="volunteer-submit-pin-btn"
-            type="submit"
-            
-          >
-            <Text>{t.connectDeviceBtn || 'Connect Device'}</Text>
-            <ArrowRight  />
-          </TouchableOpacity>
-        </form>
-
-        <View >
-          <UserCheck  />
-          <View >
-            <Text >Single Active Elder Scoped</Text>
-            <Text >Auto-queries alerts/{'{elderId}'} via Firestore</Text>
-          </View>
+          <Text style={styles.helperText}>
+            💡 Tip: Open Elder Mode on the second device, tap 'Pairing PIN' to view the active code.
+          </Text>
         </View>
-      </View>
-
-      <View >
-        WellCheck Caregiver Sync Engine • Spark Plan Safe
-      </View>
-    </View>
+      </SafeAreaView>
+    </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  container: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    width: '100%',
+    maxWidth: 420,
+    borderWidth: 2,
+    borderColor: '#CBD5E1',
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 15,
+    color: '#64748B',
+    textAlign: 'center',
+    marginTop: 6,
+    marginBottom: 20,
+    lineHeight: 22,
+  },
+  pinInput: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 3,
+    borderColor: '#2563EB',
+    borderRadius: 16,
+    paddingVertical: 16,
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    textAlign: 'center',
+    letterSpacing: 8,
+    marginBottom: 16,
+  },
+  messageBox: {
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 16,
+  },
+  errorBox: {
+    backgroundColor: '#FEE2E2',
+  },
+  successBox: {
+    backgroundColor: '#DCFCE7',
+  },
+  messageText: {
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  errorText: {
+    color: '#991B1B',
+  },
+  successText: {
+    color: '#15803D',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelBtn: {
+    flex: 1,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    minHeight: 52,
+    justifyContent: 'center',
+  },
+  cancelText: {
+    color: '#475569',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  connectBtn: {
+    flex: 1.5,
+    backgroundColor: '#2563EB',
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 52,
+  },
+  connectBtnDisabled: {
+    backgroundColor: '#94A3B8',
+  },
+  connectText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  helperText: {
+    fontSize: 13,
+    color: '#64748B',
+    textAlign: 'center',
+    marginTop: 18,
+    lineHeight: 18,
+  },
+});

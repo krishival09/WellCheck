@@ -1,211 +1,203 @@
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React from 'react';
 import { 
-  AlertTriangle, 
-  Phone, 
-  MapPin, 
-  ShieldAlert, 
-  X, 
-  Clock, 
-  CheckCircle2,
-  Battery,
-  Navigation
-} from 'lucide-react-native';
+  Modal, 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  StyleSheet, 
+  SafeAreaView 
+} from 'react-native';
 import { useApp } from '../../context/AppContext';
-import { soundFx } from '../../utils/audio';
 
-interface VolunteerMissedCheckinModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  scheduledTime: string;
-  alertId?: string;
-  onOpenLocationTracker: () => void;
-}
-
-export const VolunteerMissedCheckinModal: React.FC<VolunteerMissedCheckinModalProps> = ({
-  isOpen,
-  onClose,
-  scheduledTime,
-  alertId,
-  onOpenLocationTracker,
-}) => {
-  const {
-    pairData,
-    elderProfile,
-    elderLocation,
-    startCall,
-    acknowledgeAlert,
-    resolveAlert,
+export const VolunteerMissedCheckinModal: React.FC = () => {
+  const { 
+    activeMissedCheckinModal, 
+    closeMissedCheckinModal, 
+    acknowledgeAlert, 
+    resolveAlert, 
+    startCall, 
+    pairData 
   } = useApp();
 
-  if (!isOpen) return null;
+  if (!activeMissedCheckinModal?.isOpen) return null;
 
-  const handleCallElder = () => {
-    soundFx.playTap();
-    onClose();
-    startCall({
-      contactName: pairData.elderName || 'Eleanor Vance',
-      contactRole: 'elder',
-      phoneNumber: elderProfile.phoneNumber || '(555) 018-9923',
-      reason: 'checkin',
+  const handleCall = () => {
+    startCall({ 
+      contactName: pairData.elderName || 'Eleanor Vance', 
+      contactRole: 'elder', 
+      reason: 'checkin' 
     });
+    closeMissedCheckinModal();
   };
 
-  const handleCallEmergencyContact = () => {
-    soundFx.playTap();
-    onClose();
-    startCall({
-      contactName: elderProfile.emergencyContactName || 'Sarah Chen (Daughter)',
-      contactRole: 'emergency',
-      phoneNumber: elderProfile.emergencyContactPhone || '(555) 019-2834',
-      reason: 'checkin',
-    });
-  };
-
-  const handleTrackLocation = () => {
-    soundFx.playTap();
-    onClose();
-    onOpenLocationTracker();
-  };
-
-  const handleResolveAndDismiss = () => {
-    soundFx.playSuccessChime();
-    if (alertId) {
-      resolveAlert(alertId);
+  const handleAck = () => {
+    if (activeMissedCheckinModal.alertId) {
+      acknowledgeAlert(activeMissedCheckinModal.alertId);
     }
-    onClose();
+    closeMissedCheckinModal();
+  };
+
+  const handleResolve = () => {
+    if (activeMissedCheckinModal.alertId) {
+      resolveAlert(activeMissedCheckinModal.alertId);
+    }
+    closeMissedCheckinModal();
   };
 
   return (
-    <View 
-      id="volunteer-missed-checkin-alert-modal"
-      
+    <Modal
+      visible={activeMissedCheckinModal.isOpen}
+      animationType="fade"
+      transparent={true}
+      onRequestClose={closeMissedCheckinModal}
     >
-      <View >
-        
-        {/* Urgent Alert Header */}
-        <View >
-          <View >
-            <View >
-              <AlertTriangle  />
-            </View>
-            <View>
-              <Text >
-                URGENT ESCALATION
-              </Text>
-              <Text >
-                Missed Check-In Alert!
-              </Text>
-            </View>
-          </View>
-
-          <TouchableOpacity
-            onClick={onClose}
-            aria-label="Close modal"
-            
-          >
-            <X  />
-          </TouchableOpacity>
-        </View>
-
-        {/* Content Body */}
-        <View >
+      <SafeAreaView style={styles.overlay}>
+        <View style={styles.container}>
+          <Text style={styles.icon}>⚠️</Text>
+          <Text style={styles.title}>Missed Check-In Alert</Text>
           
-          {/* Main Notice Box */}
-          <View >
-            <View >
-              <View >
-                <View >
-                  {pairData.elderName.charAt(0)}
-                </View>
-                <Text >
-                  {pairData.elderName}
-                </Text>
-              </View>
-              <Text >
-                <Clock  />
-                {scheduledTime} Check-In
-              </Text>
-            </View>
+          <Text style={styles.description}>
+            <Text style={styles.highlight}>{pairData.elderName || 'Elder'}</Text> did not respond to the safety check-in prompt scheduled for{' '}
+            <Text style={styles.highlight}>{activeMissedCheckinModal.scheduledTime}</Text> within the 3-minute response window.
+          </Text>
 
-            <Text >
-              <Text >{pairData.elderName} did not check in</Text> within the required <Text >3-minute response window</Text> for the {scheduledTime} safety check.
-            </Text>
+          <View style={styles.badgeBox}>
+            <Text style={styles.badgeText}>Escalation Level: Caregiver Attention Required</Text>
           </View>
 
-          {/* Elder Live Location & Battery Snapshot */}
-          <View >
-            <View >
-              <View >
-                <MapPin  />
-              </View>
-              <View >
-                <Text >
-                  Last Known GPS Location
-                </Text>
-                <Text >
-                  {elderLocation.address}
-                </Text>
-              </View>
-            </View>
+          <View style={styles.actions}>
+            <TouchableOpacity 
+              style={styles.callBtn} 
+              onPress={handleCall}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.btnIcon}>📞</Text>
+              <Text style={styles.btnText}>Call Elder Now</Text>
+            </TouchableOpacity>
 
-            <View >
-              <Battery  />
-              <Text>{elderLocation.batteryLevel}%</Text>
+            <View style={styles.buttonRow}>
+              <TouchableOpacity 
+                style={styles.ackBtn} 
+                onPress={handleAck}
+              >
+                <Text style={styles.ackBtnText}>Acknowledge</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.resolveBtn} 
+                onPress={handleResolve}
+              >
+                <Text style={styles.resolveBtnText}>Mark Resolved</Text>
+              </TouchableOpacity>
             </View>
           </View>
-
-          {/* Action Buttons Grid */}
-          <View >
-            
-            {/* Primary Action 1: Call Elder Directly */}
-            <TouchableOpacity
-              id="missed-checkin-call-elder-btn"
-              onClick={handleCallElder}
-              
-            >
-              <Phone  />
-              <Text>Call {pairData.elderName.split(' ')[0]} Directly</Text>
-            </TouchableOpacity>
-
-            {/* Primary Action 2: Track Live GPS Location */}
-            <TouchableOpacity
-              id="missed-checkin-track-location-btn"
-              onClick={handleTrackLocation}
-              
-            >
-              <Navigation  />
-              <Text>Track Live GPS Location on Map</Text>
-            </TouchableOpacity>
-
-            {/* Primary Action 3: Call Emergency Family Contact */}
-            <TouchableOpacity
-              id="missed-checkin-call-emergency-btn"
-              onClick={handleCallEmergencyContact}
-              
-            >
-              <ShieldAlert  />
-              <Text>Call Emergency Contact ({elderProfile.emergencyContactName?.split(' ')[0] || 'Family'})</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Dismiss & Acknowledge */}
-          <View >
-            <Text >
-              Check in confirmed in person?
-            </Text>
-            <TouchableOpacity
-              onClick={handleResolveAndDismiss}
-              
-            >
-              <CheckCircle2  />
-              <Text>Mark Resolved & Safe</Text>
-            </TouchableOpacity>
-          </View>
-
         </View>
-
-      </View>
-    </View>
+      </SafeAreaView>
+    </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  container: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    width: '100%',
+    maxWidth: 420,
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#F59E0B',
+  },
+  icon: {
+    fontSize: 52,
+    marginBottom: 8,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#0F172A',
+    textAlign: 'center',
+  },
+  description: {
+    fontSize: 16,
+    color: '#475569',
+    textAlign: 'center',
+    marginTop: 12,
+    lineHeight: 24,
+  },
+  highlight: {
+    fontWeight: 'bold',
+    color: '#0F172A',
+  },
+  badgeBox: {
+    backgroundColor: '#FEF3C7',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    marginVertical: 18,
+  },
+  badgeText: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#B45309',
+  },
+  actions: {
+    width: '100%',
+    gap: 12,
+  },
+  callBtn: {
+    backgroundColor: '#16A34A',
+    borderRadius: 14,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    minHeight: 56,
+  },
+  btnIcon: {
+    fontSize: 22,
+  },
+  btnText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  ackBtn: {
+    flex: 1,
+    backgroundColor: '#F59E0B',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    minHeight: 50,
+  },
+  ackBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  resolveBtn: {
+    flex: 1,
+    backgroundColor: '#0F172A',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    minHeight: 50,
+  },
+  resolveBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+});

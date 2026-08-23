@@ -1,276 +1,232 @@
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
-import React, { useState } from 'react';
-import { useApp } from '../../context/AppContext';
+import React from 'react';
 import { 
-  Phone, 
-  PhoneOff, 
-  Mic, 
-  MicOff, 
-  Volume2, 
-  VolumeX, 
-  Grid3X3, 
-  ShieldCheck, 
-  Sparkles,
-  ExternalLink,
-  MessageSquare,
-  X
-} from 'lucide-react-native';
-import { TRANSLATIONS } from '../../utils/speech';
-import { soundFx } from '../../utils/audio';
+  Modal, 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  StyleSheet, 
+  Linking, 
+  SafeAreaView 
+} from 'react-native';
+import { useApp } from '../../context/AppContext';
 
 export const CallModal: React.FC = () => {
-  const { 
-    activeCall, 
-    endCall, 
-    toggleCallMute, 
-    toggleCallSpeaker, 
-    triggerCallDialogue,
-    activeRole,
-    language,
-    volunteerLanguage
-  } = useApp();
+  const { activeCall, endCall, toggleCallMute, toggleCallSpeaker } = useApp();
 
-  const [showKeypad, setShowKeypad] = useState(false);
-  const [dialedDigits, setDialedDigits] = useState('');
+  if (!activeCall.isOpen) {
+    return null;
+  }
 
-  if (!activeCall.isOpen) return null;
-
-  const isElder = activeRole === 'elder';
-  const currentLang = isElder ? language : volunteerLanguage;
-  const t = TRANSLATIONS[currentLang] || TRANSLATIONS['en-US'];
-
-  // Format seconds into MM:SS
-  const formatTime = (secs: number) => {
-    const mins = Math.floor(secs / 60);
-    const remainderSecs = secs % 60;
-    return `${mins.toString().padStart(2, '0')}:${remainderSecs.toString().padStart(2, '0')}`;
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleKeypadPress = (key: string) => {
-    soundFx.playTap();
-    setDialedDigits(prev => prev + key);
+  const handleNativeCall = () => {
+    if (activeCall.phoneNumber) {
+      Linking.openURL(`tel:${activeCall.phoneNumber}`).catch(() => {});
+    }
   };
-
-  // Quick conversation prompts based on active role
-  const quickElderResponses = [
-    { label: "I am okay, thank you!", speech: "I am feeling okay now, thank you for checking on me." },
-    { label: "Need help here", speech: "I need a little help at home, could you please assist me?" },
-    { label: "Took my medicine", speech: "I have taken my scheduled medicine just now." },
-    { label: "See you soon", speech: "Thank you so much Sarah, see you soon." },
-  ];
-
-  const quickVolunteerResponses = [
-    { label: "Are you feeling okay?", speech: "Hi Eleanor, are you feeling okay right now?" },
-    { label: "I am on my way!", speech: "Don't worry, I am on my way to your apartment now." },
-    { label: "Did you take medicine?", speech: "Just checking in, did you take your scheduled medicine today?" },
-    { label: "Call 911 dispatch", speech: "I am alerting emergency services to assist you right away." },
-  ];
-
-  const responses = isElder ? quickElderResponses : quickVolunteerResponses;
-  const cleanPhone = activeCall.phoneNumber.replace(/[^\d+]/g, '');
 
   return (
-    <View 
-      id="active-call-modal-overlay"
-      
+    <Modal
+      visible={activeCall.isOpen}
+      animationType="slide"
+      transparent={false}
+      onRequestClose={endCall}
     >
-      <View 
-        id="active-call-card"
-        
-      >
-        {/* Top Status Header */}
-        <View >
-          <View >
-            <Text className={`w-3 h-3 rounded-full ${
-              activeCall.status === 'connected' 
-                ? 'bg-[#4CAF50] animate-pulse' 
-                : activeCall.status === 'ringing' 
-                ? 'bg-[#FFB84D] animate-ping' 
-                : 'bg-red-500'
-            }`} />
-            <Text >
-              {activeCall.status === 'dialing' && 'Connecting Network...'}
-              {activeCall.status === 'ringing' && 'Ringing...'}
-              {activeCall.status === 'connected' && `Call Connected • ${formatTime(activeCall.connectedDurationSec)}`}
-              {activeCall.status === 'ended' && 'Call Ended'}
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          {/* Top Status */}
+          <View style={styles.header}>
+            <Text style={styles.callBadge}>
+              {activeCall.status === 'ringing' ? '🔔 CALLING...' : '🟢 CONNECTED (LIVE AUDIO)'}
+            </Text>
+            <Text style={styles.contactName}>{activeCall.contactName}</Text>
+            <Text style={styles.phoneNumber}>{activeCall.phoneNumber}</Text>
+            <Text style={styles.callStatus}>
+              {activeCall.status === 'connected'
+                ? formatDuration(activeCall.connectedDurationSec)
+                : 'Ringing caregiver phone...'}
             </Text>
           </View>
-          <View >
-            <Text >
-              <ShieldCheck  />
-              Secure VoIP
-            </Text>
-            <TouchableOpacity
-              onClick={endCall}
-              
-              title="Close Call"
-            >
-              <X  />
-            </TouchableOpacity>
-          </View>
-        </View>
 
-        {/* Callee / Caller Profile Details */}
-        <View >
-          {/* Avatar Ring */}
-          <View >
-            {activeCall.status === 'connected' && (
-              <View  />
-            )}
-            {activeCall.status === 'ringing' && (
-              <View  />
-            )}
-            <View >
-              {activeCall.contactName.charAt(0)}
-            </View>
-          </View>
-
-          <Text >
-            {activeCall.contactName}
-          </Text>
-          <Text >
-            {activeCall.contactRole === 'caregiver' ? 'Primary Volunteer / Daughter' : 'Paired Elder • Apt 4B'}
-          </Text>
-          <Text >
-            {activeCall.phoneNumber}
-          </Text>
-
-          {/* Animated Audio Waveform when call is connected */}
-          {activeCall.status === 'connected' ? (
-            <View >
-              <View >
-                {[40, 75, 100, 60, 90, 45, 80, 100, 65, 30].map((height, i) => (
-                  <Text
-                    key={i}
-                    style={{ height: `${height}%` }}
-                    
-                  />
-                ))}
-              </View>
-              <Text >
-                Voice channel active • Crystal Clear HD Audio
+          {/* Avatar / Animation Center */}
+          <View style={styles.avatarContainer}>
+            <View style={styles.avatarCircle}>
+              <Text style={styles.avatarEmoji}>
+                {activeCall.contactRole === 'caregiver' ? '👩‍⚕️' : '👵'}
               </Text>
             </View>
-          ) : (
-            <View >
-              <Text  />
-              <Text>Contacting device ({activeCall.phoneNumber})...</Text>
-            </View>
-          )}
-
-          {/* Quick Voice Dialogue Simulator */}
-          {activeCall.status === 'connected' && (
-            <View >
-              <View >
-                <Text >
-                  <MessageSquare  /> Quick Voice Prompts
-                </Text>
-                <Text >
-                  Tap to speak
-                </Text>
-              </View>
-              <View >
-                {responses.map((resp, idx) => (
-                  <TouchableOpacity
-                    key={idx}
-                    onClick={() => triggerCallDialogue(resp.speech)}
-                    
-                  >
-                    <Sparkles  />
-                    <Text >{resp.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          )}
-
-          {/* Keypad View if opened */}
-          {showKeypad && (
-            <View >
-              <View >
-                {dialedDigits || 'Tap digits for DTMF tone'}
-              </View>
-              <View >
-                {['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'].map((k) => (
-                  <TouchableOpacity
-                    key={k}
-                    onClick={() => handleKeypadPress(k)}
-                    
-                  >
-                    {k}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          )}
-        </View>
-
-        {/* Bottom Call Controls */}
-        <View >
-          {/* Action Button Strip: Mute, Keypad, Speaker, Native Dial */}
-          <View >
-            {/* Mute Button */}
-            <TouchableOpacity
-              id="call-mute-toggle-btn"
-              onClick={toggleCallMute}
-              className={`h-12 rounded-2xl border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] flex flex-col items-center justify-center gap-0.5 active:scale-95 transition cursor-pointer ${
-                activeCall.isMuted ? 'bg-[#FF6B4A] text-white' : 'bg-white text-[#1A2B4C] hover:bg-slate-50'
-              }`}
-              title={activeCall.isMuted ? 'Unmute microphone' : 'Mute microphone'}
-            >
-              {activeCall.isMuted ? <MicOff  /> : <Mic  />}
-              <Text >{activeCall.isMuted ? 'Muted' : 'Mute'}</Text>
-            </TouchableOpacity>
-
-            {/* Keypad Button */}
-            <TouchableOpacity
-              id="call-keypad-toggle-btn"
-              onClick={() => setShowKeypad(!showKeypad)}
-              className={`h-12 rounded-2xl border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] flex flex-col items-center justify-center gap-0.5 active:scale-95 transition cursor-pointer ${
-                showKeypad ? 'bg-[#1A2B4C] text-white' : 'bg-white text-[#1A2B4C] hover:bg-slate-50'
-              }`}
-              title="Toggle Keypad"
-            >
-              <Grid3X3  />
-              <Text >Keypad</Text>
-            </TouchableOpacity>
-
-            {/* Speaker Button */}
-            <TouchableOpacity
-              id="call-speaker-toggle-btn"
-              onClick={toggleCallSpeaker}
-              className={`h-12 rounded-2xl border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] flex flex-col items-center justify-center gap-0.5 active:scale-95 transition cursor-pointer ${
-                activeCall.isSpeakerOn ? 'bg-[#4CAF50] text-white' : 'bg-white text-[#1A2B4C] hover:bg-slate-50'
-              }`}
-              title="Toggle Speakerphone"
-            >
-              {activeCall.isSpeakerOn ? <Volume2  /> : <VolumeX  />}
-              <Text >{activeCall.isSpeakerOn ? 'Speaker' : 'Earpiece'}</Text>
-            </TouchableOpacity>
-
-            {/* Native Cellular Dial Link */}
-            <a
-              id="call-cellular-dial-link"
-              href={`tel:${cleanPhone}`}
-              
-              title="Launch Device Phone Dialer"
-            >
-              <ExternalLink  />
-              <Text >Cellular</Text>
-            </a>
           </View>
 
-          {/* Big End Call Button */}
-          <TouchableOpacity
-            id="call-hangup-btn"
-            onClick={endCall}
-            
+          {/* Native Dialer Shortcut */}
+          <TouchableOpacity 
+            style={styles.nativeDialButton}
+            onPress={handleNativeCall}
+            activeOpacity={0.8}
           >
-            <PhoneOff  />
-            <Text>End Call</Text>
+            <Text style={styles.nativeDialText}>📞 Open Native Phone Dialer</Text>
           </TouchableOpacity>
+
+          {/* Controls */}
+          <View style={styles.controlsRow}>
+            <TouchableOpacity
+              style={[styles.controlBtn, activeCall.isMuted && styles.controlBtnActive]}
+              onPress={toggleCallMute}
+            >
+              <Text style={styles.controlIcon}>{activeCall.isMuted ? '🔇' : '🎙️'}</Text>
+              <Text style={styles.controlLabel}>{activeCall.isMuted ? 'Unmute' : 'Mute'}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.controlBtn, activeCall.isSpeakerOn && styles.controlBtnActive]}
+              onPress={toggleCallSpeaker}
+            >
+              <Text style={styles.controlIcon}>{activeCall.isSpeakerOn ? '🔊' : '🔈'}</Text>
+              <Text style={styles.controlLabel}>Speaker</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* End Call Button */}
+          <View style={styles.endCallContainer}>
+            <TouchableOpacity 
+              style={styles.endCallBtn} 
+              onPress={endCall}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.endCallIcon}>📵</Text>
+              <Text style={styles.endCallText}>END CALL</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </View>
+      </SafeAreaView>
+    </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#0F172A',
+  },
+  container: {
+    flex: 1,
+    padding: 24,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  header: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  callBadge: {
+    color: '#38BDF8',
+    fontSize: 15,
+    fontWeight: 'bold',
+    letterSpacing: 1.5,
+    marginBottom: 12,
+  },
+  contactName: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  phoneNumber: {
+    color: '#94A3B8',
+    fontSize: 18,
+    marginTop: 6,
+  },
+  callStatus: {
+    color: '#E2E8F0',
+    fontSize: 20,
+    fontWeight: '600',
+    marginTop: 12,
+  },
+  avatarContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  avatarCircle: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: '#1E293B',
+    borderWidth: 4,
+    borderColor: '#38BDF8',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarEmoji: {
+    fontSize: 64,
+  },
+  nativeDialButton: {
+    backgroundColor: '#334155',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#475569',
+    minHeight: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  nativeDialText: {
+    color: '#F8FAFC',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  controlsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 28,
+  },
+  controlBtn: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: '#1E293B',
+    borderWidth: 2,
+    borderColor: '#475569',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  controlBtnActive: {
+    backgroundColor: '#2563EB',
+    borderColor: '#60A5FA',
+  },
+  controlIcon: {
+    fontSize: 32,
+    marginBottom: 4,
+  },
+  controlLabel: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  endCallContainer: {
+    width: '100%',
+    marginBottom: 20,
+  },
+  endCallBtn: {
+    backgroundColor: '#DC2626',
+    borderRadius: 16,
+    height: 70,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+  },
+  endCallIcon: {
+    fontSize: 30,
+  },
+  endCallText: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+});

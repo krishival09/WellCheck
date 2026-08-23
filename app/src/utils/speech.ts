@@ -1,3 +1,4 @@
+import * as Speech from 'expo-speech';
 import { CountryCodeOption, LanguageOption, SupportedLanguage } from '../types';
 import { soundFx } from './audio';
 
@@ -1693,30 +1694,30 @@ export function stopSpeaking() {
     clearTimeout(activeSafetyTimeout);
     activeSafetyTimeout = null;
   }
+  try {
+    if (Speech && typeof Speech.stop === 'function') {
+      Speech.stop();
+    }
+  } catch {}
   if (activeAudio) {
     try {
       activeAudio.pause();
       activeAudio.currentTime = 0;
       activeAudio.src = '';
-    } catch {
-      // ignore
-    }
+    } catch {}
     activeAudio = null;
   }
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     try {
       window.speechSynthesis.cancel();
-    } catch {
-      // ignore
-    }
+    } catch {}
   }
   notifySpeechListeners('', 'en-US', false);
 }
 
 /**
  * Universal High-Fidelity Speech Engine:
- * 1. Plays authentic native streaming TTS via /api/tts endpoint (crisp natural accents in Hindi, Telugu, Marathi, Bengali, Tamil, Gujarati, Kannada, Malayalam, Punjabi, Odia, Spanish, Mandarin, Cantonese, Vietnamese, Tagalog, English).
- * 2. Seamlessly falls back to local Web Speech API synthesis or chimes if offline.
+ * Uses expo-speech natively on iOS/Android, with fallback to Web Speech API when running on web.
  */
 export function speakText(text: string, langCode: SupportedLanguage = 'en-US') {
   if (!text || !text.trim()) return;
@@ -1726,56 +1727,26 @@ export function speakText(text: string, langCode: SupportedLanguage = 'en-US') {
   notifySpeechListeners(text, langCode, true);
 
   const cleanText = text.trim();
-  const encodedText = encodeURIComponent(cleanText);
-  const encodedLang = encodeURIComponent(langCode);
-  const ttsUrl = `/api/tts?text=${encodedText}&lang=${encodedLang}`;
 
-  const audio = new Audio(ttsUrl);
-  activeAudio = audio;
-  let playbackStarted = false;
-
-  const onPlaybackDone = () => {
-    if (activeSafetyTimeout) {
-      clearTimeout(activeSafetyTimeout);
-      activeSafetyTimeout = null;
+  // 1. Try Native Expo Speech
+  try {
+    if (Speech && typeof Speech.speak === 'function') {
+      Speech.speak(cleanText, {
+        language: langCode,
+        rate: 0.9,
+        onDone: () => notifySpeechListeners(cleanText, langCode, false),
+        onError: () => notifySpeechListeners(cleanText, langCode, false),
+      });
+      return;
     }
-    if (activeAudio === audio) {
-      activeAudio = null;
-    }
-    notifySpeechListeners(text, langCode, false);
-  };
-
-  audio.onplay = () => {
-    playbackStarted = true;
-  };
-
-  audio.onended = () => {
-    onPlaybackDone();
-  };
-
-  audio.onerror = () => {
-    if (!playbackStarted) {
-      // Upstream audio endpoint failed or offline -> fall back to browser Web Speech API
-      fallbackBrowserSpeech(cleanText, langCode, onPlaybackDone);
-    } else {
-      onPlaybackDone();
-    }
-  };
-
-  const playPromise = audio.play();
-  if (playPromise !== undefined) {
-    playPromise.catch((err) => {
-      console.warn('Audio.play() error or policy block, attempting Web Speech fallback:', err);
-      fallbackBrowserSpeech(cleanText, langCode, onPlaybackDone);
-    });
+  } catch (err) {
+    // Continue to browser fallback
   }
 
-  // Safety timeout to reset speech state if audio is interrupted
-  activeSafetyTimeout = setTimeout(() => {
-    if (activeAudio === audio) {
-      onPlaybackDone();
-    }
-  }, Math.max(4500, cleanText.length * 160));
+  // 2. Browser fallback
+  fallbackBrowserSpeech(cleanText, langCode, () => {
+    notifySpeechListeners(cleanText, langCode, false);
+  });
 }
 
 function fallbackBrowserSpeech(

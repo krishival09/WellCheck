@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "start": "expo start",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
-    "lint": "tsc"
+    "start": "node node_modules/expo/bin/cli start",
+    "android": "node node_modules/expo/bin/cli run:android",
+    "ios": "node node_modules/expo/bin/cli run:ios",
+    "web": "node node_modules/expo/bin/cli start --web",
+    "lint": "node node_modules/typescript/lib/tsc.js --noEmit"
   },
   "dependencies": {
     "expo": "^54.0.0",

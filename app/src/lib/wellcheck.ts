@@ -108,12 +108,29 @@ export async function pairVolunteer(pinCode: string, volunteerId: string): Promi
     }
 
     const data = docSnap.data() as PairDoc;
-    if (data.volunteerId !== null) {
+    if (data.volunteerId !== null && data.volunteerId !== volunteerId) {
       throw new Error('This PIN has already been used.');
     }
 
     await updateDoc(pairDocRef, { volunteerId });
     return { ...data, volunteerId };
+  });
+}
+
+/**
+ * Real-time listener on pairs/{pinCode} document.
+ * Fires when a volunteer enters the PIN and writes volunteerId.
+ */
+export function listenToPairingDoc(pinCode: string, callback: (pair: PairDoc | null) => void) {
+  const pairDocRef = doc(db, 'pairs', pinCode);
+  return onSnapshot(pairDocRef, (snap) => {
+    if (snap.exists()) {
+      callback(snap.data() as PairDoc);
+    } else {
+      callback(null);
+    }
+  }, (error) => {
+    console.warn('Pair listener notice:', error);
   });
 }
 

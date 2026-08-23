@@ -1,336 +1,353 @@
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Image, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import React, { useState } from 'react';
-import { useApp } from '../../context/AppContext';
 import { 
-  Pill, 
-  CheckCircle2, 
-  Volume2, 
-  Camera, 
-  Clock, 
-  Info, 
-  ChevronLeft,
-  Upload,
-  Sparkles,
-  ChevronRight,
-  Plus
-} from 'lucide-react-native';
-import { speakText, TRANSLATIONS } from '../../utils/speech';
-import { TtsSubtitleBanner } from '../common/TtsSubtitleBanner';
+  View, 
+  Text, 
+  TouchableOpacity, 
+  Image, 
+  StyleSheet, 
+  ScrollView, 
+  SafeAreaView 
+} from 'react-native';
+import { useApp } from '../../context/AppContext';
+import { TRANSLATIONS, speakText } from '../../utils/speech';
 import { MedicinePhotoUploaderModal } from '../common/MedicinePhotoUploaderModal';
-import { ElderAddMedicineModal } from './ElderAddMedicineModal';
-import { soundFx } from '../../utils/audio';
-
-const DEFAULT_MED_PILL_PHOTO = 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&auto=format&fit=crop&q=80';
 
 export const ElderMedicineDetail: React.FC = () => {
-  const {
-    medicines,
-    selectedMedicineId,
-    setSelectedMedicineId,
-    markMedicineTaken,
-    setElderScreen,
-    language,
-    elderProfile,
+  const { 
+    selectedMedicineId, 
+    medicines, 
+    markMedicineTaken, 
+    setElderScreen, 
+    language 
   } = useApp();
 
-  const t = TRANSLATIONS[language] || TRANSLATIONS['en-US'];
-  const medicine = medicines.find(m => m.id === selectedMedicineId) || medicines[0];
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
-  const [isAddMedModalOpen, setIsAddMedModalOpen] = useState(false);
 
-  const handleTakePill = () => {
-    if (medicine) {
-      markMedicineTaken(medicine.id);
-    }
-  };
+  const t = TRANSLATIONS[language] || TRANSLATIONS['en-US'];
+  const med = medicines.find(m => m.id === selectedMedicineId) || medicines[0];
 
-  const handleReadDirectionsAloud = () => {
-    if (!medicine) return;
-    const text = `${t.medicinePrompt('', medicine.scheduledTime)} ${medicine.dosage}. ${medicine.instructions}`;
-    speakText(text, language);
-  };
-
-  if (!medicine) {
+  if (!med) {
     return (
-      <View >
-        <Text >No medicine selected.</Text>
-        <TouchableOpacity
-          onClick={() => setElderScreen('home')}
-          
-        >
-          {t.backText}
-        </TouchableOpacity>
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <Text style={styles.errorText}>Medicine not found.</Text>
+          <TouchableOpacity style={styles.backBtn} onPress={() => setElderScreen('home')}>
+            <Text style={styles.backBtnText}>← {t.backText}</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     );
   }
 
-  const currentIndex = medicines.findIndex(m => m.id === medicine.id);
+  const handleListen = () => {
+    speakText(
+      `${med.medicineName}. ${t.scheduledTimeText}: ${med.scheduledTime}. ${t.dosageText}: ${med.dosage}. ${t.instructionsText}: ${med.instructions}`,
+      language
+    );
+  };
+
+  const handleTakePill = async () => {
+    await markMedicineTaken(med.id);
+    setElderScreen('home');
+  };
 
   return (
-    <View 
-      id="elder-medicine-detail-screen"
-      
-    >
-      {/* Top Header */}
-      <View >
-        <TouchableOpacity
-          id="elder-med-back-button"
-          onClick={() => setElderScreen('home')}
-          aria-label="Back to Home"
-          
-        >
-          <ChevronLeft  />
-          <Text>{t.backText}</Text>
-        </TouchableOpacity>
-        
-        <View >
-          {/* Add New Medicine button */}
-          <TouchableOpacity
-            id="elder-detail-add-med-btn"
-            onClick={() => {
-              soundFx.playTap();
-              setIsAddMedModalOpen(true);
-            }}
-            aria-label="Add new medicine"
-            title="Add new medicine"
-            
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        {/* Navigation Bar */}
+        <View style={styles.navRow}>
+          <TouchableOpacity 
+            style={styles.backBtn} 
+            onPress={() => setElderScreen('home')}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Back to Home Screen"
           >
-            <Plus  />
-            <Text >Add Pill</Text>
+            <Text style={styles.backBtnIcon}>⬅️</Text>
+            <Text style={styles.backBtnText}>{t.backText}</Text>
           </TouchableOpacity>
 
-          {/* Quick upload photo button in header */}
-          <TouchableOpacity
-            id="elder-quick-upload-photo-header-btn"
-            onClick={() => {
-              soundFx.playTap();
-              setIsPhotoModalOpen(true);
-            }}
-            aria-label="Upload photo of medicine"
-            title="Upload photo of medicine"
-            
+          <TouchableOpacity 
+            style={styles.listenBtn} 
+            onPress={handleListen}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Listen to medicine instructions"
           >
-            <Camera  />
-            <Text >Photo</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            id="elder-med-read-aloud-btn"
-            onClick={handleReadDirectionsAloud}
-            aria-label="Read medicine directions aloud"
-            title="Read directions aloud"
-            
-          >
-            <Volume2  />
-            <Text>{t.listenText}</Text>
+            <Text style={styles.listenIcon}>🔊</Text>
+            <Text style={styles.listenText}>{t.listenText}</Text>
           </TouchableOpacity>
         </View>
-      </View>
 
-      {/* Medication Switcher Tabs (if multiple medicines exist) */}
-      <View >
-        {medicines.map((m, idx) => (
-          <TouchableOpacity
-            key={m.id}
-            onClick={() => {
-              soundFx.playTap();
-              setSelectedMedicineId(m.id);
-            }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase whitespace-nowrap border-2 transition cursor-pointer flex items-center gap-2 ${
-              m.id === medicine.id
-                ? 'bg-[#1A2B4C] text-white border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C]'
-                : 'bg-white text-[#1A2B4C] border-[#1A2B4C]/40 hover:border-[#1A2B4C]'
-            }`}
-          >
-            <View >
-              <Image
-                src={m.localPhotoRef || DEFAULT_MED_PILL_PHOTO}
-                alt="Dose thumbnail"
-                referrerPolicy="no-referrer"
-                
-              />
-            </View>
-            <Text>{m.scheduledTime}</Text>
-            <Text className={`w-2 h-2 rounded-full ${m.taken ? 'bg-[#4CAF50]' : 'bg-[#FFB84D]'}`} />
-          </TouchableOpacity>
-        ))}
-
-        <TouchableOpacity
-          onClick={() => {
-            soundFx.playTap();
-            setIsAddMedModalOpen(true);
-          }}
+        {/* Medicine Main Card */}
+        <View style={styles.mainCard}>
+          <Text style={styles.medTitle}>{med.medicineName}</Text>
           
-          title="Add another medicine"
-        >
-          <Plus  />
-          <Text>+ Add</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View >
-        <TtsSubtitleBanner />
-      </View>
-
-      {/* Main Medicine Info */}
-      <View >
-        
-        {/* Scheduled Time Banner */}
-        <View >
-          <View >
-            <View >
-              <Clock  />
-            </View>
-            <View>
-              <Text >
-                {t.scheduledTimeText}
+          <View style={styles.timeBadgeRow}>
+            <View style={[styles.timeBadge, med.taken ? styles.timeBadgeTaken : styles.timeBadgePending]}>
+              <Text style={[styles.timeBadgeText, med.taken ? styles.timeBadgeTextTaken : styles.timeBadgeTextPending]}>
+                ⏰ {med.scheduledTime} • {med.taken ? t.takenText : t.dueNowText}
               </Text>
-              <View >
-                {medicine.scheduledTime}
-              </View>
             </View>
           </View>
-          <Text 
-            className={`text-xs font-black px-3 py-1.5 rounded-full border border-[#1A2B4C] shadow-[1px_1px_0px_#1A2B4C] uppercase tracking-wider ${
-              medicine.taken
-                ? 'bg-[#4CAF50] text-white'
-                : 'bg-[#FFB84D] text-[#1A2B4C]'
-            }`}
-          >
-            {medicine.taken ? t.takenText : t.dueNowText}
-          </Text>
-        </View>
 
-        {/* Primary Tablet Picture Card (No Name, Picture Only Focus) */}
-        <View >
-          <View >
-            <View >
-              <View >
-                💊
+          {/* Local Photo Card */}
+          <View style={styles.photoContainer}>
+            {med.localPhotoRef ? (
+              <Image source={{ uri: med.localPhotoRef }} style={styles.medImage} />
+            ) : (
+              <View style={styles.photoPlaceholder}>
+                <Text style={styles.placeholderEmoji}>💊</Text>
+                <Text style={styles.placeholderLabel}>No photo uploaded yet</Text>
               </View>
-              <Text >
-                Pill to Take
-              </Text>
-            </View>
-            <TouchableOpacity
-              id="elder-upload-photo-direct-btn"
-              onClick={() => {
-                soundFx.playTap();
-                setIsPhotoModalOpen(true);
-              }}
-              
+            )}
+
+            <TouchableOpacity 
+              style={styles.photoUploadBtn}
+              onPress={() => setIsPhotoModalOpen(true)}
+              activeOpacity={0.8}
             >
-              <Upload  />
-              <Text>Change Photo</Text>
+              <Text style={styles.photoUploadIcon}>📸</Text>
+              <Text style={styles.photoUploadText}>
+                {med.localPhotoRef ? 'Change Photo (Local)' : 'Add Photo (Local)'}
+              </Text>
             </TouchableOpacity>
           </View>
 
-          {/* Large Picture Viewport */}
-          <View 
-            onClick={() => {
-              soundFx.playTap();
-              setIsPhotoModalOpen(true);
-            }}
-            
-          >
-            <Image
-              src={medicine.localPhotoRef || DEFAULT_MED_PILL_PHOTO}
-              alt="Scheduled tablet to take"
-              referrerPolicy="no-referrer"
-              
-            />
-            
-            {/* Click to change badge */}
-            <View >
-              <Camera  />
-              <Text>Tap to Change or Snap Photo</Text>
-            </View>
-
-            {/* Uploader badge */}
-            <View >
-              <Sparkles  />
-              <Text>
-                {medicine.photoUploadedBy === 'elder' 
-                  ? 'Uploaded by Elder' 
-                  : medicine.photoUploadedBy === 'volunteer' 
-                  ? 'Uploaded by Volunteer' 
-                  : 'Verified pill picture'}
-              </Text>
-            </View>
+          {/* Dosage & Instructions */}
+          <View style={styles.infoSection}>
+            <Text style={styles.sectionLabel}>📋 {t.dosageText}:</Text>
+            <Text style={styles.sectionValue}>{med.dosage}</Text>
           </View>
 
-          {/* Dosage & Simple Taking Instructions (No Tablet Name) */}
-          <View >
-            <View >
-              <Text >
-                {t.dosageText}: {medicine.dosage}
-              </Text>
-              <Text >
-                {medicine.scheduledTime}
-              </Text>
-            </View>
-            <View >
-              <Info  />
-              <Text >
-                {medicine.instructions}
-              </Text>
-            </View>
+          <View style={styles.infoSection}>
+            <Text style={styles.sectionLabel}>ℹ️ {t.instructionsText}:</Text>
+            <Text style={styles.sectionValue}>{med.instructions}</Text>
           </View>
         </View>
-      </View>
 
-      {/* Large Taken Button */}
-      <View >
-        {medicine.taken ? (
-          <View >
-            <CheckCircle2  />
-            <View >
-              <Text >
-                {t.takenText}
-              </Text>
-              <Text >
-                {t.medicineTaken}
-              </Text>
-            </View>
-          </View>
-        ) : (
-          <TouchableOpacity
-            id="elder-taken-pill-button"
-            onClick={handleTakePill}
-            aria-label="Confirm Medicine Taken"
-            
-          >
-            <CheckCircle2  />
-            <View >
-              <Text >
-                {t.takePillAction}
-              </Text>
-              <Text >
-                {t.takeMedicineSubtext}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        )}
-      </View>
+        {/* Take Action Button */}
+        <TouchableOpacity
+          style={[styles.takeActionBtn, med.taken && styles.takeActionBtnTaken]}
+          onPress={handleTakePill}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel="Confirm taking medicine"
+        >
+          <Text style={styles.takeActionIcon}>{med.taken ? '✓' : '💊'}</Text>
+          <Text style={styles.takeActionText}>
+            {med.taken ? 'Already Taken ✓ (Tap to refresh)' : t.takePillAction}
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
 
       {/* Photo Uploader Modal */}
-      {isPhotoModalOpen && (
-        <MedicinePhotoUploaderModal
-          medicine={medicine}
-          isOpen={isPhotoModalOpen}
-          uploaderRole="elder"
-          onClose={() => setIsPhotoModalOpen(false)}
-          onPhotoSaved={() => setIsPhotoModalOpen(false)}
-        />
-      )}
-
-      {/* Elder Add Medicine Modal */}
-      {isAddMedModalOpen && (
-        <ElderAddMedicineModal
-          isOpen={isAddMedModalOpen}
-          onClose={() => setIsAddMedModalOpen(false)}
-        />
-      )}
-    </View>
+      <MedicinePhotoUploaderModal
+        isOpen={isPhotoModalOpen}
+        onClose={() => setIsPhotoModalOpen(false)}
+        medicineId={med.id}
+        medicineName={med.medicineName}
+        currentPhotoUri={med.localPhotoRef}
+      />
+    </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FAF7F2',
+  },
+  container: {
+    flex: 1,
+  },
+  content: {
+    padding: 16,
+    paddingBottom: 40,
+    gap: 16,
+  },
+  errorText: {
+    fontSize: 20,
+    color: '#DC2626',
+    textAlign: 'center',
+    marginTop: 40,
+  },
+  navRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  backBtn: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#CBD5E1',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minHeight: 52,
+  },
+  backBtnIcon: {
+    fontSize: 18,
+  },
+  backBtnText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#0F172A',
+  },
+  listenBtn: {
+    backgroundColor: '#EFF6FF',
+    borderWidth: 2,
+    borderColor: '#3B82F6',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minHeight: 52,
+  },
+  listenIcon: {
+    fontSize: 18,
+  },
+  listenText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1D4ED8',
+  },
+  mainCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 20,
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+    gap: 16,
+  },
+  medTitle: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#0F172A',
+    lineHeight: 32,
+  },
+  timeBadgeRow: {
+    flexDirection: 'row',
+  },
+  timeBadge: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+  },
+  timeBadgePending: {
+    backgroundColor: '#FEF3C7',
+  },
+  timeBadgeTaken: {
+    backgroundColor: '#DCFCE7',
+  },
+  timeBadgeText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  timeBadgeTextPending: {
+    color: '#B45309',
+  },
+  timeBadgeTextTaken: {
+    color: '#15803D',
+  },
+  photoContainer: {
+    width: '100%',
+    height: 220,
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 2,
+    borderColor: '#CBD5E1',
+    position: 'relative',
+  },
+  medImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  photoPlaceholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderEmoji: {
+    fontSize: 56,
+  },
+  placeholderLabel: {
+    fontSize: 16,
+    color: '#64748B',
+    marginTop: 8,
+  },
+  photoUploadBtn: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    gap: 6,
+  },
+  photoUploadIcon: {
+    fontSize: 16,
+  },
+  photoUploadText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  infoSection: {
+    backgroundColor: '#F8FAFC',
+    padding: 14,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#2563EB',
+  },
+  sectionLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1E293B',
+    marginBottom: 4,
+  },
+  sectionValue: {
+    fontSize: 18,
+    color: '#334155',
+    lineHeight: 24,
+  },
+  takeActionBtn: {
+    backgroundColor: '#16A34A',
+    borderRadius: 20,
+    paddingVertical: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    minHeight: 72,
+    borderWidth: 2,
+    borderColor: '#15803D',
+    shadowColor: '#16A34A',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  takeActionBtnTaken: {
+    backgroundColor: '#475569',
+    borderColor: '#334155',
+  },
+  takeActionIcon: {
+    fontSize: 28,
+  },
+  takeActionText: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: '900',
+  },
+});
