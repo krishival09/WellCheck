@@ -291,7 +291,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     pinCode: '7492',
     elderId: 'elder-8841',
     elderName: 'Eleanor Vance',
-    volunteerId: 'vol-3019',
+    // Derived from the default volunteer profile email — consistent with Bug 2+3 fix
+    volunteerId: 'vol-sarah-chen-wellcheck-org',
     volunteerName: 'Sarah Chen (Daughter)',
     createdAt: new Date().toISOString(),
     isPaired: true,
@@ -369,13 +370,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
           setPairData((prev) => {
             if (!prev.isPaired) {
               soundFx.playSuccessChime();
-              speakText(`Device successfully paired with Caregiver ${docData.volunteerId}`, language);
+              speakText('Device successfully paired with your Caregiver.', language);
             }
             return {
               ...prev,
               isPaired: true,
-              volunteerId: docData.volunteerId || 'vol-3019',
-              volunteerName: docData.volunteerId || undefined,
+              // Use the real volunteerId from Firestore — no hardcoded fallback
+              volunteerId: docData.volunteerId,
+              // volunteerName comes from existing local profile if already set,
+              // otherwise keep whatever was stored in the pair doc
+              volunteerName: prev.volunteerName || volunteerProfile.name || 'Caregiver',
             };
           });
         }
@@ -386,7 +390,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     } catch (err) {
       console.warn('Pairing doc listener notice:', err);
     }
-  }, [pairData.pinCode, language]);
+  }, [pairData.pinCode, language, volunteerProfile.name]);
 
   // Call timer interval
   useEffect(() => {
@@ -779,7 +783,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const generateNewPin = useCallback(async () => {
     soundFx.playSuccessChime();
-    const newPin = Math.floor(1000 + Math.random() * 9000).toString();
+    // Bug 1 fix: backend is the single source of truth for the PIN.
+    // We use the PIN it writes to Firestore as our local state too.
+    let newPin = Math.floor(1000 + Math.random() * 9000).toString(); // local fallback
+    try {
+      const backendPin = await generatePinBackend(pairData.elderId);
+      if (backendPin) newPin = backendPin;
+    } catch (err) {
+      console.warn('generatePinBackend notice (using local fallback):', err);
+    }
     setPairData((prev) => ({
       ...prev,
       pinCode: newPin,
@@ -787,19 +799,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       volunteerId: null,
       volunteerName: undefined,
     }));
-    try {
-      await generatePinBackend(pairData.elderId);
-    } catch (err) {
-      console.warn('generatePinBackend notice:', err);
-    }
     speakText(`New pairing PIN generated: ${newPin.split('').join(' ')}`, language);
   }, [pairData.elderId, language]);
 
   const pairVolunteerWithPin = useCallback(async (pin: string) => {
     const trimmed = pin.trim();
+    // Bug 2+3 fix: derive a stable, consistent volunteerId from the volunteer's
+    // profile rather than using the display name or a hardcoded placeholder.
+    // This ID is what gets written to Firestore pairs/{pin}.volunteerId.
+    const volunteerId =
+      volunteerProfile.email
+        ? `vol-${volunteerProfile.email.replace(/[^a-z0-9]/gi, '-').toLowerCase()}`
+        : `vol-${Date.now().toString().slice(-6)}`;
+
     let backendSuccess = false;
     try {
-      const docData = await pairVolunteerBackend(trimmed, volunteerProfile.name || 'Sarah Chen (Caregiver)');
+      const docData = await pairVolunteerBackend(trimmed, volunteerId);
       if (docData) {
         backendSuccess = true;
       }
@@ -812,14 +827,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         ...prev,
         pinCode: trimmed,
         isPaired: true,
-        volunteerId: 'vol-3019',
-        volunteerName: volunteerProfile.name || 'Sarah Chen (Caregiver)',
+        volunteerId: volunteerId,                          // real derived ID, not hardcoded
+        volunteerName: volunteerProfile.name || 'Caregiver',
       }));
       soundFx.playSuccessChime();
       return true;
     }
     return false;
-  }, [addElderByPin, volunteerProfile.name]);
+  }, [addElderByPin, volunteerProfile.name, volunteerProfile.email]);
 
   const retryNetworkSync = useCallback(() => {
     setIsNetworkErrorSimulated(false);
