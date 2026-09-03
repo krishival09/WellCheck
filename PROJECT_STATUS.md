@@ -1,40 +1,45 @@
 # WellCheck Project Status Report
 
-## Current Goal
-Complete, production-ready React Native / Expo elder care safety application with real-time Firestore synchronization, PIN-based pairing, offline-first privacy medication photo capture, multi-lingual TTS voice assistance, and backend cron-based escalation.
+## Current Version: 2.0.0
+Production-ready **React Native Web** mobile elder care safety companion with real-time Firestore synchronization, multi-elder roster management, check-in schedule matrix with 3-minute escalation, OpenStreetMap/Google Maps telemetry, privacy-first medication manager, and 20+ language TTS voice guidance.
 
 ---
 
 ## Status Summary
 
-- [x] **Backend Infrastructure & Firestore Cloud**: Fully built, secured, and verified.
-  - Firestore database `wellcheck` live in `asia-south1` (`YOUR_FIREBASE_PROJECT_ID`).
+- [x] **Architecture Modernization (React Native Web)**:
+  - Frontend shifted to `react-native-web` with Tailwind CSS v4 and Vite bundler.
+  - Eliminated manual JSX/StyleSheet conversion corruption.
+  - Pure mobile UI (`src/mobile/`) with standalone mobile entry point ([`MobileApp.tsx`](app/src/mobile/MobileApp.tsx)).
+  - Discarded desktop dual-device simulator frames.
+- [x] **Backend Infrastructure & Firestore Cloud**:
+  - Cloud Firestore database `wellcheck` live in `asia-south1` (`YOUR_FIREBASE_PROJECT_ID`).
+  - Real-time `onSnapshot` synchronization for PIN pairing, alerts, check-ins, and medications.
   - Security rules deployed and strictly enforced with schema validations.
   - Backend check-in escalation cron service verified with 100% test pass.
-- [x] **Data Integration Layer**: Fully typed shared data layer (`wellcheck.ts`) with real-time `onSnapshot` synchronization for `pairs`, `alerts`, `checkins`, and `medicineReminders`.
-- [x] **Elder Accessibility UI & Design System**: 100% completed and verified (0 TypeScript errors).
+- [x] **Elder Accessibility UI & Design System**:
   - Minimum $60\times 60\,\text{dp}$ touch targets on all interactive elements.
   - Minimum $20\,\text{sp}$ body text, $38\,\text{sp}$ bold emergency SOS triggers.
-  - Zero low-contrast gray-on-gray; high contrast palette with clear icons and text labels.
-- [x] **Core Application Features**:
-  - **🚨 1-Tap SOS Emergency Dispatch**: 10s audio countdown with cancel ability, immediate alert dispatch to Firestore, and native Call (`tel:`) + SMS fallbacks.
-  - **🔑 Real-Time PIN Pairing System**: 4-digit PIN generation on Elder screen, live sync listener, and instant connection from Caregiver Dashboard.
-  - **🛡️ Daily Safety Check-In & Timeout**: "I'm OK" status logging with simulated 3-minute escalation response.
-  - **📷 Medication Manager with Photo Capture**: Camera and gallery photo picker (`expo-image-picker`) with local device storage (`localPhotoRef`) preserving privacy.
-  - **🗣️ Multilingual Voice Guidance (TTS)**: 20+ languages supported via `expo-speech` with real-time subtitle banner.
-  - **👩‍⚕️ Caregiver Dashboard**: Fullscreen critical alert modal, live alert feed, GPS location tracker with movement simulation, and check-in scheduler.
-  - **🔄 Dual-Role Switcher**: Instant top-bar toggle between Elder Mode and Caregiver Mode for live demo presentation.
-- [x] **Production APK Release**: Standalone Android APK built and released on GitHub Releases.
+  - High-contrast color palette adhering to senior accessibility guidelines (PRD §5).
+- [x] **Core Features**:
+  - **🚨 1-Tap SOS Emergency Dispatch**: 10s audio countdown with cancel ability, immediate alert dispatch to Firestore, and phone/SMS fallbacks.
+  - **👥 Multi-Elder Roster Switching**: Support for monitoring multiple elderly individuals from a single caregiver dashboard with 1-tap switching.
+  - **➕ Add Elder Onboarding**: Modal registration for new family members with customized schedules and medical history.
+  - **⏰ Check-In Schedule Matrix**: Configurable daily check-in slots with alarm toggles.
+  - **⏳ 3-Minute Timeout Escalation**: 180s live countdown prompt with automatic full-screen takeover modal on caregiver devices upon timeout.
+  - **🗺️ Interactive Maps & Telemetry**: OpenStreetMap embed + Google Maps universal deep links with movement simulation presets (Home, Park, Pharmacy).
+  - **📷 Privacy-First Medication Manager**: Photo capture with local device storage (`localPhotoRef`) preserving healthcare privacy.
+  - **🔑 Real-Time PIN Pairing System**: 4-digit PIN generation with live listener across physical devices.
+  - **🗣️ Multilingual Voice Guidance (TTS)**: 20+ languages supported via Web Speech API with real-time subtitle banner.
+  - **🌙 Dark Mode & High-Contrast Theming**: WCAG AA-compliant night theme for low-light caregiver checks.
+- [x] **Production Releases**:
+  - Standalone Android APK: [`WellCheck-v1.0.1.apk`](https://github.com/lanofgajanan/WellCheck/releases/tag/v1.0.1).
+  - React Native Web Live Server: `npm run dev` with LAN multi-device access.
 
 ---
 
 ## Artifacts & Deliverables
 - **GitHub Repository**: [https://github.com/lanofgajanan/WellCheck](https://github.com/lanofgajanan/WellCheck)
-- **Standalone Android APK Release**: Available under GitHub Releases (`WellCheck-v1.0.0.apk`).
-- **Expo Dev Server**: Run `npm start` in `app/` directory.
-
----
-
-## Security & Secrets
-- **Service Account & Private Keys**: Strictly gitignored and excluded from version control.
-- **Privacy Model**: Medicine photos remain strictly local to device storage and are never uploaded to the cloud.
+- **Changelog**: [`CHANGELOG.md`](CHANGELOG.md)
+- **Standalone Android APK**: Available under GitHub Releases (`WellCheck-v1.0.1.apk`).
+- **PRD Document**: [`elder-care-app-PRD-v2.md.txt`](elder-care-app-PRD-v2.md.txt)
