@@ -4,6 +4,7 @@ export type ElderScreen =
   | 'home'
   | 'sos_countdown'
   | 'sos_sent'
+  | 'sos_confirmation'
   | 'medicine_detail'
   | 'pairing'
   | 'login';
@@ -200,3 +201,6 @@ export interface ActiveCallState {
   isMuted: boolean;
   isSpeakerOn: boolean;
 }
+
+export type ThemeMode = 'light' | 'dark';
+

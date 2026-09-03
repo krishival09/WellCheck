@@ -1,4 +1,3 @@
-import * as Speech from 'expo-speech';
 import { CountryCodeOption, LanguageOption, SupportedLanguage } from '../types';
 import { soundFx } from './audio';
 
@@ -1438,6 +1437,13 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> = {
     checkinOverdueText: 'Check-in überfällig',
     medicinePendingText: 'Medikament Ausstehend',
     caregiverSetupText: 'Betreuer-Einrichtung',
+    sosPrompt: 'SOS-Notrufknopf gedrückt. Hilfe-Alarm wird in zehn Sekunden gesendet.',
+    sosCountdown: (sec) => `\${sec} Sekunden verbleibend. Abbrechen, falls versehentlich gedrückt.`,
+    sosSent: 'Notruf gesendet. Betreuer wurde benachrichtigt.',
+    medicinePrompt: (name, time) => `Zeit für Ihre Medikamente: \${name}, geplant für \${time}.`,
+    medicineTaken: 'Medikamenteneinnahme registriert. Sehr gut!',
+    checkinPrompt: 'Sicherheits-Check: Sind Sie in Ordnung? Bitte bestätigen.',
+    checkinConfirmed: 'Check-in registriert. Danke!',
   },
   'fr-FR': {
     ...baseEnglish,
@@ -1509,6 +1515,13 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> = {
     checkinOverdueText: 'Point en Retard',
     medicinePendingText: 'Médicament en Attente',
     caregiverSetupText: 'Configuration Aidant',
+    sosPrompt: 'Bouton SOS d\'urgence enfoncé. Envoi de l\'alerte dans dix secondes.',
+    sosCountdown: (sec) => `\${sec} secondes restantes. Appuyez sur Annuler si erreur.`,
+    sosSent: 'Alerte d\'urgence envoyée. Les secours et l\'aidant sont prévenus.',
+    medicinePrompt: (name, time) => `Heure de prendre votre médicament : \${name}, prévu à \${time}.`,
+    medicineTaken: 'Prise de médicament enregistrée. Excellent !',
+    checkinPrompt: 'Rappel de sécurité : Allez-vous bien ? Appuyez sur Confirmer.',
+    checkinConfirmed: 'Confirmation enregistrée. Merci !',
   },
   'ja-JP': {
     ...baseEnglish,
@@ -1580,6 +1593,13 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> = {
     checkinOverdueText: '確認期限切れ',
     medicinePendingText: '服薬待ち',
     caregiverSetupText: '見守り設定',
+    sosPrompt: '緊急SOSボタンが押されました。10秒後に緊急アラートを送信します。',
+    sosCountdown: (sec) => `残り\${sec}秒です。間違えて押した場合はキャンセルしてください。`,
+    sosSent: '緊急アラートを送信しました。介護者に通知されました。',
+    medicinePrompt: (name, time) => `お薬の時間です。\${time}予定の\${name}を飲んでください。`,
+    medicineTaken: 'お薬の服用を記録しました。素晴らしいです！',
+    checkinPrompt: '安否確認：大丈夫ですか？チェックインボタンを押してください。',
+    checkinConfirmed: 'チェックインを記録しました。ありがとうございます！',
   },
   'ar-SA': {
     ...baseEnglish,
@@ -1651,6 +1671,13 @@ export const TRANSLATIONS: Record<SupportedLanguage, TranslationSchema> = {
     checkinOverdueText: 'تأخر التسجيل',
     medicinePendingText: 'دواء معلق',
     caregiverSetupText: 'إعدادات مقدم الرعاية',
+    sosPrompt: 'تم الضغط على زر طوارئ SOS. جاري إرسال تنبيه طلب المساعدة خلال عشر ثوانٍ.',
+    sosCountdown: (sec) => `متبقي \${sec} ثوانٍ. انقر على إلغاء إذا تم الضغط بالخطأ.`,
+    sosSent: 'تم إرسال تنبيه الطوارئ. تم إبلاغ مقدم الرعاية.',
+    medicinePrompt: (name, time) => `حان وقت تناول الدواء: \${name}، المقرر في \${time}.`,
+    medicineTaken: 'تم تسجيل تناول الدواء. عمل رائع!',
+    checkinPrompt: 'تذكير السلامة: هل أنت بخير؟ اضغط على تسجيل الحضور.',
+    checkinConfirmed: 'تم تسجيل الحضور. شكراً لك!',
   },
 };
 
@@ -1674,39 +1701,7 @@ function notifySpeechListeners(text: string, langCode: SupportedLanguage, isSpea
   });
 }
 
-let cachedVoices: SpeechSynthesisVoice[] = [];
-if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-  try {
-    cachedVoices = window.speechSynthesis.getVoices();
-    window.speechSynthesis.onvoiceschanged = () => {
-      cachedVoices = window.speechSynthesis.getVoices();
-    };
-  } catch {
-    // ignore
-  }
-}
-
-let activeAudio: HTMLAudioElement | null = null;
-let activeSafetyTimeout: ReturnType<typeof setTimeout> | null = null;
-
 export function stopSpeaking() {
-  if (activeSafetyTimeout) {
-    clearTimeout(activeSafetyTimeout);
-    activeSafetyTimeout = null;
-  }
-  try {
-    if (Speech && typeof Speech.stop === 'function') {
-      Speech.stop();
-    }
-  } catch {}
-  if (activeAudio) {
-    try {
-      activeAudio.pause();
-      activeAudio.currentTime = 0;
-      activeAudio.src = '';
-    } catch {}
-    activeAudio = null;
-  }
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     try {
       window.speechSynthesis.cancel();
@@ -1715,111 +1710,27 @@ export function stopSpeaking() {
   notifySpeechListeners('', 'en-US', false);
 }
 
-/**
- * Universal High-Fidelity Speech Engine:
- * Uses expo-speech natively on iOS/Android, with fallback to Web Speech API when running on web.
- */
 export function speakText(text: string, langCode: SupportedLanguage = 'en-US') {
   if (!text || !text.trim()) return;
-
   soundFx.playTap();
   stopSpeaking();
   notifySpeechListeners(text, langCode, true);
-
-  const cleanText = text.trim();
-
-  // 1. Try Native Expo Speech
-  try {
-    if (Speech && typeof Speech.speak === 'function') {
-      Speech.speak(cleanText, {
-        language: langCode,
-        rate: 0.9,
-        onDone: () => notifySpeechListeners(cleanText, langCode, false),
-        onError: () => notifySpeechListeners(cleanText, langCode, false),
-      });
+  
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    try {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = langCode;
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+      utterance.onend = () => notifySpeechListeners(text, langCode, false);
+      utterance.onerror = () => notifySpeechListeners(text, langCode, false);
+      window.speechSynthesis.speak(utterance);
       return;
+    } catch (e) {
+      console.warn('speechSynthesis error:', e);
     }
-  } catch (err) {
-    // Continue to browser fallback
   }
-
-  // 2. Browser fallback
-  fallbackBrowserSpeech(cleanText, langCode, () => {
-    notifySpeechListeners(cleanText, langCode, false);
-  });
-}
-
-function fallbackBrowserSpeech(
-  text: string, 
-  langCode: SupportedLanguage, 
-  onDone: () => void
-) {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-    onDone();
-    return;
-  }
-
-  try {
-    if (window.speechSynthesis.paused) {
-      window.speechSynthesis.resume();
-    }
-    window.speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = langCode;
-    utterance.rate = 0.86;
-    utterance.pitch = 1.0;
-
-    if (!cachedVoices || cachedVoices.length === 0) {
-      cachedVoices = window.speechSynthesis.getVoices();
-    }
-
-    const voices = cachedVoices;
-    const langPrefix = langCode.substring(0, 2);
-    const langSuffix = langCode.split('-')[1] || 'IN';
-
-    let matchingVoice = voices.find(v => 
-      v.lang.replace('_', '-').toLowerCase() === langCode.toLowerCase()
-    );
-
-    if (!matchingVoice) {
-      matchingVoice = voices.find(v => 
-        v.lang.toLowerCase().startsWith(langPrefix.toLowerCase())
-      );
-    }
-
-    if (!matchingVoice) {
-      const langOption = SUPPORTED_LANGUAGES.find(l => l.code === langCode);
-      const nameKey = langOption ? langOption.label.toLowerCase() : '';
-      if (nameKey) {
-        matchingVoice = voices.find(v => 
-          v.name.toLowerCase().includes(nameKey)
-        );
-      }
-    }
-
-    if (!matchingVoice && langSuffix === 'IN') {
-      matchingVoice = voices.find(v => 
-        v.lang.includes('IN') || v.name.toLowerCase().includes('india') || v.lang.startsWith('hi')
-      );
-    }
-
-    if (matchingVoice) {
-      utterance.voice = matchingVoice;
-    }
-
-    utterance.onend = () => {
-      onDone();
-    };
-    utterance.onerror = () => {
-      onDone();
-    };
-
-    window.speechSynthesis.speak(utterance);
-  } catch (err) {
-    console.warn('Fallback Web Speech error:', err);
-    onDone();
-  }
+  setTimeout(() => notifySpeechListeners(text, langCode, false), 3500);
 }
 
 /**

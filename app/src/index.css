@@ -1,1 +1,55 @@
 @import "tailwindcss";
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #F0EBE1;
+    color: #1A2B4C;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Custom high-contrast scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #FAF7F2;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #1A2B4C;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #FF6B4A;
+  }
+}
+
+/* Animations */
+@keyframes pulse-fast {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.03); }
+}
+
+@keyframes siren-glow {
+  0%, 100% { box-shadow: 0 0 25px rgba(255, 107, 74, 0.9), inset 0 0 15px rgba(255, 107, 74, 0.6); }
+  50% { box-shadow: 0 0 45px rgba(239, 68, 68, 1), inset 0 0 25px rgba(239, 68, 68, 0.9); }
+}
+
+.animate-siren {
+  animation: siren-glow 1s infinite ease-in-out;
+}
+
+.animate-pulse-fast {
+  animation: pulse-fast 1s infinite ease-in-out;
+}
