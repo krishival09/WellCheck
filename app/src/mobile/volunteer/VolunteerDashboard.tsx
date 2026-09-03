@@ -25,7 +25,8 @@ import {
   RefreshCw,
   Users,
   UserPlus,
-  BatteryCharging
+  BatteryCharging,
+  LogOut
 } from 'lucide-react';
 import { VolunteerSosModal } from './VolunteerSosModal';
 import { VolunteerPairingView } from './VolunteerPairingView';
@@ -63,6 +64,7 @@ export const VolunteerDashboard: React.FC = () => {
     selectedElderId,
     selectedElder,
     selectElder,
+    logoutUser,
   } = useApp();
 
   const recentAlerts = alerts || [];
@@ -218,6 +220,18 @@ export const VolunteerDashboard: React.FC = () => {
               </Div>
             )}
           </Div>
+
+          {/* Log Out / Switch Account Button */}
+          <Button
+            id="volunteer-logout-btn"
+            onClick={logoutUser}
+            aria-label="Switch User / Log Out"
+            title="Switch User / Log Out"
+            className="h-8 px-2 flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-bold border border-white/20 active:scale-95 transition cursor-pointer"
+          >
+            <LogOut className="w-3.5 h-3.5 text-white" />
+            <Span className="hidden sm:inline">Logout</Span>
+          </Button>
         </Div>
       </Header>
 

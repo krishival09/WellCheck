@@ -46,7 +46,7 @@ const DEFAULT_ELDER_PROFILE: UserProfile = {
   preferredLanguage: 'hi-IN',
   emergencyContactName: 'Sarah Chen (Daughter)',
   emergencyContactPhone: '+91 98450 67890',
-  isLoggedIn: true,
+  isLoggedIn: false,
 };
 
 const DEFAULT_VOLUNTEER_PROFILE: UserProfile = {
@@ -58,23 +58,27 @@ const DEFAULT_VOLUNTEER_PROFILE: UserProfile = {
   preferredLanguage: 'en-US',
   emergencyContactName: 'Central Dispatch',
   emergencyContactPhone: '911',
-  isLoggedIn: true,
+  isLoggedIn: false,
 };
 
 const getStoredElderProfile = (): UserProfile => {
   try {
+    const hasLoggedIn = localStorage.getItem('wellcheck_has_logged_in');
+    if (!hasLoggedIn) return { ...DEFAULT_ELDER_PROFILE, isLoggedIn: false };
     const raw = localStorage.getItem('wellcheck_elder_profile');
     if (raw) return JSON.parse(raw);
   } catch {}
-  return DEFAULT_ELDER_PROFILE;
+  return { ...DEFAULT_ELDER_PROFILE, isLoggedIn: false };
 };
 
 const getStoredVolunteerProfile = (): UserProfile => {
   try {
+    const hasLoggedIn = localStorage.getItem('wellcheck_has_logged_in');
+    if (!hasLoggedIn) return { ...DEFAULT_VOLUNTEER_PROFILE, isLoggedIn: false };
     const raw = localStorage.getItem('wellcheck_volunteer_profile');
     if (raw) return JSON.parse(raw);
   } catch {}
-  return DEFAULT_VOLUNTEER_PROFILE;
+  return { ...DEFAULT_VOLUNTEER_PROFILE, isLoggedIn: false };
 };
 
 const getStoredActiveRole = (): RoleMode => {
@@ -1626,6 +1630,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const loginUser = useCallback((profile: Omit<UserProfile, 'isLoggedIn'>) => {
     soundFx.playSuccessChime();
+    try {
+      localStorage.setItem('wellcheck_has_logged_in', 'true');
+    } catch {}
+
     const fullProfile: UserProfile = {
       ...profile,
       isLoggedIn: true,
@@ -1705,21 +1713,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const logoutUser = useCallback(() => {
     soundFx.playTap();
-    if (activeRole === 'elder') {
-      setElderProfile(prev => {
-        const next = { ...prev, isLoggedIn: false };
-        try { localStorage.setItem('wellcheck_elder_profile', JSON.stringify(next)); } catch {}
-        return next;
-      });
-    } else {
-      setVolunteerProfile(prev => {
-        const next = { ...prev, isLoggedIn: false };
-        try { localStorage.setItem('wellcheck_volunteer_profile', JSON.stringify(next)); } catch {}
-        return next;
-      });
-    }
-    setIsAuthModalOpen(true);
-  }, [activeRole]);
+    try {
+      localStorage.removeItem('wellcheck_has_logged_in');
+    } catch {}
+    setElderProfile(prev => {
+      const next = { ...prev, isLoggedIn: false };
+      try { localStorage.setItem('wellcheck_elder_profile', JSON.stringify(next)); } catch {}
+      return next;
+    });
+    setVolunteerProfile(prev => {
+      const next = { ...prev, isLoggedIn: false };
+      try { localStorage.setItem('wellcheck_volunteer_profile', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, []);
 
   const resetAllDemoData = useCallback(() => {
     setAlerts(INITIAL_ALERTS);

@@ -11,7 +11,8 @@ import {
   Pill,
   Timer,
   BellRing,
-  CheckCircle2
+  CheckCircle2,
+  LogOut
 } from 'lucide-react';
 import { SUPPORTED_LANGUAGES, speakText, TRANSLATIONS } from '../../utils/speech';
 import { SupportedLanguage } from '../../types';
@@ -32,6 +33,7 @@ export const ElderHome: React.FC = () => {
     pairData,
     startCall,
     activeCheckinPrompt,
+    logoutUser,
   } = useApp();
 
   const [showLangMenu, setShowLangMenu] = useState(false);
@@ -147,6 +149,17 @@ export const ElderHome: React.FC = () => {
               </Div>
             )}
           </Div>
+
+          {/* Log Out / Switch Role Button */}
+          <Button
+            id="elder-logout-btn"
+            onClick={logoutUser}
+            aria-label="Switch User / Log Out"
+            title="Switch User / Log Out"
+            className="w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-lg border border-white/20 active:scale-95 transition shadow-sm cursor-pointer"
+          >
+            <LogOut className="w-3.5 h-3.5 text-white" />
+          </Button>
         </Div>
       </Header>
 
