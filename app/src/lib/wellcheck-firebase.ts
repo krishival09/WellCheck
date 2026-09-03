@@ -2,13 +2,22 @@ import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore, Firestore } from 'firebase/firestore';
 
 // Environment variables or fallback client config
+const getEnv = (key: string, fallback: string): string => {
+  try {
+    if (typeof process !== 'undefined' && process?.env && process.env[key]) {
+      return process.env[key] as string;
+    }
+  } catch {}
+  return fallback;
+};
+
 const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "AIzaSy_WELLCHECK_CLIENT_KEY",
-  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || "YOUR_PROJECT.firebaseapp.com",
-  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || "YOUR_FIREBASE_PROJECT_ID",
-  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || "YOUR_PROJECT.appspot.com",
-  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "YOUR_MESSAGING_SENDER_ID",
-  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || "YOUR_FIREBASE_APP_ID"
+  apiKey: getEnv("EXPO_PUBLIC_FIREBASE_API_KEY", "AIzaSy_WELLCHECK_CLIENT_KEY"),
+  authDomain: getEnv("EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN", "YOUR_PROJECT.firebaseapp.com"),
+  projectId: getEnv("EXPO_PUBLIC_FIREBASE_PROJECT_ID", "YOUR_FIREBASE_PROJECT_ID"),
+  storageBucket: getEnv("EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET", "YOUR_PROJECT.appspot.com"),
+  messagingSenderId: getEnv("EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID", "YOUR_MESSAGING_SENDER_ID"),
+  appId: getEnv("EXPO_PUBLIC_FIREBASE_APP_ID", "YOUR_FIREBASE_APP_ID")
 };
 
 // Initialize Firebase App singleton

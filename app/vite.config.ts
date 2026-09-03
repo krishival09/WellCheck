@@ -8,6 +8,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  define: {
+    'process.env': {},
+    global: 'window',
+  },
   resolve: {
     alias: {
       'react-native': 'react-native-web',
