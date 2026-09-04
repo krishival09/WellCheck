@@ -1,173 +1,189 @@
 <div align="center">
 
-# 🛡️ WellCheck — Elder Care Safety & Independence
-
-**A modern, accessibility-first mobile safety companion connecting seniors with family caregivers and volunteers in real-time.**
-
-[![GitHub Release](https://img.shields.io/github/v/release/lanofgajanan/WellCheck?style=for-the-badge&color=2563EB&logo=github)](https://github.com/lanofgajanan/WellCheck/releases/tag/v1.0.1)
-[![Android APK](https://img.shields.io/badge/Download-Android_APK_(v1.0.1)-16A34A?style=for-the-badge&logo=android)](https://github.com/lanofgajanan/WellCheck/releases/download/v1.0.1/WellCheck-v1.0.1.apk)
-[![React Native Web](https://img.shields.io/badge/React_Native_Web-0.19-61DAFB?style=for-the-badge&logo=react)](https://necolas.github.io/react-native-web/)
-[![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?style=for-the-badge&logo=vite)](https://vitejs.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38BDF8?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
-[![Firestore](https://img.shields.io/badge/Google_Cloud-Firestore-FFCA28?style=for-the-badge&logo=firebase)](https://firebase.google.com/)
-
-[📥 Download Android APK (v1.0.1)](https://github.com/lanofgajanan/WellCheck/releases/download/v1.0.1/WellCheck-v1.0.1.apk) • [📋 Changelog](CHANGELOG.md) • [📖 PRD Specification](elder-care-app-PRD-v2.md.txt) • [📊 Project Status](PROJECT_STATUS.md)
+# 🛡️ WellCheck
+### *A safety companion for seniors — built with love*
 
 </div>
 
 ---
 
-## 🌟 Overview
+## 👨‍👩‍👧 For Families & Caretakers
 
-**WellCheck** is engineered specifically to overcome the physical, visual, and cognitive barriers seniors face when using modern smartphones. It provides single-tap emergency SOS dispatch, scheduled daily check-ins with automated escalation, privacy-first local medication management, and real-time synchronization between elderly loved ones and family caregivers—without complex logins or confusing multi-layer menus.
+> **You don't need to be tech-savvy to use this. This section is just for you.**
 
----
+WellCheck helps you stay connected with your elderly loved ones — even when you're not in the same room. It lets seniors check in daily, gives you instant alerts if something seems wrong, and lets them call for help with one tap.
 
-## 🚀 Key Features
+### 📲 Option 1 — Try it right now (no installation needed)
 
-### 🚨 1-Tap Emergency SOS Dispatch
-- **Unmistakable Trigger**: Massive emergency button with high-contrast crimson styling.
-- **10-Second Safeguard Countdown**: Audible tick and voice countdown with instant one-tap cancellation to prevent false alarms.
-- **Immediate Cloud Dispatch**: Broadcasts an active emergency alert with GPS coordinates to paired caregivers in real-time.
-- **Native Phone & SMS Fallbacks**: One-tap direct dialer (`tel:`) and SMS emergency fallbacks when internet is unstable.
+You can open WellCheck directly in the phone's browser. No downloading, no sign-up.
 
-### 👥 Multi-Elder Roster Switching
-- **Multi-Senior Support**: Caregivers can monitor multiple family members or community seniors from a single dashboard.
-- **Instant Context Swap**: Tapping an elder in the roster immediately switches active medication logs, check-in statuses, location telemetry, and pairing PIN.
-- **Add Elder Onboarding**: Register new seniors directly from the caregiver hub with custom medical conditions, emergency contacts, and schedules.
+1. Open the link in Chrome or Safari on your phone:
+   👉 **[Open WellCheck App](https://lanofgajanan.github.io/WellCheck/)**  
+   *(or scan the QR code below if you have one)*
 
-### ⏰ Check-In Schedule Matrix & 3-Minute Escalation
-- **Customizable Daily Slots**: Configure multiple check-in times throughout the day (Morning 08:00 AM, Lunch 01:00 PM, Evening 08:00 PM) with alarm sound toggles.
-- **180-Second Live Countdown**: Seniors receive a clear visual and audible prompt on their home screen.
-- **Automated Escalation**: If 3 minutes elapse without confirmation, the caregiver's device triggers an **urgent takeover modal** with 3 immediate action buttons: **Call Elder Directly**, **Track Live GPS on Google Maps**, and **Call Emergency Family Contact**.
+2. You'll be asked to choose a role:
+   - **Senior / Elder** 👴 — for your elderly family member's phone
+   - **Volunteer Caregiver** 🙋 — for your phone
 
-### 🗺️ Interactive Maps & Safe-Zone Geofencing
-- **Real-Time Coordinates**: Displays live latitude, longitude, landmark, battery percentage, and accuracy in meters.
-- **Movement Simulation Presets**: Live evaluation tools for "Home Safe Zone", "Community Park Walk", and "Pharmacy Perimeter".
-- **Universal Navigation Deep Links**: One-tap deep links to Google Maps driving and walking directions, plus an embedded OpenStreetMap view.
-
-### 💊 Privacy-First Medication Manager
-- **Photo Verification**: Pill box and prescription bottle images displayed directly on the elder's medication cards.
-- **Strict Local-Only Storage**: In accordance with healthcare privacy standards, medication photos remain strictly on the device (`localPhotoRef`) and are never uploaded to public cloud storage.
-- **Compliance Logging**: "I Have Taken This" button logs completion timestamps and updates the caregiver's compliance tracker.
-
-### 🔑 Real-Time PIN Device Pairing
-- **Zero Passwords**: Connect senior and caregiver devices in seconds using an instant 4-digit PIN (e.g. `7492`).
-- **Live Firestore Listener**: The senior's device automatically detects when the caregiver inputs the PIN and confirms pairing with a success chime and voice announcement.
-
-### 🗣️ Multilingual Voice Guidance (TTS)
-- **Native Voice Synthesis**: Spoken prompts powered by browser-standard Web Speech API.
-- **20+ Regional Languages**: Full support for Hindi, Telugu, Tamil, Marathi, Bengali, Gujarati, Kannada, Malayalam, Punjabi, Odia, English, Spanish, French, German, and more.
-- **Live Subtitle Caption Banner**: Spoken audio is reflected in a real-time subtitle banner with an instant "STOP AUDIO" button.
-
-### 🌙 Dark Mode & High-Contrast Theming
-- **WCAG AA Compliant**: High-contrast night theme utilizing Tailwind `dark:` tokens (`bg-slate-900`, `border-slate-700`, `text-white`), reducing eye strain in low-light environments and conserving OLED battery.
+3. That's it. Both phones connect automatically.
 
 ---
 
-## 🎨 Elder Accessibility Design System
+### 📱 Option 2 — Install the app on Android
 
-WellCheck strictly adheres to senior accessibility guidelines (PRD §5):
+For a smoother experience, install it as a proper app:
 
-| Design Constraint | WellCheck Implementation |
-| :--- | :--- |
-| **Touch Targets** | **Minimum $60\times 60\,\text{dp}$** for all interactive buttons. |
-| **Typography** | **$20\,\text{sp}+$** for body text; **$38\,\text{sp}$** for critical SOS triggers. |
-| **Color Contrast** | Dark Navy (`#0F172A`) on Cream (`#FAF7F2`), Vivid Crimson (`#DC2626`), and Emerald (`#16A34A`). Zero low-contrast gray-on-gray. |
-| **Visual Cues** | Every icon is paired with a clear, bold text label. |
-| **Navigation Depth** | Flat navigation model — all primary workflows reachable within 1–2 taps with no hidden hamburger menus. |
+1. Go to: **[Download WellCheck APK](https://github.com/lanofgajanan/WellCheck/releases/tag/v2.0.0)**
+2. Tap **`app-release.apk`** to download it
+3. On your phone go to **Settings → Install unknown apps** → allow your browser
+4. Open the downloaded file and tap **Install**
+
+> ℹ️ This is a safe file built directly from our source code. It's not on the Play Store yet — we're working on it!
 
 ---
 
-## 🏗️ Architecture & Tech Stack
+### 🧓 What can WellCheck do?
+
+| Feature | What it means for you |
+|---|---|
+| ✅ Daily Check-Ins | Senior taps "I'm okay" each day. You get notified if they miss it. |
+| 🚨 SOS Button | One big red button. Instantly alerts you with location. |
+| ⏱️ 3-Minute Escalation | If no response in 3 minutes, alert escalates automatically. |
+| 🗣️ Voice Guidance | Speaks instructions aloud in 20+ languages — great for seniors. |
+| 🌙 Dark Mode | Easy on the eyes, day or night. |
+| 📍 Location Sharing | Know where your loved one is at all times. |
+| 💊 Medication Reminders | Track medicines with photos and schedules. |
+
+---
+
+### 📞 Testing with Two Phones (step by step)
+
+> This is how we recommend you test it with a family member before daily use.
+
+1. Make sure **both phones are on the same Wi-Fi network**
+2. On **Phone 1 (the senior's phone)**:
+   - Open the app link
+   - Select **Elder** 👴 → tap **Start Elder Experience**
+   - A 4-digit PIN will appear on screen (e.g. `7492`)
+3. On **Phone 2 (your phone)**:
+   - Open the same link
+   - Select **Volunteer Caregiver** 🙋
+   - Enter the PIN in the **Quick Connect** box → both phones pair instantly!
+4. Test the **SOS button** on Phone 1 — your phone will immediately show the emergency takeover screen with a siren alert
+
+---
+
+---
+
+## 🧑‍💻 For Developers & Contributors
+
+> Want to build on top of WellCheck, fix bugs, or add features? This section is for you.
+
+### 🏗️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React Native Web + Vite + Tailwind CSS v4 |
+| Backend | Firebase Firestore (`wellcheck` db, `asia-south1`) |
+| Auth / State | Custom AppContext with localStorage persistence |
+| Native Build | Expo SDK 54 + Gradle (Android) |
+| CI/CD | GitHub Actions (`.github/workflows/build-apk.yml`) |
+| Maps | Google Maps universal deep links |
+
+### 📁 Project Structure
 
 ```
-WellCheck/
-├── app/                        # React Native Web Mobile Application
-│   ├── index.html              # Mobile HTML shell with PWA meta tags
-│   ├── vite.config.ts          # Vite build configuration with React Native Web alias
-│   ├── src/
-│   │   ├── App.tsx             # Root container with mobile viewport centering
-│   │   ├── main.tsx            # DOM mount entry point
-│   │   ├── rn-compat.tsx       # React Native Web primitive exports & haptics
-│   │   ├── types.ts            # TypeScript data contracts & schemas
-│   │   ├── index.css           # Tailwind CSS v4 styling rules
-│   │   ├── mobile/             # Pure Mobile UI Architecture
-│   │   │   ├── MobileApp.tsx   # Mobile role router (Elder vs Volunteer)
-│   │   │   ├── auth/           # Mobile login & onboarding screens
-│   │   │   ├── elder/          # Elder screens (Home, SOS Countdown, SOS Sent, Med Detail, Pairing)
-│   │   │   ├── volunteer/      # Caregiver hub (Roster, Matrix, Maps, Med Manager, SOS Takeover)
-│   │   │   └── components/     # Modals (Call, Maps, Photo Uploader, Subtitle Banner)
-│   │   ├── context/
-│   │   │   └── AppContext.tsx  # Central state & real-time Firestore listeners
-│   │   ├── lib/
-│   │   │   ├── wellcheck.ts    # Firestore CRUD operations & retry logic
-│   │   │   └── wellcheck-firebase.ts # Firebase App & Firestore singleton
-│   │   └── utils/
-│   │       ├── speech.ts       # Multilingual TTS engine & translation dictionary
-│   │       └── audio.ts        # Alarm, chime & tick sound synthesizers
-│   └── package.json            # Scripts & dependencies
-├── server/                     # Backend Cron Escalation Service
-│   ├── checkin-escalation.js   # Automated missed check-in escalation runner
-│   └── verify-app-flow.js      # End-to-end backend test verification script
-├── CHANGELOG.md                # Detailed release notes & changelog
-├── PROJECT_STATUS.md           # Project completion status
-└── firestore.rules             # Cloud Firestore security rules
+wellcheck/
+├── batch/
+│   ├── app/                        # Main Expo + React Native Web app
+│   │   ├── src/
+│   │   │   ├── mobile/
+│   │   │   │   ├── elder/          # Elder UI screens
+│   │   │   │   └── volunteer/      # Volunteer/caregiver UI screens
+│   │   │   ├── context/
+│   │   │   │   └── AppContext.tsx   # Global state, login, pairing logic
+│   │   │   └── lib/
+│   │   │       └── wellcheck-firebase.ts  # Firebase integration
+│   │   ├── index.js                # Expo native entry point
+│   │   ├── app.json                # Expo config
+│   │   └── package.json
+│   ├── .github/workflows/
+│   │   └── build-apk.yml           # Auto APK build + GitHub Release
+│   ├── CHANGELOG.md
+│   └── README.md
+└── (legacy web tools in root)
 ```
 
-- **Frontend Core**: React 18, React Native Web `0.19`, Vite `6.0`, Tailwind CSS `v4`
-- **Database & Cloud**: Google Cloud Firestore (`wellcheck` database in `asia-south1`)
-- **Speech Engine**: Web Speech API (`SpeechSynthesisUtterance`) with multi-language dictionary
-- **Audio Synthesis**: Web Audio Context API (custom sirens, chimes, and tick oscillators)
-- **Mapping**: OpenStreetMap embed + Google Maps universal deep links
+### 🚀 Getting Started (Local Dev)
 
----
-
-## ⚡ Quick Start & Multi-Device Testing
-
-### Prerequisites
-- [Node.js](https://nodejs.org/) (v18+)
-
-### 1. Install & Run Development Server
 ```bash
-# Navigate to the app directory
-cd d:\wellcheck\batch\app
+# Clone the repo
+git clone https://github.com/lanofgajanan/WellCheck.git
+cd WellCheck/batch/app
 
 # Install dependencies
-npm install
+npm install --legacy-peer-deps
 
-# Start the Vite development server on your local network
+# Run the web version (opens in browser)
 npm run dev
+
+# OR run on Android device via Expo Go
+npx expo start
 ```
 
-The server will display your local network address:
-```
-➜  Local:   http://localhost:3000/
-➜  Network: http://192.168.15.53:3000/
+> **Web dev server** runs at `http://localhost:3000` (and broadcasts on your local network IP for phone testing)
+
+### 🔥 Firebase Setup
+
+The app uses Firestore. Create a `.env` file in `batch/app/`:
+
+```env
+EXPO_PUBLIC_FIREBASE_API_KEY=your_key
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+EXPO_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+EXPO_PUBLIC_FIREBASE_APP_ID=your_app_id
 ```
 
-### 2. Testing with Two Physical Phones (Real-World Simulation)
-1. Connect your computer and both phones to the **same Wi-Fi network**.
-2. **On Phone 1 (Senior / Elder 👵)**:
-   - Open Chrome or Safari and go to the Network URL (e.g. `http://192.168.15.53:3000/`).
-   - Select **Elder (👵)** $\rightarrow$ tap **Start Elder Experience**.
-   - Note the 4-digit PIN displayed on screen (e.g. `7492`).
-3. **On Phone 2 (Caregiver 👩‍⚕️)**:
-   - Open Chrome or Safari and visit the same Network URL.
-   - Select **Volunteer Caregiver (👩‍⚕️)** $\rightarrow$ tap **Open Caregiver Dashboard**.
-   - Enter the 4-digit PIN in the **Quick Connect** box $\rightarrow$ both devices will immediately pair and chime!
-4. **Test Live SOS**: Tap the red SOS button on Phone 1 $\rightarrow$ Phone 2 will immediately launch the emergency takeover modal with siren audio.
+### 🔧 Building the APK
+
+Every push to `main` automatically triggers a GitHub Actions build that:
+1. Runs `npx expo prebuild`
+2. Compiles via `./gradlew assembleRelease`
+3. Publishes the APK to GitHub Releases
+
+To trigger manually: go to **Actions → Build Android APK & Publish Release → Run workflow**
+
+### 🤝 Contributing
+
+1. Fork the repo
+2. Create a branch: `git checkout -b feature/your-feature`
+3. Commit your changes with clear messages
+4. Open a Pull Request describing what you changed and why
 
 ---
 
-## 📦 Standalone Android APK (v1.0.1)
+---
 
-For native Android installation without a development server:
+## 👨‍💻 The Team
 
-👉 **[Download WellCheck v1.0.1 APK](https://github.com/lanofgajanan/WellCheck/releases/download/v1.0.1/WellCheck-v1.0.1.apk)**
+> *Built with late nights, chai, and a lot of love for grandparents everywhere.*
+
+<br>
+
+| Role | Name |
+|---|---|
+| 🎨 **Frontend Development** | [Rachit Rajput](https://github.com/rachitrajput18) |
+| 🎨 **Frontend Development** | [Krishival Reddy Palley](https://github.com/krishival09) |
+| ⚙️ **Backend & Architecture** | [Gajanan Lohar](https://github.com/lanofgajanan) |
+
+<br>
 
 ---
 
-## 📄 License
+<div align="center">
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+Made for the people who matter most — our elders. 🧡
+
+</div>
