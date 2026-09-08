@@ -33,7 +33,7 @@ You can open WellCheck directly in the phone's browser. No downloading, no sign-
 
 For a smoother experience, install it as a proper app:
 
-1. Go to: **[Download WellCheck APK](https://github.com/lanofgajanan/WellCheck/releases/tag/v2.0.0)**
+1. Go to: **[Download WellCheck APK](https://github.com/lanofgajanan/WellCheck/releases/latest)**
 2. Tap **`app-release.apk`** to download it
 3. On your phone go to **Settings → Install unknown apps** → allow your browser
 4. Open the downloaded file and tap **Install**

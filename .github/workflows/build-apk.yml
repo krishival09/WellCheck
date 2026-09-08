@@ -61,21 +61,24 @@ jobs:
       - name: 🚀 Publish GitHub Release with APK
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v2.0.0
-          name: "WellCheck v2.0.0 — Android APK Release"
+          tag_name: v2.0.1
+          name: "WellCheck v2.0.1 — Android APK (Pure Native Fix)"
           body: |
-            ## 🛡️ WellCheck Elder Safety App — v2.0.0 Standalone APK Release
+            ## 🛡️ WellCheck Elder Safety App — v2.0.1 Native Android APK Release
 
             A modern, accessibility-first mobile safety companion connecting seniors with family caregivers and volunteers in real-time.
 
-            ### 🚀 What's New in v2.0.0:
-            - **📱 React Native Web Architecture**: High-performance mobile UI built with Tailwind CSS v4 and Vite bundler.
+            ### 🚀 What's Fixed & New in v2.0.1:
+            - **📱 Pure React Native Native Primitives**: Replaced web DOM elements (`<div>`, `<span>`, `<button>`, `<input>`) with native React Native components (`View`, `Text`, `TouchableOpacity`, `TextInput`). Fixed startup crash (`Invariant Violation: View config not found for name div`).
+            - **✨ Universal Style & Layout Engine**: Runtime converter for Tailwind classes to React Native StyleSheet without losing colors, padding, flexbox, or typography.
+            - **🛡️ Auto Text String Wrapper**: Prevents React Native unhandled text exceptions.
+            - **🎨 Lucide Native Icons**: Integrated `lucide-react-native` SVG rendering.
             - **👥 Multi-Elder Roster Switching**: Caregivers can monitor multiple senior loved ones from one dashboard and switch active context with 1 tap.
             - **⏰ Check-In Schedule Matrix & 3-Min Escalation**: Configurable daily check-ins with 180s live countdown and urgent takeover modal.
             - **🗺️ Interactive Maps & Telemetry**: Safe-zone presets and live GPS tracking with Google Maps universal deep links.
             - **💊 Enhanced Medication Manager**: Photo previews, dosage schedules, and compliance logs.
             - **🚨 Emergency SOS Dispatch**: Instant takeover modal with sirens and coordinates.
-            - **🗣️ 20+ Language Voice Guidance**: Browser-native SpeechSynthesis with synchronized subtitle captions.
+            - **🗣️ 20+ Language Voice Guidance**: Voice feedback with synchronized subtitle captions.
             - **🌙 Dark Mode**: WCAG AA-compliant night theme.
             - **🔐 First-Time Onboarding Login**: Role-selection and onboarding flow with top-bar logout buttons.
           files: app/android/${{ steps.find_apk.outputs.apk_path }}
