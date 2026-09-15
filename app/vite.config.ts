@@ -16,6 +16,7 @@ export default defineConfig({
     alias: {
       'react-native': 'react-native-web',
     },
+    extensions: ['.web.tsx', '.web.ts', '.web.jsx', '.web.js', '.tsx', '.ts', '.jsx', '.js', '.json'],
   },
   server: {
     port: 3000,

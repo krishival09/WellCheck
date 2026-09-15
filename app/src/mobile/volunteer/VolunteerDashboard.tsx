@@ -1,5 +1,6 @@
 import { Div, Span, P, H1, H2, H3, H4, H5, H6, Label, Button, Img, Input, Main, Header, Footer, Section, Nav, Aside, Ul, Li, Form, triggerHaptic } from '../../rn-compat';
 import React, { useState } from 'react';
+import { Linking, Alert } from 'react-native';
 import { useApp } from '../../context/AppContext';
 import { 
   AlertTriangle, 
@@ -27,7 +28,7 @@ import {
   UserPlus,
   BatteryCharging,
   LogOut
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { VolunteerSosModal } from './VolunteerSosModal';
 import { VolunteerPairingView } from './VolunteerPairingView';
 import { VolunteerMedicineManagerModal } from './VolunteerMedicineManagerModal';
@@ -224,7 +225,20 @@ export const VolunteerDashboard: React.FC = () => {
           {/* Log Out / Switch Account Button */}
           <Button
             id="volunteer-logout-btn"
-            onClick={logoutUser}
+            onClick={() => {
+              Alert.alert(
+                'Log Out',
+                'Are you sure you want to log out?',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Log Out',
+                    style: 'destructive',
+                    onPress: () => logoutUser(),
+                  },
+                ]
+              );
+            }}
             aria-label="Switch User / Log Out"
             title="Switch User / Log Out"
             className="h-8 px-2 flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-bold border border-white/20 active:scale-95 transition cursor-pointer"
@@ -619,7 +633,7 @@ export const VolunteerDashboard: React.FC = () => {
                   onClick={() => {
                     soundFx.playTap();
                     const url = `https://www.google.com/maps/search/?api=1&query=${elderLocation.latitude},${elderLocation.longitude}`;
-                    window.open(url, '_blank', 'noopener,noreferrer');
+                    Linking.openURL(url);
                   }}
                   className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer font-black shrink-0"
                   title="Open coordinates in Google Maps"

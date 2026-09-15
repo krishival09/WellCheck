@@ -1,5 +1,6 @@
 import { CountryCodeOption, LanguageOption, SupportedLanguage } from '../types';
 import { soundFx } from './audio';
+import { Platform } from 'react-native';
 
 export const COUNTRY_CODES: CountryCodeOption[] = [
   { code: '+91', country: 'India', iso: 'IN', flag: '🇮🇳' },
@@ -1741,7 +1742,7 @@ export async function translateWithGoogleApi(
   targetLang: SupportedLanguage | string,
   sourceLang: string = 'en'
 ): Promise<string> {
-  if (!text || !text.trim()) return text;
+  if (!text || !text.trim() || Platform.OS !== 'web') return text;
   try {
     const response = await fetch('/api/translate', {
       method: 'POST',

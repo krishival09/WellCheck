@@ -1,6 +1,6 @@
 import { Div, Span, P, H1, H2, H3, H4, H5, H6, Label, Button, Img, Input, Main, Header, Footer, Section, Nav, Aside, Ul, Li, Form } from '../../rn-compat';
 import React from 'react';
-import { BellOff, Pill, ShieldCheck, Plus } from 'lucide-react';
+import { BellOff, Pill, ShieldCheck, Plus } from 'lucide-react-native';
 
 interface EmptyStateProps {
   type: 'alerts' | 'medicines' | 'general';

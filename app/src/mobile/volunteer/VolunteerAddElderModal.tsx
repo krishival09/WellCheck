@@ -1,4 +1,4 @@
-import { Div, Span, P, H1, H2, H3, H4, H5, H6, Label, Button, Img, Input, Main, Header, Footer, Section, Nav, Aside, Ul, Li, Form } from '../../rn-compat';
+import { Div, Span, P, H1, H2, H3, H4, H5, H6, Label, Button, Img, Input, Option, Select, Main, Header, Footer, Section, Nav, Aside, Ul, Li, Form } from '../../rn-compat';
 import React, { useState } from 'react';
 import { 
   X, 
@@ -13,7 +13,7 @@ import {
   Sparkles,
   ShieldCheck,
   UserCheck
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
 import { soundFx } from '../../utils/audio';
 import { SUPPORTED_LANGUAGES } from '../../utils/speech';
@@ -105,17 +105,17 @@ export const VolunteerAddElderModal: React.FC<VolunteerAddElderModalProps> = ({
   };
 
   const quickDemoPins = [
-    { pin: '7492', name: 'Eleanor Vance', rel: 'Mother', age: 78, icon: '👵' },
-    { pin: '1234', name: 'Arthur Pendelton', rel: 'Father', age: 82, icon: '👴' },
-    { pin: '5521', name: 'Grace Hopper-Chen', rel: 'Aunt', age: 76, icon: '🧓' },
-    { pin: '8833', name: 'Robert Tanaka', rel: 'Grandfather', age: 85, icon: '👴' },
+    { pin: '749281', name: 'Eleanor Vance', rel: 'Mother', age: 78, icon: '👵' },
+    { pin: '123456', name: 'Arthur Pendelton', rel: 'Father', age: 82, icon: '👴' },
+    { pin: '552190', name: 'Grace Hopper-Chen', rel: 'Aunt', age: 76, icon: '🧓' },
+    { pin: '883344', name: 'Robert Tanaka', rel: 'Grandfather', age: 85, icon: '👴' },
   ];
 
   return (
     <Div 
       id="volunteer-add-elder-modal"
       className="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs flex items-center justify-center p-3.5 animate-in fade-in"
-      onClick={(e) => {
+      onClick={(e: any) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
@@ -200,11 +200,11 @@ export const VolunteerAddElderModal: React.FC<VolunteerAddElderModalProps> = ({
                   type="text"
                   maxLength={6}
                   value={pinCode}
-                  onChange={(e) => {
+                  onChange={(e: any) => {
                     setPinCode(e.target.value.replace(/\D/g, ''));
                     setPinError('');
                   }}
-                  placeholder="e.g. 7492"
+                  placeholder="e.g. 749281"
                   className="w-full h-14 text-center text-3xl font-black tracking-[0.25em] font-mono bg-[#FAF7F2] border-2 border-[#1A2B4C] focus:border-[#FF6B4A] rounded-xl outline-none transition text-[#1A2B4C]"
                 />
 
@@ -216,7 +216,7 @@ export const VolunteerAddElderModal: React.FC<VolunteerAddElderModalProps> = ({
                     <Input
                       type="text"
                       value={pinElderName}
-                      onChange={(e) => setPinElderName(e.target.value)}
+                      onChange={(e: any) => setPinElderName(e.target.value)}
                       placeholder="e.g. Arthur"
                       className="w-full h-9 px-2.5 bg-[#FAF7F2] border border-[#1A2B4C]/40 rounded-lg text-xs font-bold text-[#1A2B4C] outline-none"
                     />
@@ -225,20 +225,20 @@ export const VolunteerAddElderModal: React.FC<VolunteerAddElderModalProps> = ({
                     <Label className="text-[11px] font-black text-[#1A2B4C] block mb-1">
                       Relationship
                     </Label>
-                    <select
+                    <Select
                       value={pinRelationship}
-                      onChange={(e) => setPinRelationship(e.target.value)}
+                      onChange={(e: any) => setPinRelationship(e.target.value)}
                       className="w-full h-9 px-2 bg-[#FAF7F2] border border-[#1A2B4C]/40 rounded-lg text-xs font-bold text-[#1A2B4C] outline-none"
                     >
-                      <option value="Mother">Mother</option>
-                      <option value="Father">Father</option>
-                      <option value="Grandmother">Grandmother</option>
-                      <option value="Grandfather">Grandfather</option>
-                      <option value="Aunt / Uncle">Aunt / Uncle</option>
-                      <option value="Spouse">Spouse</option>
-                      <option value="Client / Ward">Client / Ward</option>
-                      <option value="Neighbor">Neighbor</option>
-                    </select>
+                      <Option value="Mother">Mother</Option>
+                      <Option value="Father">Father</Option>
+                      <Option value="Grandmother">Grandmother</Option>
+                      <Option value="Grandfather">Grandfather</Option>
+                      <Option value="Aunt / Uncle">Aunt / Uncle</Option>
+                      <Option value="Spouse">Spouse</Option>
+                      <Option value="Client / Ward">Client / Ward</Option>
+                      <Option value="Neighbor">Neighbor</Option>
+                    </Select>
                   </Div>
                 </Div>
 
@@ -307,7 +307,7 @@ export const VolunteerAddElderModal: React.FC<VolunteerAddElderModalProps> = ({
                       type="text"
                       required
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={(e: any) => setName(e.target.value)}
                       placeholder="e.g. Margaret Smith"
                       className="w-full h-10 px-3 bg-[#FAF7F2] border border-[#1A2B4C]/40 rounded-xl text-xs font-bold text-[#1A2B4C] outline-none focus:border-[#1A2B4C]"
                     />
@@ -316,21 +316,21 @@ export const VolunteerAddElderModal: React.FC<VolunteerAddElderModalProps> = ({
                     <Label className="text-[11px] font-black uppercase text-[#1A2B4C] block mb-1">
                       Relationship
                     </Label>
-                    <select
-                      value={relationship}
-                      onChange={(e) => setRelationship(e.target.value)}
-                      className="w-full h-10 px-2.5 bg-[#FAF7F2] border border-[#1A2B4C]/40 rounded-xl text-xs font-bold text-[#1A2B4C] outline-none"
-                    >
-                      <option value="Mother">Mother</option>
-                      <option value="Father">Father</option>
-                      <option value="Grandmother">Grandmother</option>
-                      <option value="Grandfather">Grandfather</option>
-                      <option value="Aunt">Aunt</option>
-                      <option value="Uncle">Uncle</option>
-                      <option value="Spouse">Spouse</option>
-                      <option value="Client / Ward">Client / Ward</option>
-                      <option value="Neighbor">Neighbor</option>
-                    </select>
+                    <Select
+  value={relationship}
+  onChange={(e: any) => setRelationship(e.target.value)}
+  className="w-full h-10 px-2.5 bg-[#FAF7F2] border border-[#1A2B4C]/40 rounded-xl text-xs font-bold text-[#1A2B4C] outline-none"
+>
+  <Option value="Mother">Mother</Option>
+  <Option value="Father">Father</Option>
+  <Option value="Grandmother">Grandmother</Option>
+  <Option value="Grandfather">Grandfather</Option>
+  <Option value="Aunt">Aunt</Option>
+  <Option value="Uncle">Uncle</Option>
+  <Option value="Spouse">Spouse</Option>
+  <Option value="Client / Ward">Client / Ward</Option>
+  <Option value="Neighbor">Neighbor</Option>
+</Select>
                   </Div>
                 </Div>
 
@@ -343,7 +343,7 @@ export const VolunteerAddElderModal: React.FC<VolunteerAddElderModalProps> = ({
                     <Input
                       type="number"
                       value={age}
-                      onChange={(e) => setAge(e.target.value)}
+                      onChange={(e: any) => setAge(e.target.value)}
                       placeholder="78"
                       className="w-full h-10 px-3 bg-[#FAF7F2] border border-[#1A2B4C]/40 rounded-xl text-xs font-bold text-[#1A2B4C] outline-none"
                     />
@@ -352,17 +352,21 @@ export const VolunteerAddElderModal: React.FC<VolunteerAddElderModalProps> = ({
                     <Label className="text-[11px] font-black uppercase text-[#1A2B4C] block mb-1">
                       Language
                     </Label>
-                    <select
+                    <Select
                       value={preferredLang}
-                      onChange={(e) => setPreferredLang(e.target.value as SupportedLanguage)}
+                      onChange={(e: any) => setPreferredLang(e.target.value as SupportedLanguage)}
                       className="w-full h-10 px-2 bg-[#FAF7F2] border border-[#1A2B4C]/40 rounded-xl text-xs font-bold text-[#1A2B4C] outline-none"
                     >
-                      {SUPPORTED_LANGUAGES.map(lang => (
-                        <option key={lang.code} value={lang.code}>
+                      {SUPPORTED_LANGUAGES.map((lang) => (
+                        <Option 
+                          key={lang.code} 
+                          value={lang.code}
+                          label={`${lang.flag} ${lang.nativeLabel} (${lang.label})`}
+                        >
                           {lang.flag} {lang.nativeLabel} ({lang.label})
-                        </option>
+                        </Option>
                       ))}
-                    </select>
+                    </Select>
                   </Div>
                 </Div>
 
@@ -375,7 +379,7 @@ export const VolunteerAddElderModal: React.FC<VolunteerAddElderModalProps> = ({
                     <Input
                       type="text"
                       value={phoneCountryCode}
-                      onChange={(e) => setPhoneCountryCode(e.target.value)}
+                      onChange={(e: any) => setPhoneCountryCode(e.target.value)}
                       placeholder="+1"
                       className="w-full h-10 px-2 bg-[#FAF7F2] border border-[#1A2B4C]/40 rounded-xl text-xs font-bold text-[#1A2B4C] text-center outline-none"
                     />
@@ -387,7 +391,7 @@ export const VolunteerAddElderModal: React.FC<VolunteerAddElderModalProps> = ({
                     <Input
                       type="tel"
                       value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      onChange={(e: any) => setPhoneNumber(e.target.value)}
                       placeholder="415-555-0192"
                       className="w-full h-10 px-3 bg-[#FAF7F2] border border-[#1A2B4C]/40 rounded-xl text-xs font-bold text-[#1A2B4C] outline-none"
                     />
@@ -402,7 +406,7 @@ export const VolunteerAddElderModal: React.FC<VolunteerAddElderModalProps> = ({
                   <Input
                     type="text"
                     value={address}
-                    onChange={(e) => setAddress(e.target.value)}
+                    onChange={(e: any) => setAddress(e.target.value)}
                     placeholder="e.g. 512 Willow Street, Apt 3A"
                     className="w-full h-10 px-3 bg-[#FAF7F2] border border-[#1A2B4C]/40 rounded-xl text-xs font-bold text-[#1A2B4C] outline-none"
                   />
@@ -415,7 +419,7 @@ export const VolunteerAddElderModal: React.FC<VolunteerAddElderModalProps> = ({
                   <Input
                     type="text"
                     value={landmark}
-                    onChange={(e) => setLandmark(e.target.value)}
+                    onChange={(e: any) => setLandmark(e.target.value)}
                     placeholder="e.g. Near Willow Creek Community Center"
                     className="w-full h-10 px-3 bg-[#FAF7F2] border border-[#1A2B4C]/40 rounded-xl text-xs font-bold text-[#1A2B4C] outline-none"
                   />
@@ -429,7 +433,7 @@ export const VolunteerAddElderModal: React.FC<VolunteerAddElderModalProps> = ({
                   <Input
                     type="text"
                     value={medicalConditionsStr}
-                    onChange={(e) => setMedicalConditionsStr(e.target.value)}
+                    onChange={(e: any) => setMedicalConditionsStr(e.target.value)}
                     placeholder="e.g. Hypertension, Diabetes, Pacemaker"
                     className="w-full h-10 px-3 bg-[#FAF7F2] border border-[#1A2B4C]/40 rounded-xl text-xs font-bold text-[#1A2B4C] outline-none"
                   />

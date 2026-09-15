@@ -1,5 +1,6 @@
 import { Div, Span, P, H1, H2, H3, H4, H5, H6, Label, Button, Img, Input, Main, Header, Footer, Section, Nav, Aside, Ul, Li, Form } from '../../rn-compat';
 import React, { useState, useEffect } from 'react';
+import { Linking } from 'react-native';
 import { useApp } from '../../context/AppContext';
 import { 
   AlertOctagon, 
@@ -14,7 +15,7 @@ import {
   Heart,
   ExternalLink,
   Navigation
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { soundFx } from '../../utils/audio';
 import { TRANSLATIONS, speakText } from '../../utils/speech';
 
@@ -165,7 +166,7 @@ export const VolunteerSosModal: React.FC<VolunteerSosModalProps> = ({ onDismiss 
               onClick={() => {
                 soundFx.playTap();
                 const url = `https://www.google.com/maps/search/?api=1&query=${elderLocation.latitude},${elderLocation.longitude}`;
-                window.open(url, '_blank', 'noopener,noreferrer');
+                Linking.openURL(url);
               }}
               className="px-2.5 py-1 bg-white hover:bg-slate-100 text-[#1A2B4C] rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shrink-0 shadow-sm cursor-pointer"
               title="Open Google Maps"

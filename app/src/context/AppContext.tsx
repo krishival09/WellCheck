@@ -95,7 +95,7 @@ const getStoredPairData = (elder: UserProfile, volunteer: UserProfile): PairDoc 
     if (raw) return JSON.parse(raw);
   } catch {}
   return {
-    pinCode: '7492',
+    pinCode: '749281',
     elderId: 'elder-8841',
     elderName: elder.name || 'Eleanor Vance',
     volunteerId: 'vol-3019',
@@ -217,7 +217,7 @@ const INITIAL_MONITORED_ELDERS: MonitoredElder[] = [
     phoneCountryCode: '+91',
     phoneNumber: '9845012345',
     preferredLanguage: 'hi-IN',
-    pinCode: '7492',
+    pinCode: '749281',
     avatarEmoji: '👵',
     avatarColor: '#FFB84D',
     isPaired: true,
@@ -1473,7 +1473,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const generateNewPin = useCallback(async () => {
     soundFx.playSuccessChime();
-    let newPin = Math.floor(1000 + Math.random() * 9000).toString();
+    let newPin = Math.floor(100000 + Math.random() * 900000).toString();
     try {
       const backendPin = await generatePinBackend(pairData.elderId);
       if (backendPin) newPin = backendPin;

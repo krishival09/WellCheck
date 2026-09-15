@@ -1,5 +1,6 @@
 import { Div, Span, P, H1, H2, H3, H4, H5, H6, Label, Button, Img, Input, Main, Header, Footer, Section, Nav, Aside, Ul, Li, Form } from '../../rn-compat';
 import React, { useState } from 'react';
+import { Alert } from 'react-native';
 import { 
   X, 
   Pill, 
@@ -14,7 +15,7 @@ import {
   Sparkles,
   Info,
   ShieldCheck
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
 import { MedicineReminderDoc } from '../../types';
 import { MedicinePhotoUploaderModal } from '../components/MedicinePhotoUploaderModal';
@@ -80,7 +81,7 @@ export const VolunteerMedicineManagerModal: React.FC<VolunteerMedicineManagerMod
       <Div 
         id="volunteer-med-manager-modal"
         className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
-        onClick={(e) => {
+        onClick={(e: any) => {
           if (e.target === e.currentTarget) onClose();
         }}
       >
@@ -199,7 +200,7 @@ export const VolunteerMedicineManagerModal: React.FC<VolunteerMedicineManagerMod
                             <Input
                               type="text"
                               value={editForm.medicineName || ''}
-                              onChange={(e) => setEditForm({ ...editForm, medicineName: e.target.value })}
+                              onChange={(e: any) => setEditForm({ ...editForm, medicineName: e.target?.value ?? e })}
                               placeholder="Medicine Name"
                               className="text-xs font-bold px-2 py-1 bg-[#FAF7F2] rounded-lg border border-[#1A2B4C]"
                             />
@@ -207,14 +208,14 @@ export const VolunteerMedicineManagerModal: React.FC<VolunteerMedicineManagerMod
                               <Input
                                 type="text"
                                 value={editForm.dosage || ''}
-                                onChange={(e) => setEditForm({ ...editForm, dosage: e.target.value })}
+                                onChange={(e: any) => setEditForm({ ...editForm, dosage: e.target?.value ?? e })}
                                 placeholder="Dosage"
                                 className="text-xs font-bold px-2 py-1 bg-[#FAF7F2] rounded-lg border border-[#1A2B4C]"
                               />
                               <Input
                                 type="text"
                                 value={editForm.scheduledTime || ''}
-                                onChange={(e) => setEditForm({ ...editForm, scheduledTime: e.target.value })}
+                                onChange={(e: any) => setEditForm({ ...editForm, scheduledTime: e.target?.value ?? e })}
                                 placeholder="Time (e.g. 08:00 AM)"
                                 className="text-xs font-bold px-2 py-1 bg-[#FAF7F2] rounded-lg border border-[#1A2B4C]"
                               />
@@ -222,7 +223,7 @@ export const VolunteerMedicineManagerModal: React.FC<VolunteerMedicineManagerMod
                             <Input
                               type="text"
                               value={editForm.instructions || ''}
-                              onChange={(e) => setEditForm({ ...editForm, instructions: e.target.value })}
+                              onChange={(e: any) => setEditForm({ ...editForm, instructions: e.target?.value ?? e })}
                               placeholder="Instructions"
                               className="text-xs font-bold px-2 py-1 bg-[#FAF7F2] rounded-lg border border-[#1A2B4C]"
                             />
@@ -305,9 +306,14 @@ export const VolunteerMedicineManagerModal: React.FC<VolunteerMedicineManagerMod
                         <Button
                           type="button"
                           onClick={() => {
-                            if (confirm(`Remove scheduled dose (${med.scheduledTime}) from schedule?`)) {
-                              deleteMedicine(med.id);
-                            }
+                            Alert.alert(
+                              'Remove Dose',
+                              `Remove scheduled dose (${med.scheduledTime}) from schedule?`,
+                              [
+                                { text: 'Cancel', style: 'cancel' },
+                                { text: 'Remove', style: 'destructive', onPress: () => deleteMedicine(med.id) },
+                              ]
+                            );
                           }}
                           className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg border border-transparent hover:border-red-300 transition cursor-pointer"
                           title="Delete medication"

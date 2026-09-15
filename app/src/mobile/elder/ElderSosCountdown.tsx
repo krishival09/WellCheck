@@ -1,9 +1,8 @@
 import { Div, Span, P, H1, H2, H3, H4, H5, H6, Label, Button, Img, Input, Main, Header, Footer, Section, Nav, Aside, Ul, Li, Form, triggerHaptic } from '../../rn-compat';
 import React, { useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { AlertTriangle, X, Volume2, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, X, Volume2, ShieldAlert } from 'lucide-react-native';
 import { speakText, TRANSLATIONS } from '../../utils/speech';
-import { TtsSubtitleBanner } from '../components/TtsSubtitleBanner';
 
 export const ElderSosCountdown: React.FC = () => {
   const {
@@ -30,8 +29,8 @@ export const ElderSosCountdown: React.FC = () => {
       className="flex-1 flex flex-col justify-between p-4 bg-[#FF6B4A] text-white select-none animate-in fade-in duration-200"
     >
       {/* Top Header warning banner */}
-      <Header className="flex items-center justify-between">
-        <Div className="flex items-center gap-2 bg-[#1A2B4C] text-white px-3 py-1 rounded-lg border border-white/20 shadow-[2px_2px_0px_#1A2B4C]">
+      <Header className="w-full flex flex-row items-center justify-between">
+        <Div className="flex flex-row items-center gap-2 bg-[#1A2B4C] text-white px-3 py-1.5 rounded-xl border border-white/20 shadow-[2px_2px_0px_#1A2B4C]">
           <ShieldAlert className="w-4 h-4 text-[#FFB84D] animate-pulse" />
           <Span className="text-xs font-black tracking-widest uppercase">
             SOS ALERT
@@ -41,18 +40,14 @@ export const ElderSosCountdown: React.FC = () => {
           id="elder-countdown-voice-btn"
           onClick={handleSpeakCountdown}
           aria-label="Repeat voice announcement"
-          className="w-9 h-9 rounded-lg bg-[#1A2B4C] border border-white/30 flex items-center justify-center text-white active:scale-95 transition shadow-sm"
+          className="w-10 h-10 rounded-xl bg-[#1A2B4C] border border-white/30 flex items-center justify-center text-white active:scale-95 transition shadow-sm"
         >
           <Volume2 className="w-5 h-5" />
         </Button>
       </Header>
 
-      <Div className="mt-2">
-        <TtsSubtitleBanner />
-      </Div>
-
       {/* Center Countdown Display with Ring */}
-      <Main className="flex flex-col items-center justify-center my-auto text-center">
+      <Main className="flex-1 flex flex-col items-center justify-center my-auto text-center">
         
         <P className="text-white text-[22px] font-black uppercase tracking-wider mb-4">
           {t.alertStartingText}
@@ -65,7 +60,7 @@ export const ElderSosCountdown: React.FC = () => {
           </Span>
         </Div>
 
-        <Div className="flex items-center gap-2 text-white font-black uppercase tracking-wider text-xs mb-1 bg-black/20 px-3 py-1.5 rounded-full border border-white/20">
+        <Div className="flex flex-row items-center gap-2 text-white font-black uppercase tracking-wider text-xs mb-1 bg-black/20 px-3.5 py-1.5 rounded-full border border-white/20">
           <AlertTriangle className="w-4 h-4 text-[#FFB84D]" />
           <Span>{t.autoDispatchInText(sosCountdown)}</Span>
         </Div>
@@ -96,7 +91,7 @@ export const ElderSosCountdown: React.FC = () => {
             cancelSosCountdown();
           }}
           aria-label="Cancel SOS alert"
-          className="w-full h-[72px] bg-white hover:bg-slate-50 text-[#1A2B4C] rounded-2xl border-4 border-[#1A2B4C] text-[20px] font-black uppercase shadow-[6px_6px_0px_#1A2B4C] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#1A2B4C] flex items-center justify-center gap-2 transition-all cursor-pointer"
+          className="w-full h-[72px] bg-white hover:bg-slate-50 text-[#1A2B4C] rounded-2xl border-4 border-[#1A2B4C] text-[20px] font-black uppercase shadow-[6px_6px_0px_#1A2B4C] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#1A2B4C] flex flex-row items-center justify-center gap-2 transition-all cursor-pointer"
         >
           <X className="w-7 h-7 stroke-[3]" />
           <Span>{t.cancelText}</Span>

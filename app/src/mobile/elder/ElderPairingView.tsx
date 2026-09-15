@@ -1,7 +1,7 @@
 import { Div, Span, P, H1, H2, H3, H4, H5, H6, Label, Button, Img, Input, Main, Header, Footer, Section, Nav, Aside, Ul, Li, Form } from '../../rn-compat';
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { KeyRound, ArrowLeft, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { KeyRound, ArrowLeft, RefreshCw, CheckCircle2 } from 'lucide-react-native';
 import { TRANSLATIONS } from '../../utils/speech';
 
 export const ElderPairingView: React.FC = () => {
@@ -12,7 +12,7 @@ export const ElderPairingView: React.FC = () => {
   return (
     <Div 
       id="elder-pairing-view"
-      className="flex-1 flex flex-col justify-between p-4 bg-[#FAF7F2] text-[#1A2B4C]"
+      className="flex-1 flex flex-col justify-between p-4 bg-[#FAF7F2] text-[#1A2B4C] overflow-y-auto"
     >
       {/* Top Header */}
       <Header className="flex items-center justify-between pb-3 border-b-2 border-[#1A2B4C]/20">

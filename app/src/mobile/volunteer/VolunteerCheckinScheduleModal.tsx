@@ -1,4 +1,4 @@
-import { Div, Span, P, Label, Button, Input, Form } from '../../rn-compat';
+import { Div, Span, P, H2, Label, Button, Input, Form, Strong } from '../../rn-compat';
 import React, { useState } from 'react';
 import { 
   X, 
@@ -12,7 +12,7 @@ import {
   Send,
   Timer,
   Play
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
 import { soundFx } from '../../utils/audio';
 
@@ -78,7 +78,7 @@ export const VolunteerCheckinScheduleModal: React.FC<VolunteerCheckinScheduleMod
     <Div 
       id="volunteer-checkin-schedule-modal"
       className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3.5 animate-in fade-in"
-      onClick={(e) => {
+      onClick={(e: any) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
@@ -91,9 +91,9 @@ export const VolunteerCheckinScheduleModal: React.FC<VolunteerCheckinScheduleMod
               <Clock className="w-5 h-5 text-[#FFB84D]" />
             </Div>
             <Div>
-              <h2 className="text-base font-black text-[#1A2B4C] dark:text-white leading-tight">
+              <H2 className="text-base font-black text-[#1A2B4C] dark:text-white leading-tight">
                 Scheduled Check-In Times
-              </h2>
+              </H2>
               <P className="text-xs font-bold text-[#1A2B4C]/70 dark:text-slate-400">
                 Automated check-in messages for <Span className="font-black text-[#1A2B4C] dark:text-white">{pairData.elderName}</Span>
               </P>
@@ -120,7 +120,7 @@ export const VolunteerCheckinScheduleModal: React.FC<VolunteerCheckinScheduleMod
               ⚡ 3-Minute Escalation Rule
             </Span>
             <P className="font-medium text-[11px] leading-relaxed mt-0.5">
-              When a check-in time arrives, <Span className="font-bold">{pairData.elderName}</Span> receives an instant prompt with sound and voice. If no response is received within <Span className="font-black underline">3 minutes</Span>, a high-priority <strong>Missed Check-In Alert Pop-up</strong> will immediately trigger on your screen.
+              When a check-in time arrives, <Span className="font-bold">{pairData.elderName}</Span> receives an instant prompt with sound and voice. If no response is received within <Span className="font-black underline">3 minutes</Span>, a high-priority <Strong>Missed Check-In Alert Pop-up</Strong> will immediately trigger on your screen.
             </P>
           </Div>
         </Div>
@@ -254,7 +254,7 @@ export const VolunteerCheckinScheduleModal: React.FC<VolunteerCheckinScheduleMod
                     type="text"
                     required
                     value={customTime}
-                    onChange={(e) => setCustomTime(e.target.value)}
+                    onChange={(e: any) => setCustomTime(e.target?.value ?? e)}
                     placeholder="09:00 AM"
                     className="w-full text-xs font-bold px-3 py-2 bg-[#FAF7F2] dark:bg-slate-900 dark:text-white rounded-xl border border-[#1A2B4C] dark:border-slate-600 focus:outline-none"
                   />
@@ -266,7 +266,7 @@ export const VolunteerCheckinScheduleModal: React.FC<VolunteerCheckinScheduleMod
                   <Input
                     type="text"
                     value={customLabel}
-                    onChange={(e) => setCustomLabel(e.target.value)}
+                    onChange={(e: any) => setCustomLabel(e.target?.value ?? e)}
                     placeholder="e.g. Afternoon Tea Check"
                     className="w-full text-xs font-bold px-3 py-2 bg-[#FAF7F2] dark:bg-slate-900 dark:text-white rounded-xl border border-[#1A2B4C] dark:border-slate-600 focus:outline-none"
                   />

@@ -1,5 +1,5 @@
 import { Div, Span, P, H1, H2, H3, H4, H5, H6, Label, Button, Img, Input, Main, Header, Footer, Section, Nav, Aside, Ul, Li, Form } from '../../rn-compat';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   Upload, 
@@ -8,10 +8,9 @@ import {
   Check, 
   RefreshCw, 
   Sparkles, 
-  AlertCircle,
   Pill,
   Trash2
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
 import { MedicineReminderDoc, RoleMode } from '../../types';
 import { soundFx } from '../../utils/audio';
@@ -96,17 +95,10 @@ export const MedicinePhotoUploaderModal: React.FC<MedicinePhotoUploaderModalProp
   const activeLang = role === 'elder' ? language : volunteerLanguage;
   const t = TRANSLATIONS[activeLang] || TRANSLATIONS['en-US'];
 
-  const [activeTab, setActiveTab] = useState<'upload' | 'camera' | 'presets'>('upload');
+  const [activeTab, setActiveTab] = useState<'url' | 'presets'>('presets');
   const [previewUrl, setPreviewUrl] = useState<string>(medicine.localPhotoRef || PRESET_MEDICINE_PHOTOS[0].url);
-  const [isDragOver, setIsDragOver] = useState<boolean>(false);
-  const [isCapturingCamera, setIsCapturingCamera] = useState<boolean>(false);
-  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [urlInput, setUrlInput] = useState<string>('');
   const [isSaving, setIsSaving] = useState<boolean>(false);
-
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const cameraInputRef = useRef<HTMLInputElement | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
 
   // Sync preview with current medicine when opened
   useEffect(() => {
@@ -115,116 +107,7 @@ export const MedicinePhotoUploaderModal: React.FC<MedicinePhotoUploaderModalProp
     }
   }, [medicine, isOpen]);
 
-  // Clean up camera stream on unmount or tab change
-  useEffect(() => {
-    return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-        streamRef.current = null;
-      }
-    };
-  }, []);
-
   if (!isOpen) return null;
-
-  // Handle File Input Selection
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files[0]) {
-      processFile(files[0]);
-    }
-  };
-
-  const processFile = (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      alert('Please select a valid image file (JPEG, PNG, WEBP, etc.)');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        soundFx.playTap();
-        setPreviewUrl(event.target.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  // Drag and Drop
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      processFile(e.dataTransfer.files[0]);
-    }
-  };
-
-  // Live Web Camera Setup
-  const startLiveCamera = async () => {
-    setCameraError(null);
-    setIsCapturingCamera(true);
-    try {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Camera device API not supported in this browser. Please use file upload.');
-      }
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false,
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-      }
-    } catch (err: any) {
-      console.warn('Live camera error:', err);
-      setCameraError(err?.message || 'Unable to access camera. Please allow camera permissions or use direct file upload.');
-      setIsCapturingCamera(false);
-    }
-  };
-
-  const captureCameraSnapshot = () => {
-    if (!videoRef.current) return;
-    try {
-      const video = videoRef.current;
-      const canvas = document.createElement('canvas');
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 480;
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-        soundFx.playSuccessChime();
-        setPreviewUrl(dataUrl);
-        // Stop stream
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach(t => t.stop());
-          streamRef.current = null;
-        }
-        setIsCapturingCamera(false);
-      }
-    } catch (e) {
-      console.error('Snapshot failed', e);
-    }
-  };
-
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop());
-      streamRef.current = null;
-    }
-    setIsCapturingCamera(false);
-  };
 
   // Save changes to context & storage
   const handleSavePhoto = () => {
@@ -252,9 +135,8 @@ export const MedicinePhotoUploaderModal: React.FC<MedicinePhotoUploaderModalProp
     <Div 
       id="medicine-photo-upload-modal"
       className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
-      onClick={(e) => {
+      onClick={(e: any) => {
         if (e.target === e.currentTarget) {
-          stopCamera();
           onClose();
         }
       }}
@@ -286,7 +168,6 @@ export const MedicinePhotoUploaderModal: React.FC<MedicinePhotoUploaderModalProp
           <Button
             id="close-med-photo-modal-btn"
             onClick={() => {
-              stopCamera();
               onClose();
             }}
             aria-label="Close Modal"
@@ -317,180 +198,69 @@ export const MedicinePhotoUploaderModal: React.FC<MedicinePhotoUploaderModalProp
         </Div>
 
         {/* Method Tab Selector */}
-        <Div className="grid grid-cols-3 gap-1.5 bg-slate-200 p-1.5 rounded-2xl border border-[#1A2B4C]/30">
+        <Div className="flex flex-row gap-1.5 bg-slate-200 p-1.5 rounded-2xl border border-[#1A2B4C]/30">
           <Button
             type="button"
-            onClick={() => {
-              stopCamera();
-              setActiveTab('upload');
-            }}
-            className={`py-2 px-1 text-xs font-black uppercase rounded-xl transition flex items-center justify-center gap-1 cursor-pointer ${
-              activeTab === 'upload'
-                ? 'bg-[#1A2B4C] text-white shadow-sm'
-                : 'text-[#1A2B4C]/80 hover:text-[#1A2B4C]'
+            onClick={() => setActiveTab('url')}
+            className={`flex-1 py-2 px-1 flex flex-row items-center justify-center gap-1 rounded-xl ${
+              activeTab === 'url'
+                ? 'bg-[#1A2B4C] shadow-sm'
+                : 'bg-transparent'
             }`}
           >
-            <Upload className="w-3.5 h-3.5" />
-            <Span>Upload File</Span>
+            <Upload size={14} color={activeTab === 'url' ? 'white' : '#1A2B4C'} />
+            <Span className={`text-xs font-black uppercase ${activeTab === 'url' ? 'text-white' : 'text-[#1A2B4C]'}`}>Photo URL</Span>
           </Button>
           <Button
             type="button"
-            onClick={() => {
-              setActiveTab('camera');
-              startLiveCamera();
-            }}
-            className={`py-2 px-1 text-xs font-black uppercase rounded-xl transition flex items-center justify-center gap-1 cursor-pointer ${
-              activeTab === 'camera'
-                ? 'bg-[#1A2B4C] text-white shadow-sm'
-                : 'text-[#1A2B4C]/80 hover:text-[#1A2B4C]'
-            }`}
-          >
-            <Camera className="w-3.5 h-3.5" />
-            <Span>Live Snap</Span>
-          </Button>
-          <Button
-            type="button"
-            onClick={() => {
-              stopCamera();
-              setActiveTab('presets');
-            }}
-            className={`py-2 px-1 text-xs font-black uppercase rounded-xl transition flex items-center justify-center gap-1 cursor-pointer ${
+            onClick={() => setActiveTab('presets')}
+            className={`flex-1 py-2 px-1 flex flex-row items-center justify-center gap-1 rounded-xl ${
               activeTab === 'presets'
-                ? 'bg-[#1A2B4C] text-white shadow-sm'
-                : 'text-[#1A2B4C]/80 hover:text-[#1A2B4C]'
+                ? 'bg-[#1A2B4C] shadow-sm'
+                : 'bg-transparent'
             }`}
           >
-            <ImageIcon className="w-3.5 h-3.5" />
-            <Span>Pill Library</Span>
+            <ImageIcon size={14} color={activeTab === 'presets' ? 'white' : '#1A2B4C'} />
+            <Span className={`text-xs font-black uppercase ${activeTab === 'presets' ? 'text-white' : 'text-[#1A2B4C]'}`}>Pill Library</Span>
           </Button>
         </Div>
 
-        {/* TAB 1: FILE DRAG & DROP / UPLOAD */}
-        {activeTab === 'upload' && (
+        {/* TAB 1: PHOTO URL INPUT */}
+        {activeTab === 'url' && (
           <Div className="flex flex-col gap-3">
-            <Div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className={`min-h-[140px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-4 text-center cursor-pointer transition ${
-                isDragOver 
-                  ? 'border-[#FF6B4A] bg-[#FF6B4A]/10 scale-[1.01]' 
-                  : 'border-[#1A2B4C] bg-white hover:bg-slate-50'
-              }`}
-            >
-              <Input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-                id="med-photo-file-input"
-              />
-              <Div className="w-12 h-12 rounded-2xl bg-[#FFB84D] border-2 border-[#1A2B4C] flex items-center justify-center text-[#1A2B4C] mb-2 shadow-[2px_2px_0px_#1A2B4C]">
-                <Upload className="w-6 h-6 stroke-[2.5]" />
+            <Div className="p-4 bg-white rounded-2xl border-2 border-[#1A2B4C] flex flex-col gap-3">
+              <Div className="flex flex-row items-center gap-2">
+                <Div className="w-10 h-10 rounded-xl bg-[#FFB84D] border-2 border-[#1A2B4C] flex items-center justify-center">
+                  <Upload size={20} color="#1A2B4C" />
+                </Div>
+                <Div>
+                  <P className="text-xs font-black text-[#1A2B4C] uppercase">Enter Photo URL</P>
+                  <P className="text-[10px] font-bold text-slate-500">Paste a direct link to an image</P>
+                </Div>
               </Div>
-              <Span className="text-xs sm:text-sm font-black uppercase text-[#1A2B4C]">
-                Click to Choose or Drag Photo Here
-              </Span>
-              <Span className="text-[11px] font-bold text-slate-500 mt-0.5">
-                Supports JPG, PNG, WEBP, Camera photos
-              </Span>
-            </Div>
-
-            {/* Mobile Native Camera direct button */}
-            <Div className="flex items-center gap-2">
               <Input
-                ref={cameraInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={handleFileChange}
-                className="hidden"
-                id="med-photo-camera-direct-input"
+                type="url"
+                value={urlInput}
+                onChange={(e: any) => setUrlInput(e.target.value)}
+                placeholder="https://example.com/medicine.jpg"
+                className="w-full h-10 px-3 bg-[#FAF7F2] border-2 border-[#1A2B4C] rounded-xl text-xs font-bold text-[#1A2B4C] outline-none"
               />
               <Button
                 type="button"
-                onClick={() => cameraInputRef.current?.click()}
-                className="flex-1 py-2 px-3 bg-white hover:bg-slate-50 border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] rounded-xl text-xs font-black uppercase flex items-center justify-center gap-2 transition cursor-pointer"
+                disabled={!urlInput.trim()}
+                onClick={() => {
+                  if (urlInput.trim()) {
+                    soundFx.playTap();
+                    setPreviewUrl(urlInput.trim());
+                    setUrlInput('');
+                  }
+                }}
+                className="w-full py-2.5 bg-[#1A2B4C] rounded-xl flex flex-row items-center justify-center gap-2"
               >
-                <Camera className="w-4 h-4 text-[#FF6B4A]" />
-                <Span>Open Device Camera App</Span>
+                <Check size={16} color="white" />
+                <Span className="text-sm font-black text-white">Use This Photo</Span>
               </Button>
             </Div>
-          </Div>
-        )}
-
-        {/* TAB 2: LIVE CAMERA VIEWFINDER */}
-        {activeTab === 'camera' && (
-          <Div className="flex flex-col gap-3">
-            {isCapturingCamera ? (
-              <Div className="relative w-full h-56 rounded-2xl overflow-hidden bg-black border-2 border-[#1A2B4C] flex flex-col items-center justify-center">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-cover"
-                />
-                <Div className="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
-                  <Span className="w-1.5 h-1.5 bg-white rounded-full" />
-                  Live Camera
-                </Div>
-                <Div className="absolute bottom-3 inset-x-0 flex items-center justify-center gap-3">
-                  <Button
-                    type="button"
-                    onClick={captureCameraSnapshot}
-                    className="min-h-[44px] px-5 bg-[#4CAF50] hover:bg-[#43a047] text-white font-black text-xs uppercase tracking-wider rounded-xl border-2 border-white shadow-lg flex items-center gap-2 active:scale-95 transition cursor-pointer"
-                  >
-                    <Camera className="w-4 h-4" />
-                    <Span>📸 Capture Photo</Span>
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={stopCamera}
-                    className="min-h-[44px] px-3 bg-black/70 text-white text-xs font-bold rounded-xl border border-white/40 cursor-pointer"
-                  >
-                    Cancel
-                  </Button>
-                </Div>
-              </Div>
-            ) : (
-              <Div className="p-4 bg-white rounded-2xl border-2 border-[#1A2B4C] flex flex-col items-center text-center gap-3">
-                {cameraError ? (
-                  <Div className="p-3 bg-red-50 border border-red-300 rounded-xl text-red-700 text-xs font-bold flex items-start gap-2 text-left">
-                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                    <Div>
-                      <P className="font-black">Camera Access Issue</P>
-                      <P className="text-[11px] mt-0.5">{cameraError}</P>
-                    </Div>
-                  </Div>
-                ) : (
-                  <P className="text-xs font-bold text-slate-600">
-                    Snap a fresh photo of the pill bottle, strip, or blister pack using your device camera.
-                  </P>
-                )}
-                <Div className="flex gap-2 w-full">
-                  <Button
-                    type="button"
-                    onClick={startLiveCamera}
-                    className="flex-1 min-h-[46px] bg-[#FFB84D] hover:bg-[#ffa726] text-[#1A2B4C] font-black text-xs uppercase rounded-xl border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    <Span>Start Live Viewfinder</Span>
-                  </Button>
-                  
-                  <Button
-                    type="button"
-                    onClick={() => cameraInputRef.current?.click()}
-                    className="flex-1 min-h-[46px] bg-[#1A2B4C] hover:bg-black text-white font-black text-xs uppercase rounded-xl border-2 border-[#1A2B4C] shadow-[2px_2px_0px_#1A2B4C] flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <Camera className="w-4 h-4 text-[#4CAF50]" />
-                    <Span>Device Camera App</Span>
-                  </Button>
-                </Div>
-              </Div>
-            )}
           </Div>
         )}
 
@@ -586,7 +356,6 @@ export const MedicinePhotoUploaderModal: React.FC<MedicinePhotoUploaderModalProp
           <Button
             type="button"
             onClick={() => {
-              stopCamera();
               onClose();
             }}
             className="flex-1 min-h-[50px] bg-slate-200 hover:bg-slate-300 text-[#1A2B4C] font-black text-xs uppercase tracking-wider rounded-2xl border-2 border-[#1A2B4C] active:scale-95 transition cursor-pointer"

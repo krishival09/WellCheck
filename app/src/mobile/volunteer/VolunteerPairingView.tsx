@@ -1,7 +1,7 @@
-import { Div, Span, P, H1, H2, H3, H4, H5, H6, Label, Button, Img, Input, Main, Header, Footer, Section, Nav, Aside, Ul, Li, Form } from '../../rn-compat';
+import { Div, Span, P, H1, H2, H3, H4, H5, H6, Label, Button, Img, Input, Main, Header, Footer, Section, Nav, Aside, Ul, Li, Form, Strong } from '../../rn-compat';
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { KeyRound, ArrowRight, UserCheck, Languages } from 'lucide-react';
+import { KeyRound, ArrowRight, UserCheck, Languages } from 'lucide-react-native';
 import { SUPPORTED_LANGUAGES, TRANSLATIONS } from '../../utils/speech';
 import { SupportedLanguage } from '../../types';
 
@@ -20,8 +20,8 @@ export const VolunteerPairingView: React.FC<VolunteerPairingViewProps> = ({ onSu
 
   const handlePair = (e: React.FormEvent) => {
     e.preventDefault();
-    if (pinInput.trim().length < 4) {
-      setErrorMsg('Please enter a valid 4-digit PIN code.');
+    if (pinInput.trim().length < 6) {
+      setErrorMsg('Please enter a valid 6-digit PIN code.');
       return;
     }
     const success = pairVolunteerWithPin(pinInput);
@@ -36,7 +36,7 @@ export const VolunteerPairingView: React.FC<VolunteerPairingViewProps> = ({ onSu
   return (
     <Div 
       id="volunteer-pairing-screen" 
-      className="flex-1 flex flex-col justify-between px-4 py-5 bg-[#FAF7F2] text-[#1A2B4C]"
+      className="flex-1 flex flex-col justify-between px-4 py-5 bg-[#FAF7F2] text-[#1A2B4C] overflow-y-auto"
     >
       <Header className="flex items-center justify-between pb-3 border-b border-slate-200">
         <Div>
@@ -109,15 +109,16 @@ export const VolunteerPairingView: React.FC<VolunteerPairingViewProps> = ({ onSu
               type="text"
               maxLength={6}
               value={pinInput}
-              onChange={(e) => {
-                setPinInput(e.target.value.replace(/\D/g, ''));
+              onChange={(e: any) => {
+                const val = e.target ? e.target.value : e;
+                setPinInput(String(val).replace(/\D/g, ''));
                 setErrorMsg('');
               }}
-              placeholder={pairData.pinCode || '7492'}
+              placeholder={pairData.pinCode || '749281'}
               className="w-full h-16 text-center text-3xl font-black tracking-[0.25em] font-mono bg-white border-2 border-slate-300 focus:border-[#1A2B4C] rounded-2xl shadow-sm outline-none transition text-slate-900"
             />
             <Span className="text-[11px] font-semibold text-slate-400 mt-1 block">
-              Default demo PIN: <strong className="text-slate-700">{pairData.pinCode}</strong>
+              Default demo PIN: <Strong className="text-slate-700">{pairData.pinCode}</Strong>
             </Span>
           </Div>
 

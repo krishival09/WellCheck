@@ -1,12 +1,23 @@
 import { MonitoredElder, MedicineReminderDoc, CheckinScheduleSlot, ElderLocationData, AlertDoc, ActiveCheckinPrompt } from '../types';
+import { Platform } from 'react-native';
 
-const API_BASE = '/api';
+// On native (Android/iOS via Expo Go), there is no local backend server.
+// All real-time data flows through Firestore. REST API calls are silently skipped.
+const API_BASE = Platform.OS === 'web' ? '/api' : null;
+
+// apiFetch: returns null immediately on native (no backend server).
+// On web it behaves exactly like fetch(). All callers handle null/error.
+async function apiFetch(path: string, options?: RequestInit): Promise<Response | null> {
+  if (!API_BASE) return null;
+  return fetch(`${API_BASE}${path}`, options);
+}
 
 export const api = {
   // Health
   checkHealth: async () => {
     try {
-      const res = await fetch(`${API_BASE}/health`);
+      const res = await apiFetch('/health');
+      if (!res) return { status: 'offline' };
       return await res.json();
     } catch {
       return { status: 'offline' };
@@ -16,8 +27,8 @@ export const api = {
   // Elders
   getElders: async (): Promise<MonitoredElder[] | null> => {
     try {
-      const res = await fetch(`${API_BASE}/elders`);
-      if (!res.ok) return null;
+      const res = await apiFetch('/elders');
+      if (!res || !res.ok) return null;
       const data = await res.json();
       return data.data || [];
     } catch (err) {
@@ -28,8 +39,8 @@ export const api = {
 
   getElderById: async (id: string): Promise<MonitoredElder | null> => {
     try {
-      const res = await fetch(`${API_BASE}/elders/${id}`);
-      if (!res.ok) return null;
+      const res = await apiFetch(`/elders/${id}`);
+      if (!res || !res.ok) return null;
       const data = await res.json();
       return data.data || null;
     } catch {
@@ -39,12 +50,12 @@ export const api = {
 
   createElder: async (elderData: Partial<MonitoredElder>): Promise<MonitoredElder | null> => {
     try {
-      const res = await fetch(`${API_BASE}/elders`, {
+      const res = await apiFetch('/elders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(elderData),
       });
-      if (!res.ok) return null;
+      if (!res || !res.ok) return null;
       const data = await res.json();
       return data.data || null;
     } catch {
@@ -54,12 +65,12 @@ export const api = {
 
   updateElder: async (id: string, updates: Partial<MonitoredElder>): Promise<MonitoredElder | null> => {
     try {
-      const res = await fetch(`${API_BASE}/elders/${id}`, {
+      const res = await apiFetch(`/elders/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
-      if (!res.ok) return null;
+      if (!res || !res.ok) return null;
       const data = await res.json();
       return data.data || null;
     } catch {
@@ -69,8 +80,8 @@ export const api = {
 
   deleteElder: async (id: string): Promise<boolean> => {
     try {
-      const res = await fetch(`${API_BASE}/elders/${id}`, { method: 'DELETE' });
-      return res.ok;
+      const res = await apiFetch(`/elders/${id}`, { method: 'DELETE' });
+      return !!res && res.ok;
     } catch {
       return false;
     }
@@ -78,12 +89,12 @@ export const api = {
 
   pairWithPin: async (pinCode: string, customName?: string, relationship?: string) => {
     try {
-      const res = await fetch(`${API_BASE}/pair`, {
+      const res = await apiFetch('/pair', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pinCode, customName, relationship }),
       });
-      if (!res.ok) return null;
+      if (!res || !res.ok) return null;
       return await res.json();
     } catch {
       return null;
@@ -92,12 +103,12 @@ export const api = {
 
   generatePin: async (elderId?: string): Promise<string | null> => {
     try {
-      const res = await fetch(`${API_BASE}/generate-pin`, {
+      const res = await apiFetch('/generate-pin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ elderId }),
       });
-      if (!res.ok) return null;
+      if (!res || !res.ok) return null;
       const data = await res.json();
       return data.pinCode;
     } catch {
@@ -108,8 +119,8 @@ export const api = {
   // Medicines
   getMedicines: async (elderId: string): Promise<MedicineReminderDoc[] | null> => {
     try {
-      const res = await fetch(`${API_BASE}/elders/${elderId}/medicines`);
-      if (!res.ok) return null;
+      const res = await apiFetch(`/elders/${elderId}/medicines`);
+      if (!res || !res.ok) return null;
       const data = await res.json();
       return data.data || [];
     } catch {
@@ -119,12 +130,12 @@ export const api = {
 
   addMedicine: async (elderId: string, med: Partial<MedicineReminderDoc>): Promise<MedicineReminderDoc | null> => {
     try {
-      const res = await fetch(`${API_BASE}/elders/${elderId}/medicines`, {
+      const res = await apiFetch(`/elders/${elderId}/medicines`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(med),
       });
-      if (!res.ok) return null;
+      if (!res || !res.ok) return null;
       const data = await res.json();
       return data.data || null;
     } catch {
@@ -134,12 +145,12 @@ export const api = {
 
   updateMedicine: async (medId: string, updates: Partial<MedicineReminderDoc>): Promise<MedicineReminderDoc | null> => {
     try {
-      const res = await fetch(`${API_BASE}/medicines/${medId}`, {
+      const res = await apiFetch(`/medicines/${medId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
-      if (!res.ok) return null;
+      if (!res || !res.ok) return null;
       const data = await res.json();
       return data.data || null;
     } catch {
@@ -149,8 +160,8 @@ export const api = {
 
   deleteMedicine: async (medId: string): Promise<boolean> => {
     try {
-      const res = await fetch(`${API_BASE}/medicines/${medId}`, { method: 'DELETE' });
-      return res.ok;
+      const res = await apiFetch(`/medicines/${medId}`, { method: 'DELETE' });
+      return !!res && res.ok;
     } catch {
       return false;
     }
@@ -158,8 +169,8 @@ export const api = {
 
   takeMedicine: async (medId: string): Promise<MedicineReminderDoc | null> => {
     try {
-      const res = await fetch(`${API_BASE}/medicines/${medId}/take`, { method: 'POST' });
-      if (!res.ok) return null;
+      const res = await apiFetch(`/medicines/${medId}/take`, { method: 'POST' });
+      if (!res || !res.ok) return null;
       const data = await res.json();
       return data.data || null;
     } catch {
@@ -169,8 +180,8 @@ export const api = {
 
   resetMedicine: async (medId: string): Promise<MedicineReminderDoc | null> => {
     try {
-      const res = await fetch(`${API_BASE}/medicines/${medId}/reset`, { method: 'POST' });
-      if (!res.ok) return null;
+      const res = await apiFetch(`/medicines/${medId}/reset`, { method: 'POST' });
+      if (!res || !res.ok) return null;
       const data = await res.json();
       return data.data || null;
     } catch {
@@ -181,8 +192,8 @@ export const api = {
   // Checkins & Schedules
   getSchedules: async (elderId: string): Promise<CheckinScheduleSlot[] | null> => {
     try {
-      const res = await fetch(`${API_BASE}/elders/${elderId}/schedules`);
-      if (!res.ok) return null;
+      const res = await apiFetch(`/elders/${elderId}/schedules`);
+      if (!res || !res.ok) return null;
       const data = await res.json();
       return data.data || [];
     } catch {
@@ -192,12 +203,12 @@ export const api = {
 
   updateSchedules: async (elderId: string, schedules: CheckinScheduleSlot[]): Promise<CheckinScheduleSlot[] | null> => {
     try {
-      const res = await fetch(`${API_BASE}/elders/${elderId}/schedules`, {
+      const res = await apiFetch(`/elders/${elderId}/schedules`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ schedules }),
       });
-      if (!res.ok) return null;
+      if (!res || !res.ok) return null;
       const data = await res.json();
       return data.data || null;
     } catch {
@@ -207,12 +218,12 @@ export const api = {
 
   triggerCheckinPrompt: async (elderId: string, slotLabel?: string): Promise<ActiveCheckinPrompt | null> => {
     try {
-      const res = await fetch(`${API_BASE}/checkins/prompt`, {
+      const res = await apiFetch('/checkins/prompt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ elderId, slotLabel }),
       });
-      if (!res.ok) return null;
+      if (!res || !res.ok) return null;
       const data = await res.json();
       return data.data || null;
     } catch {
@@ -222,12 +233,12 @@ export const api = {
 
   respondToCheckin: async (promptId: string, mood?: string, voiceMemo?: string) => {
     try {
-      const res = await fetch(`${API_BASE}/checkins/respond`, {
+      const res = await apiFetch('/checkins/respond', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ promptId, mood, voiceMemo }),
       });
-      if (!res.ok) return null;
+      if (!res || !res.ok) return null;
       return await res.json();
     } catch {
       return null;
@@ -236,12 +247,12 @@ export const api = {
 
   triggerMissedCheckinTimeout: async (elderId: string, promptId?: string): Promise<AlertDoc | null> => {
     try {
-      const res = await fetch(`${API_BASE}/checkins/missed-timeout`, {
+      const res = await apiFetch('/checkins/missed-timeout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ elderId, promptId }),
       });
-      if (!res.ok) return null;
+      if (!res || !res.ok) return null;
       const data = await res.json();
       return data.data || null;
     } catch {
@@ -252,12 +263,12 @@ export const api = {
   // Location
   updateLocation: async (elderId: string, locUpdates: Partial<ElderLocationData>): Promise<ElderLocationData | null> => {
     try {
-      const res = await fetch(`${API_BASE}/elders/${elderId}/location`, {
+      const res = await apiFetch(`/elders/${elderId}/location`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(locUpdates),
       });
-      if (!res.ok) return null;
+      if (!res || !res.ok) return null;
       const data = await res.json();
       return data.data || null;
     } catch {
@@ -267,8 +278,8 @@ export const api = {
 
   pingLocation: async (elderId: string): Promise<ElderLocationData | null> => {
     try {
-      const res = await fetch(`${API_BASE}/elders/${elderId}/location/ping`, { method: 'POST' });
-      if (!res.ok) return null;
+      const res = await apiFetch(`/elders/${elderId}/location/ping`, { method: 'POST' });
+      if (!res || !res.ok) return null;
       const data = await res.json();
       return data.data || null;
     } catch {
@@ -279,12 +290,12 @@ export const api = {
   // SOS & Alerts
   triggerSos: async (elderId: string, reason?: string): Promise<AlertDoc | null> => {
     try {
-      const res = await fetch(`${API_BASE}/sos/trigger`, {
+      const res = await apiFetch('/sos/trigger', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ elderId, reason }),
       });
-      if (!res.ok) return null;
+      if (!res || !res.ok) return null;
       const data = await res.json();
       return data.data || null;
     } catch {
@@ -294,12 +305,12 @@ export const api = {
 
   resolveSos: async (elderId: string): Promise<boolean> => {
     try {
-      const res = await fetch(`${API_BASE}/sos/resolve`, {
+      const res = await apiFetch('/sos/resolve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ elderId }),
       });
-      return res.ok;
+      return !!res && res.ok;
     } catch {
       return false;
     }
@@ -307,8 +318,8 @@ export const api = {
 
   getAlerts: async (): Promise<AlertDoc[] | null> => {
     try {
-      const res = await fetch(`${API_BASE}/alerts`);
-      if (!res.ok) return null;
+      const res = await apiFetch('/alerts');
+      if (!res || !res.ok) return null;
       const data = await res.json();
       return data.data || [];
     } catch {
@@ -318,8 +329,8 @@ export const api = {
 
   dismissAlert: async (alertId: string): Promise<boolean> => {
     try {
-      const res = await fetch(`${API_BASE}/alerts/${alertId}`, { method: 'DELETE' });
-      return res.ok;
+      const res = await apiFetch(`/alerts/${alertId}`, { method: 'DELETE' });
+      return !!res && res.ok;
     } catch {
       return false;
     }

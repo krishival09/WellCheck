@@ -10,7 +10,7 @@ import {
   CheckCircle2,
   Battery,
   Navigation
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
 import { soundFx } from '../../utils/audio';
 

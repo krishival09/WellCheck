@@ -1,4 +1,4 @@
-import { Div, Span, P, H1, H2, H3, H4, H5, H6, Label, Button, Img, Input, Main, Header, Footer, Section, Nav, Aside, Ul, Li, Form } from '../../rn-compat';
+import { Div, Span, P, H2, Label, Button, Input, Option, Select, Strong, Form } from '../../rn-compat';
 import React, { useState } from 'react';
 import { 
   ShieldCheck, 
@@ -9,15 +9,11 @@ import {
   Heart, 
   Globe, 
   CheckCircle2, 
-  Sparkles,
   ArrowRight,
   HeartHandshake,
   Mail,
   Building2,
-  Bell,
-  Smartphone,
-  LayoutDashboard
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
 import { COUNTRY_CODES, SUPPORTED_LANGUAGES } from '../../utils/speech';
 import { RoleMode, SupportedLanguage } from '../../types';
@@ -39,11 +35,13 @@ export const LoginPage: React.FC = () => {
     pairData,
     setElderScreen,
     setVolunteerScreen,
+    pairVolunteerWithPin,
   } = useApp();
 
   // Role Selection: default to active role or 'elder'
   const [selectedRole, setSelectedRole] = useState<RoleMode>(activeRole || 'elder');
   const [savedSuccess, setSavedSuccess] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Elder Form State
   const [elderForm, setElderForm] = useState({
@@ -51,7 +49,7 @@ export const LoginPage: React.FC = () => {
     age: elderProfile.age || 78,
     countryCode: elderProfile.phoneCountryCode || '+91',
     phoneNumber: elderProfile.phoneNumber || '9845012345',
-    pinCode: pairData.pinCode || '7492',
+    pinCode: pairData.pinCode || '749281',
     address: elderProfile.address || 'Apartment 4B, Maple Green Lane',
     emergencyContactName: elderProfile.emergencyContactName || 'Sarah Chen (Daughter)',
     emergencyContactPhone: elderProfile.emergencyContactPhone || '+91 98450 67890',
@@ -67,24 +65,35 @@ export const LoginPage: React.FC = () => {
     countryCode: volunteerProfile.phoneCountryCode || '+91',
     phoneNumber: volunteerProfile.phoneNumber || '9845067890',
     organization: 'Family & Community Care',
-    pinCode: pairData.pinCode || '7492',
+    pinCode: pairData.pinCode || '749281',
     preferredLanguage: (volunteerLanguage || 'en-US') as SupportedLanguage,
-    notifySos: true,
-    notifyMissedMeds: true,
-    notifyDailyReport: true,
   });
 
   const handleRoleSelect = (role: RoleMode) => {
     soundFx.playTap();
     setSelectedRole(role);
     setSavedSuccess(null);
+    setErrorMessage(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    soundFx.playSuccessChime();
+  const handleSubmit = (e?: any) => {
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
+    }
+    setErrorMessage(null);
 
     if (selectedRole === 'elder') {
+      if (!elderForm.name.trim()) {
+        setErrorMessage('Please enter your full name.');
+        return;
+      }
+      if (elderForm.pinCode.trim().length < 6) {
+        setErrorMessage('Device PIN must be exactly 6 digits.');
+        return;
+      }
+
+      soundFx.playSuccessChime();
+
       updateElderProfile({
         name: elderForm.name.trim(),
         age: Number(elderForm.age) || 78,
@@ -114,6 +123,17 @@ export const LoginPage: React.FC = () => {
       setElderScreen('home');
       setSavedSuccess(`Logged in as Senior Citizen: ${elderForm.name}`);
     } else {
+      if (!volForm.name.trim()) {
+        setErrorMessage('Please enter your caregiver name.');
+        return;
+      }
+      if (volForm.pinCode.trim().length < 6) {
+        setErrorMessage('Linked Elder PIN must be 6 digits.');
+        return;
+      }
+
+      soundFx.playSuccessChime();
+
       updateVolunteerProfile({
         name: volForm.name.trim(),
         relationship: volForm.relationship.trim(),
@@ -132,6 +152,10 @@ export const LoginPage: React.FC = () => {
         preferredLanguage: volForm.preferredLanguage,
       });
 
+      if (volForm.pinCode.trim()) {
+        pairVolunteerWithPin(volForm.pinCode.trim());
+      }
+
       setVolunteerLanguage(volForm.preferredLanguage);
       setActiveRole('volunteer');
       setVolunteerScreen('dashboard');
@@ -146,21 +170,21 @@ export const LoginPage: React.FC = () => {
   return (
     <Div 
       id="unified-login-page" 
-      className="w-full max-w-xl bg-white rounded-3xl border-4 border-[#1A2B4C] shadow-[8px_8px_0px_#1A2B4C] p-5 sm:p-7 text-[#1A2B4C] animate-in fade-in duration-200"
+      className="w-full max-w-xl bg-white rounded-3xl border-4 border-[#1A2B4C] shadow-[8px_8px_0px_#1A2B4C] p-5 sm:p-7 text-[#1A2B4C]"
     >
       {/* Header */}
       <Div className="flex items-center gap-3.5 pb-4 border-b-2 border-[#1A2B4C]/20">
         <Div className={`w-12 h-12 rounded-2xl border-2 border-[#1A2B4C] flex items-center justify-center shadow-[3px_3px_0px_#1A2B4C] ${
-          selectedRole === 'elder' ? 'bg-[#FFB84D] text-[#1A2B4C]' : 'bg-[#4CAF50] text-white'
+          selectedRole === 'elder' ? 'bg-[#FFB84D]' : 'bg-[#4CAF50]'
         }`}>
           {selectedRole === 'elder' ? (
-            <User className="w-6 h-6 stroke-[2.5]" />
+            <User color="#1A2B4C" size={24} />
           ) : (
-            <HeartHandshake className="w-6 h-6 stroke-[2.5]" />
+            <HeartHandshake color="#ffffff" size={24} />
           )}
         </Div>
         <Div>
-          <H2 className="text-xl sm:text-2xl font-black uppercase tracking-tight leading-none">
+          <H2 className="text-xl sm:text-2xl font-black uppercase tracking-tight leading-none text-[#1A2B4C]">
             WellCheck Login & Account
           </H2>
           <P className="text-xs font-bold text-[#1A2B4C]/70 mt-1">
@@ -181,14 +205,17 @@ export const LoginPage: React.FC = () => {
             id="login-role-elder-btn"
             type="button"
             onClick={() => handleRoleSelect('elder')}
+            onPress={() => handleRoleSelect('elder')}
             className={`py-3 px-3 rounded-xl font-black text-xs sm:text-sm uppercase flex items-center justify-center gap-2 transition cursor-pointer border-2 ${
               selectedRole === 'elder'
                 ? 'bg-[#1A2B4C] text-white border-[#1A2B4C] shadow-[2px_2px_0px_#FFB84D]'
                 : 'bg-white text-[#1A2B4C] border-transparent hover:border-[#1A2B4C]/30'
             }`}
           >
-            <User className={`w-4 h-4 ${selectedRole === 'elder' ? 'text-[#FFB84D]' : 'text-[#1A2B4C]'}`} />
-            <Span>Elder / Senior</Span>
+            <User color={selectedRole === 'elder' ? '#FFB84D' : '#1A2B4C'} size={18} />
+            <Span className={selectedRole === 'elder' ? 'text-white font-black' : 'text-[#1A2B4C] font-black'}>
+              Elder / Senior
+            </Span>
           </Button>
 
           {/* Volunteer Option */}
@@ -196,24 +223,34 @@ export const LoginPage: React.FC = () => {
             id="login-role-volunteer-btn"
             type="button"
             onClick={() => handleRoleSelect('volunteer')}
+            onPress={() => handleRoleSelect('volunteer')}
             className={`py-3 px-3 rounded-xl font-black text-xs sm:text-sm uppercase flex items-center justify-center gap-2 transition cursor-pointer border-2 ${
               selectedRole === 'volunteer'
                 ? 'bg-[#1A2B4C] text-white border-[#1A2B4C] shadow-[2px_2px_0px_#4CAF50]'
                 : 'bg-white text-[#1A2B4C] border-transparent hover:border-[#1A2B4C]/30'
             }`}
           >
-            <HeartHandshake className={`w-4 h-4 ${selectedRole === 'volunteer' ? 'text-[#4CAF50]' : 'text-[#1A2B4C]'}`} />
-            <Span>Volunteer / Caregiver</Span>
+            <HeartHandshake color={selectedRole === 'volunteer' ? '#4CAF50' : '#1A2B4C'} size={18} />
+            <Span className={selectedRole === 'volunteer' ? 'text-white font-black' : 'text-[#1A2B4C] font-black'}>
+              Volunteer / Caregiver
+            </Span>
           </Button>
 
         </Div>
       </Div>
 
+      {/* Error Message */}
+      {errorMessage && (
+        <Div className="mt-3 p-3 bg-red-50 border-2 border-red-500 rounded-2xl flex items-center gap-2 text-xs font-black text-red-700">
+          <Span>⚠️ {errorMessage}</Span>
+        </Div>
+      )}
+
       {/* Success Notification Banner */}
       {savedSuccess && (
-        <Div className="mt-4 p-3 bg-emerald-50 border-2 border-emerald-600 rounded-2xl flex items-center gap-2 text-xs font-black text-emerald-800 animate-in fade-in duration-200">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-          <Span>{savedSuccess}</Span>
+        <Div className="mt-3 p-3 bg-emerald-50 border-2 border-emerald-600 rounded-2xl flex items-center gap-2 text-xs font-black text-emerald-800">
+          <CheckCircle2 color="#059669" size={20} />
+          <Span className="text-emerald-800 font-black">{savedSuccess}</Span>
         </Div>
       )}
 
@@ -224,13 +261,13 @@ export const LoginPage: React.FC = () => {
         {/* ELDER SPECIFIC FIELDS */}
         {/* ========================================================================= */}
         {selectedRole === 'elder' && (
-          <Div className="flex flex-col gap-3.5 animate-in fade-in duration-150">
+          <Div className="flex flex-col gap-3.5">
             
             {/* Senior Name & Age */}
             <Div className="flex flex-col gap-3">
               <Div>
                 <Label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-[#FF6B4A]" />
+                  <User color="#FF6B4A" size={14} />
                   <Span>Senior Full Name *</Span>
                 </Label>
                 <Input
@@ -238,7 +275,7 @@ export const LoginPage: React.FC = () => {
                   type="text"
                   required
                   value={elderForm.name}
-                  onChange={(e) => setElderForm({ ...elderForm, name: e.target.value })}
+                  onChange={(e: any) => setElderForm({ ...elderForm, name: e.target.value })}
                   placeholder="e.g. Eleanor Vance"
                   className="w-full text-sm font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
                 />
@@ -252,7 +289,7 @@ export const LoginPage: React.FC = () => {
                   id="elder-age-input"
                   type="number"
                   value={elderForm.age}
-                  onChange={(e) => setElderForm({ ...elderForm, age: Number(e.target.value) })}
+                  onChange={(e: any) => setElderForm({ ...elderForm, age: Number(e.target.value) })}
                   className="w-full text-sm font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
                 />
               </Div>
@@ -262,28 +299,32 @@ export const LoginPage: React.FC = () => {
             <Div className="flex flex-col gap-3">
               <Div>
                 <Label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5 text-[#4CAF50]" />
+                  <Phone color="#4CAF50" size={14} />
                   <Span>Senior Phone Number *</Span>
                 </Label>
                 <Div className="flex gap-1.5">
-                  <select
+                  <Select
                     id="elder-country-code-select"
                     value={elderForm.countryCode}
-                    onChange={(e) => setElderForm({ ...elderForm, countryCode: e.target.value })}
-                    className="text-xs font-black px-2 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none shrink-0"
+                    onChange={(e: any) => setElderForm({ ...elderForm, countryCode: e.target.value })}
+                    className="text-xs font-black bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] shrink-0"
                   >
                     {COUNTRY_CODES.map((c) => (
-                      <option key={c.code} value={c.code}>
-                        {c.flag} {c.code}
-                      </option>
+                      <Option 
+                        key={c.code} 
+                        value={c.code} 
+                        label={`${c.flag} ${c.code} (${c.country})`}
+                      >
+                        {c.flag} {c.code} ({c.country})
+                      </Option>
                     ))}
-                  </select>
+                  </Select>
                   <Input
                     id="elder-phone-input"
                     type="tel"
                     required
                     value={elderForm.phoneNumber}
-                    onChange={(e) => setElderForm({ ...elderForm, phoneNumber: e.target.value })}
+                    onChange={(e: any) => setElderForm({ ...elderForm, phoneNumber: e.target.value })}
                     placeholder="9845012345"
                     className="flex-1 text-sm font-bold px-3 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
                   />
@@ -292,8 +333,8 @@ export const LoginPage: React.FC = () => {
 
               <Div>
                 <Label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5 text-[#1A2B4C]" />
-                  <Span>Device PIN *</Span>
+                  <Lock color="#1A2B4C" size={14} />
+                  <Span>Device Pairing PIN (6 Digits) *</Span>
                 </Label>
                 <Input
                   id="elder-pin-input"
@@ -301,9 +342,9 @@ export const LoginPage: React.FC = () => {
                   required
                   maxLength={6}
                   value={elderForm.pinCode}
-                  onChange={(e) => setElderForm({ ...elderForm, pinCode: e.target.value })}
-                  placeholder="7492"
-                  className="w-full text-sm font-mono font-black px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] tracking-widest focus:outline-none focus:bg-white transition"
+                  onChange={(e: any) => setElderForm({ ...elderForm, pinCode: e.target.value.replace(/\D/g, '') })}
+                  placeholder="749281"
+                  className="w-full text-center font-mono font-black text-2xl tracking-[0.25em] px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
                 />
               </Div>
             </Div>
@@ -311,14 +352,14 @@ export const LoginPage: React.FC = () => {
             {/* Home Address */}
             <Div>
               <Label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-[#FF6B4A]" />
+                <MapPin color="#FF6B4A" size={14} />
                 <Span>Home / Flat Address</Span>
               </Label>
               <Input
                 id="elder-address-input"
                 type="text"
                 value={elderForm.address}
-                onChange={(e) => setElderForm({ ...elderForm, address: e.target.value })}
+                onChange={(e: any) => setElderForm({ ...elderForm, address: e.target.value })}
                 placeholder="Apartment 4B, Maple Green Lane"
                 className="w-full text-sm font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
               />
@@ -328,14 +369,14 @@ export const LoginPage: React.FC = () => {
             <Div className="flex flex-col gap-3">
               <Div>
                 <Label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <Heart className="w-3.5 h-3.5 text-red-500" />
+                  <Heart color="#EF4444" size={14} />
                   <Span>Emergency Contact Name</Span>
                 </Label>
                 <Input
                   id="elder-emergency-name-input"
                   type="text"
                   value={elderForm.emergencyContactName}
-                  onChange={(e) => setElderForm({ ...elderForm, emergencyContactName: e.target.value })}
+                  onChange={(e: any) => setElderForm({ ...elderForm, emergencyContactName: e.target.value })}
                   placeholder="Sarah Chen (Daughter)"
                   className="w-full text-sm font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
                 />
@@ -343,14 +384,14 @@ export const LoginPage: React.FC = () => {
 
               <Div>
                 <Label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5 text-red-500" />
+                  <Phone color="#EF4444" size={14} />
                   <Span>Emergency Phone</Span>
                 </Label>
                 <Input
                   id="elder-emergency-phone-input"
                   type="tel"
                   value={elderForm.emergencyContactPhone}
-                  onChange={(e) => setElderForm({ ...elderForm, emergencyContactPhone: e.target.value })}
+                  onChange={(e: any) => setElderForm({ ...elderForm, emergencyContactPhone: e.target.value })}
                   placeholder="+91 98450 67890"
                   className="w-full text-sm font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
                 />
@@ -360,21 +401,25 @@ export const LoginPage: React.FC = () => {
             {/* Language Preference */}
             <Div>
               <Label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                <Globe className="w-3.5 h-3.5 text-[#4CAF50]" />
+                <Globe color="#4CAF50" size={14} />
                 <Span>Voice Guidance & Subtitle Language</Span>
               </Label>
-              <select
+              <Select
                 id="elder-language-select"
                 value={elderForm.preferredLanguage}
-                onChange={(e) => setElderForm({ ...elderForm, preferredLanguage: e.target.value as SupportedLanguage })}
-                className="w-full text-xs font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none"
+                onChange={(e: any) => setElderForm({ ...elderForm, preferredLanguage: e.target.value as SupportedLanguage })}
+                className="w-full text-xs font-bold bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C]"
               >
                 {SUPPORTED_LANGUAGES.map((lang) => (
-                  <option key={lang.code} value={lang.code}>
+                  <Option 
+                    key={lang.code} 
+                    value={lang.code}
+                    label={`${lang.flag} ${lang.nativeLabel} (${lang.label}) • ${lang.region}`}
+                  >
                     {lang.flag} {lang.nativeLabel} ({lang.label}) • {lang.region}
-                  </option>
+                  </Option>
                 ))}
-              </select>
+              </Select>
             </Div>
           </Div>
         )}
@@ -383,13 +428,13 @@ export const LoginPage: React.FC = () => {
         {/* VOLUNTEER SPECIFIC FIELDS */}
         {/* ========================================================================= */}
         {selectedRole === 'volunteer' && (
-          <Div className="flex flex-col gap-3.5 animate-in fade-in duration-150">
+          <Div className="flex flex-col gap-3.5">
             
             {/* Caregiver Name & Role */}
             <Div className="flex flex-col gap-3">
               <Div>
                 <Label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-[#4CAF50]" />
+                  <User color="#4CAF50" size={14} />
                   <Span>Caregiver Name *</Span>
                 </Label>
                 <Input
@@ -397,7 +442,7 @@ export const LoginPage: React.FC = () => {
                   type="text"
                   required
                   value={volForm.name}
-                  onChange={(e) => setVolForm({ ...volForm, name: e.target.value })}
+                  onChange={(e: any) => setVolForm({ ...volForm, name: e.target.value })}
                   placeholder="e.g. Sarah Chen"
                   className="w-full text-sm font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
                 />
@@ -405,7 +450,7 @@ export const LoginPage: React.FC = () => {
 
               <Div>
                 <Label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#FFB84D]" />
+                  <ShieldCheck color="#FFB84D" size={14} />
                   <Span>Relationship / Role *</Span>
                 </Label>
                 <Input
@@ -413,8 +458,8 @@ export const LoginPage: React.FC = () => {
                   type="text"
                   required
                   value={volForm.relationship}
-                  onChange={(e) => setVolForm({ ...volForm, relationship: e.target.value })}
-                  placeholder="e.g. Daughter / Nurse"
+                  onChange={(e: any) => setVolForm({ ...volForm, relationship: e.target.value })}
+                  placeholder="e.g. Daughter / Nurse / Social Worker"
                   className="w-full text-sm font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
                 />
               </Div>
@@ -424,28 +469,32 @@ export const LoginPage: React.FC = () => {
             <Div className="flex flex-col gap-3">
               <Div>
                 <Label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5 text-[#4CAF50]" />
+                  <Phone color="#4CAF50" size={14} />
                   <Span>Caregiver Mobile Phone *</Span>
                 </Label>
                 <Div className="flex gap-1.5">
-                  <select
+                  <Select
                     id="vol-country-code-select"
                     value={volForm.countryCode}
-                    onChange={(e) => setVolForm({ ...volForm, countryCode: e.target.value })}
-                    className="text-xs font-black px-2 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none shrink-0"
+                    onChange={(e: any) => setVolForm({ ...volForm, countryCode: e.target.value })}
+                    className="text-xs font-black bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] shrink-0"
                   >
                     {COUNTRY_CODES.map((c) => (
-                      <option key={c.code} value={c.code}>
-                        {c.flag} {c.code}
-                      </option>
+                      <Option 
+                        key={c.code} 
+                        value={c.code}
+                        label={`${c.flag} ${c.code} (${c.country})`}
+                      >
+                        {c.flag} {c.code} ({c.country})
+                      </Option>
                     ))}
-                  </select>
+                  </Select>
                   <Input
                     id="vol-phone-input"
                     type="tel"
                     required
                     value={volForm.phoneNumber}
-                    onChange={(e) => setVolForm({ ...volForm, phoneNumber: e.target.value })}
+                    onChange={(e: any) => setVolForm({ ...volForm, phoneNumber: e.target.value })}
                     placeholder="9845067890"
                     className="flex-1 text-sm font-bold px-3 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
                   />
@@ -454,8 +503,8 @@ export const LoginPage: React.FC = () => {
 
               <Div>
                 <Label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5 text-[#1A2B4C]" />
-                  <Span>Linked Elder PIN *</Span>
+                  <Lock color="#1A2B4C" size={14} />
+                  <Span>Linked Elder PIN (6 Digits) *</Span>
                 </Label>
                 <Input
                   id="vol-pin-input"
@@ -463,9 +512,9 @@ export const LoginPage: React.FC = () => {
                   required
                   maxLength={6}
                   value={volForm.pinCode}
-                  onChange={(e) => setVolForm({ ...volForm, pinCode: e.target.value })}
-                  placeholder="7492"
-                  className="w-full text-sm font-mono font-black px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] tracking-widest focus:outline-none focus:bg-white transition"
+                  onChange={(e: any) => setVolForm({ ...volForm, pinCode: e.target.value.replace(/\D/g, '') })}
+                  placeholder="749281"
+                  className="w-full text-center font-mono font-black text-2xl tracking-[0.25em] px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
                 />
               </Div>
             </Div>
@@ -474,14 +523,14 @@ export const LoginPage: React.FC = () => {
             <Div className="flex flex-col gap-3">
               <Div>
                 <Label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <Mail className="w-3.5 h-3.5 text-[#1A2B4C]" />
+                  <Mail color="#1A2B4C" size={14} />
                   <Span>Email Address</Span>
                 </Label>
                 <Input
                   id="vol-email-input"
                   type="email"
                   value={volForm.email}
-                  onChange={(e) => setVolForm({ ...volForm, email: e.target.value })}
+                  onChange={(e: any) => setVolForm({ ...volForm, email: e.target.value })}
                   placeholder="sarah.chen@caregiver.org"
                   className="w-full text-sm font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
                 />
@@ -489,15 +538,15 @@ export const LoginPage: React.FC = () => {
 
               <Div>
                 <Label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-[#FF6B4A]" />
-                  <Span>Organization</Span>
+                  <Building2 color="#FF6B4A" size={14} />
+                  <Span>Organization / Community</Span>
                 </Label>
                 <Input
                   id="vol-org-input"
                   type="text"
                   value={volForm.organization}
-                  onChange={(e) => setVolForm({ ...volForm, organization: e.target.value })}
-                  placeholder="Family Care / Agency"
+                  onChange={(e: any) => setVolForm({ ...volForm, organization: e.target.value })}
+                  placeholder="Family Care / Community Center"
                   className="w-full text-sm font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white transition"
                 />
               </Div>
@@ -506,79 +555,47 @@ export const LoginPage: React.FC = () => {
             {/* Caregiver Portal Language */}
             <Div>
               <Label className="block text-xs font-black uppercase tracking-wider text-[#1A2B4C] mb-1 flex items-center gap-1.5">
-                <Globe className="w-3.5 h-3.5 text-[#4CAF50]" />
+                <Globe color="#4CAF50" size={14} />
                 <Span>Dashboard Language</Span>
               </Label>
-              <select
+              <Select
                 id="vol-language-select"
                 value={volForm.preferredLanguage}
-                onChange={(e) => setVolForm({ ...volForm, preferredLanguage: e.target.value as SupportedLanguage })}
-                className="w-full text-xs font-bold px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none"
+                onChange={(e: any) => setVolForm({ ...volForm, preferredLanguage: e.target.value as SupportedLanguage })}
+                className="w-full text-xs font-bold bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C]"
               >
                 {SUPPORTED_LANGUAGES.map((lang) => (
-                  <option key={lang.code} value={lang.code}>
+                  <Option 
+                    key={lang.code} 
+                    value={lang.code}
+                    label={`${lang.flag} ${lang.nativeLabel} (${lang.label}) • ${lang.region}`}
+                  >
                     {lang.flag} {lang.nativeLabel} ({lang.label}) • {lang.region}
-                  </option>
+                  </Option>
                 ))}
-              </select>
+              </Select>
             </Div>
-
-            {/* Alert Subscriptions */}
-            <Div className="bg-[#FAF7F2] p-3 rounded-2xl border-2 border-[#1A2B4C]/30 flex flex-col gap-2">
-              <Span className="text-[11px] font-black uppercase tracking-wider text-[#1A2B4C] flex items-center gap-1.5">
-                <Bell className="w-3.5 h-3.5 text-[#FF6B4A]" />
-                <Span>Real-Time Alert Subscriptions</Span>
-              </Span>
-              <Div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs font-bold text-[#1A2B4C]">
-                <Label className="flex items-center gap-1.5 cursor-pointer">
-                  <Input 
-                    type="checkbox" 
-                    checked={volForm.notifySos} 
-                    onChange={(e) => setVolForm({ ...volForm, notifySos: e.target.checked })}
-                    className="w-4 h-4 accent-[#FF6B4A] rounded"
-                  />
-                  <Span>🚨 SOS Siren</Span>
-                </Label>
-                <Label className="flex items-center gap-1.5 cursor-pointer">
-                  <Input 
-                    type="checkbox" 
-                    checked={volForm.notifyMissedMeds} 
-                    onChange={(e) => setVolForm({ ...volForm, notifyMissedMeds: e.target.checked })}
-                    className="w-4 h-4 accent-[#4CAF50] rounded"
-                  />
-                  <Span>💊 Missed Meds</Span>
-                </Label>
-                <Label className="flex items-center gap-1.5 cursor-pointer">
-                  <Input 
-                    type="checkbox" 
-                    checked={volForm.notifyDailyReport} 
-                    onChange={(e) => setVolForm({ ...volForm, notifyDailyReport: e.target.checked })}
-                    className="w-4 h-4 accent-[#1A2B4C] rounded"
-                  />
-                  <Span>📊 Daily Report</Span>
-                </Label>
-              </Div>
-            </Div>
-
           </Div>
         )}
 
         {/* Submit Button */}
-        <Div className="mt-2">
+        <Div className="mt-4">
           <Button
             id="login-submit-btn"
-            type="submit"
-            className={`w-full min-h-[50px] text-white font-black text-sm uppercase tracking-wider rounded-2xl border-2 border-[#1A2B4C] shadow-[4px_4px_0px_#1A2B4C] flex items-center justify-center gap-2 active:scale-95 transition cursor-pointer ${
+            type="button"
+            onClick={handleSubmit}
+            onPress={handleSubmit}
+            className={`w-full min-h-[52px] text-white font-black text-sm uppercase tracking-wider rounded-2xl border-2 border-[#1A2B4C] shadow-[4px_4px_0px_#1A2B4C] flex items-center justify-center gap-2 active:scale-95 transition cursor-pointer ${
               selectedRole === 'elder' 
-                ? 'bg-[#1A2B4C] hover:bg-black' 
-                : 'bg-[#4CAF50] hover:bg-[#43a047]'
+                ? 'bg-[#1A2B4C]' 
+                : 'bg-[#4CAF50]'
             }`}
           >
-            <CheckCircle2 className="w-5 h-5 text-white stroke-[2.5]" />
-            <Span>
+            <CheckCircle2 color="#ffffff" size={20} />
+            <Span className="text-white font-black">
               {selectedRole === 'elder' ? 'Log In as Elder Senior' : 'Log In as Volunteer Caregiver'}
             </Span>
-            <ArrowRight className="w-4 h-4 ml-1 text-white" />
+            <ArrowRight color="#ffffff" size={16} />
           </Button>
         </Div>
 
@@ -586,7 +603,7 @@ export const LoginPage: React.FC = () => {
 
       {/* Footer Info */}
       <Div className="mt-5 pt-3 border-t-2 border-[#1A2B4C]/10 flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold text-[#1A2B4C]/60">
-        <Span>Device Sync PIN: <strong className="font-mono text-[#1A2B4C]">{pairData.pinCode}</strong></Span>
+        <Span>Device Sync PIN: <Strong className="font-mono text-[#1A2B4C]">{pairData.pinCode || '749281'}</Strong></Span>
         <Span>Secure Local & Firestore Sync</Span>
       </Div>
 

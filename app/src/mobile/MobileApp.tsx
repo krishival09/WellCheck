@@ -1,4 +1,4 @@
-import { Div, Span, P, H1, H2, H3, H4, H5, H6, Label, Button, Img, Input, Main, Header, Footer, Section, Nav, Aside, Ul, Li, Form } from '../rn-compat';
+import { Div, Span, P, H1, H2, H3, H4, H5, H6, Label, Button, Img, Input, Main, Header, Footer, Section, Nav, Aside, Ul, Li, Form, useSafeAreaInsets } from '../rn-compat';
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { ElderHome } from './elder/ElderHome';
@@ -13,15 +13,16 @@ import { LoadingState } from './components/LoadingState';
 import { EmptyState } from './components/EmptyState';
 import { CallModal } from './components/CallModal';
 import { TtsSubtitleBanner } from './components/TtsSubtitleBanner';
-import { Smartphone, HeartHandshake } from 'lucide-react';
+import { Smartphone, HeartHandshake } from 'lucide-react-native';
 
 /**
  * MobileApp — Pure Mobile Container
  * 
  * Renders the pure mobile application edge-to-edge for native mobile devices (iOS / Android)
- * without any preview simulator bezels or desktop web preview toolbars.
+ * with hardware safe area insets to prevent overlap with status bar and 3-button navigation.
  */
 export const MobileApp: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const { 
     currentUser, 
     activeRole, 
@@ -40,8 +41,16 @@ export const MobileApp: React.FC = () => {
   // If not logged in yet, render the Mobile First-Time Login / Onboarding screen
   if (!currentUser.isLoggedIn) {
     return (
-      <Div className="w-full h-full min-h-screen bg-[#FAF7F2] flex flex-col">
-        <LoginPage />
+      <Div 
+        className="w-full flex-1 bg-[#FAF7F2] flex flex-col overflow-y-auto"
+        style={{
+          paddingTop: Math.max(insets.top, 0),
+          paddingBottom: Math.max(insets.bottom, 0),
+        }}
+      >
+        <Div className="p-3 sm:p-5 flex flex-col items-center justify-start w-full">
+          <LoginPage />
+        </Div>
         <TtsSubtitleBanner />
       </Div>
     );
@@ -157,7 +166,13 @@ export const MobileApp: React.FC = () => {
   };
 
   return (
-    <Div className="w-full h-full min-h-screen bg-[#FAF7F2] flex flex-col overflow-hidden select-none">
+    <Div 
+      className="w-full h-full flex-1 bg-[#FAF7F2] flex flex-col overflow-hidden select-none"
+      style={{
+        paddingTop: Math.max(insets.top, 0),
+        paddingBottom: Math.max(insets.bottom, 0),
+      }}
+    >
       {activeRole === 'elder' ? renderElderMobile() : renderVolunteerMobile()}
       
       {/* Universal In-App Call Overlay */}

@@ -14,7 +14,7 @@ import {
   ExternalLink,
   MessageSquare,
   X
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { TRANSLATIONS } from '../../utils/speech';
 import { soundFx } from '../../utils/audio';
 

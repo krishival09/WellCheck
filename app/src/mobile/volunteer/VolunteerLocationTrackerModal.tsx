@@ -1,5 +1,6 @@
 import { Div, Span, P, H1, H2, H3, H4, H5, H6, Label, Button, Img, Input, Main, Header, Footer, Section, Nav, Aside, Ul, Li, Form } from '../../rn-compat';
 import React, { useState } from 'react';
+import { Linking } from 'react-native';
 import { 
   X, 
   MapPin, 
@@ -16,7 +17,7 @@ import {
   Sparkles,
   Layers,
   Phone
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
 import { soundFx } from '../../utils/audio';
 import { GoogleMapView } from '../components/GoogleMapView';
@@ -58,7 +59,7 @@ export const VolunteerLocationTrackerModal: React.FC<VolunteerLocationTrackerMod
   const handleOpenGoogleMaps = () => {
     soundFx.playTap();
     const url = `https://www.google.com/maps/search/?api=1&query=${elderLocation.latitude},${elderLocation.longitude}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    Linking.openURL(url);
   };
 
   const isHome = elderLocation.safeZoneStatus === 'inside_home';
@@ -68,7 +69,7 @@ export const VolunteerLocationTrackerModal: React.FC<VolunteerLocationTrackerMod
     <Div 
       id="volunteer-location-tracker-modal"
       className="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs flex items-center justify-center p-3.5 animate-in fade-in"
-      onClick={(e) => {
+      onClick={(e: any) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
@@ -78,7 +79,7 @@ export const VolunteerLocationTrackerModal: React.FC<VolunteerLocationTrackerMod
         <Div className="p-4 bg-white dark:bg-slate-800 border-b-2 border-[#1A2B4C] dark:border-slate-700 flex items-center justify-between gap-2">
           <Div className="flex items-center gap-3 min-w-0">
             <Div className="w-10 h-10 rounded-2xl bg-[#1A2B4C] text-white flex items-center justify-center font-black shadow-[2px_2px_0px_#1A2B4C] shrink-0">
-              <Compass className="w-5 h-5 text-[#4CAF50] animate-spin" style={{ animationDuration: '12s' }} />
+              <Compass className="w-5 h-5 text-[#4CAF50] animate-spin" />
             </Div>
             <Div className="min-w-0">
               <Div className="flex items-center gap-2">

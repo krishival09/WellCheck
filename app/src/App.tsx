@@ -1,18 +1,21 @@
 import React from 'react';
-import { SafeAreaView, View, StyleSheet, StatusBar, Platform } from 'react-native';
+import { View, StyleSheet, StatusBar, Platform } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppProvider } from './context/AppContext';
 import { MobileApp } from './mobile/MobileApp';
 
 export default function App() {
   return (
-    <AppProvider>
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="#FAF7F2" />
-        <View style={styles.container}>
-          <MobileApp />
+    <SafeAreaProvider>
+      <AppProvider>
+        <View style={styles.safeArea}>
+          <StatusBar barStyle="dark-content" backgroundColor="#FAF7F2" translucent={false} />
+          <View style={styles.container}>
+            <MobileApp />
+          </View>
         </View>
-      </SafeAreaView>
-    </AppProvider>
+      </AppProvider>
+    </SafeAreaProvider>
   );
 }
 

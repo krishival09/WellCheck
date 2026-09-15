@@ -11,7 +11,7 @@ import {
   Sparkles,
   Upload,
   Image as ImageIcon
-} from 'lucide-react';
+} from 'lucide-react-native';
 import { useApp } from '../../context/AppContext';
 import { PRESET_MEDICINE_PHOTOS } from '../components/MedicinePhotoUploaderModal';
 import { soundFx } from '../../utils/audio';
@@ -69,20 +69,10 @@ export const ElderAddMedicineModal: React.FC<ElderAddMedicineModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const handleFileUpload = (_e: any) => {
+    // File upload not supported in native app mode.
+    // Use the preset pill photos below instead.
     soundFx.playTap();
-    const reader = new FileReader();
-    reader.onload = (uploadEvent) => {
-      const dataUrl = uploadEvent.target?.result as string;
-      if (dataUrl) {
-        setCustomPhotoUpload(dataUrl);
-        setSelectedPhoto(dataUrl);
-      }
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleReadFormAloud = () => {
@@ -117,7 +107,7 @@ export const ElderAddMedicineModal: React.FC<ElderAddMedicineModalProps> = ({
     <Div 
       id="elder-add-medicine-modal"
       className="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
-      onClick={(e) => {
+      onClick={(e: any) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
@@ -173,7 +163,7 @@ export const ElderAddMedicineModal: React.FC<ElderAddMedicineModalProps> = ({
               type="text"
               required
               value={medicineName}
-              onChange={(e) => setMedicineName(e.target.value)}
+              onChange={(e: any) => setMedicineName(e.target?.value ?? e)}
               placeholder="Type name (e.g. Blood Pressure Pill)"
               className="w-full text-sm font-black px-3.5 py-2.5 bg-[#FAF7F2] rounded-xl border-2 border-[#1A2B4C] focus:outline-none focus:bg-white text-[#1A2B4C]"
             />
@@ -236,7 +226,7 @@ export const ElderAddMedicineModal: React.FC<ElderAddMedicineModalProps> = ({
               <Input
                 type="text"
                 value={scheduledTime}
-                onChange={(e) => setScheduledTime(e.target.value)}
+                onChange={(e: any) => setScheduledTime(e.target?.value ?? e)}
                 placeholder="e.g. 02:30 PM"
                 className="text-xs font-bold px-2 py-1 bg-[#FAF7F2] rounded-lg border border-[#1A2B4C] w-28 text-center"
               />
@@ -252,7 +242,7 @@ export const ElderAddMedicineModal: React.FC<ElderAddMedicineModalProps> = ({
               <Input
                 type="text"
                 value={dosage}
-                onChange={(e) => setDosage(e.target.value)}
+                onChange={(e: any) => setDosage(e.target?.value ?? e)}
                 placeholder="e.g. 1 Tablet with water"
                 className="w-full text-xs font-bold px-3 py-2 bg-[#FAF7F2] rounded-xl border border-[#1A2B4C]"
               />
@@ -284,7 +274,7 @@ export const ElderAddMedicineModal: React.FC<ElderAddMedicineModalProps> = ({
               <Input
                 type="text"
                 value={instructions}
-                onChange={(e) => setInstructions(e.target.value)}
+                onChange={(e: any) => setInstructions(e.target?.value ?? e)}
                 placeholder="e.g. Take after food with warm water"
                 className="w-full text-xs font-bold px-3 py-2 bg-[#FAF7F2] rounded-xl border border-[#1A2B4C]"
               />
