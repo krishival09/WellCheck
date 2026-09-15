@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.1] - 2026-09-15
+
+### 🐛 Android Stability & Layout Fixes
+* **Safe-area support**: Added `react-native-safe-area-context` at the app root and applies dynamic top and bottom insets in `MobileApp.tsx`. Content no longer sits beneath Android status or three-button navigation bars.
+* **Elder dashboard tuning**: Reduced oversized card heights, removed forced bottom alignment, and added scroll clearance so the SOS, medicine, check-in, and contact controls remain reachable on smaller Android screens.
+* **Native-compatible mobile flows**: Replaced browser-only maps, sharing, SMS, confirmation, file-processing, and media patterns with React Native equivalents or safe fallbacks.
+* **Single TTS overlay**: `TtsSubtitleBanner` is mounted once at the mobile root and positioned below the system inset.
+* **Logout confirmation**: Elder and caregiver logout actions now require native confirmation.
+
+### 🔧 Maintenance
+* Standardized current user-facing documentation on Expo SDK 57, React Native 0.86, Android-first runtime support, and six-digit pairing PINs.
+* GitHub Actions builds an Android APK, uploads it as an artifact, and publishes the `v2.0.1` release.
+
+---
+
 ## [2.0.0] - 2026-09-03
 
 ### 🚀 Major Architectural Shift

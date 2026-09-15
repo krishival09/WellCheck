@@ -242,3 +242,18 @@ npx expo start --go --clear
 - Single TtsSubtitleBanner at root level
 - Google Maps deep-links open native Maps app
 - Medicine photos: Preset library + URL input (no camera/file picker until expo-image-picker is added)
+
+---
+
+## Session 6 — Release Documentation Alignment (Sep 15 2026)
+
+**Documentation was brought into line with the Android-first `v2.0.1` implementation.**
+
+| File | Change |
+|------|--------|
+| `README.md` | Documents six-digit pairing, Expo SDK 57 / React Native 0.86, Android Expo Go startup, and the current APK release workflow. |
+| `PROJECT_STATUS.md` | Identifies `v2.0.1` as Android-first and documents safe-area support, native-compatible flows, and current medication-photo limits. |
+| `CHANGELOG.md` | Adds the `v2.0.1` Android stability, safe-area, and logout-confirmation release notes. |
+| `docs/DATA_MODEL.md` | Clarifies that pairing PINs are six digits. |
+| `docs/BUILD_PLAN.md` | Records completed data-layer, integration, and release-workflow milestones. |
+| `app/docs/UI_INTEGRATION_GUIDE.md` | Clarifies the shared Firestore integration boundary. |

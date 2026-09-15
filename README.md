@@ -25,7 +25,7 @@ You can open WellCheck directly in the phone's browser. No downloading, no sign-
    - **Senior / Elder** 👴 — for your elderly family member's phone
    - **Volunteer Caregiver** 🙋 — for your phone
 
-3. That's it. Both phones connect automatically.
+3. On the elder's phone, create or note the **six-digit pairing PIN**. Enter that same PIN on the caregiver's phone to connect the two devices.
 
 ---
 
@@ -64,7 +64,7 @@ For a smoother experience, install it as a proper app:
 2. On **Phone 1 (the senior's phone)**:
    - Open the app link
    - Select **Elder** 👴 → tap **Start Elder Experience**
-   - A 4-digit PIN will appear on screen (e.g. `7492`)
+   - A 6-digit PIN will appear on screen (e.g. `749281`)
 3. On **Phone 2 (your phone)**:
    - Open the same link
    - Select **Volunteer Caregiver** 🙋
@@ -83,10 +83,11 @@ For a smoother experience, install it as a proper app:
 
 | Layer | Technology |
 |---|---|
-| Frontend | React Native Web + Vite + Tailwind CSS v4 |
+| Android app | Expo SDK 57 + React Native 0.86 |
+| Web preview | React Native Web + Vite + Tailwind CSS v4 |
 | Backend | Firebase Firestore (`wellcheck` db, `asia-south1`) |
 | Auth / State | Custom AppContext with localStorage persistence |
-| Native Build | Expo SDK 54 + Gradle (Android) |
+| Native Build | Expo prebuild + Gradle (Android) |
 | CI/CD | GitHub Actions (`.github/workflows/build-apk.yml`) |
 | Maps | Google Maps universal deep links |
 
@@ -124,14 +125,14 @@ cd WellCheck/batch/app
 # Install dependencies
 npm install --legacy-peer-deps
 
-# Run the web version (opens in browser)
+# Run the web preview
 npm run dev
 
-# OR run on Android device via Expo Go
-npx expo start
+# Run the Android app in Expo Go
+npx expo start --go --clear
 ```
 
-> **Web dev server** runs at `http://localhost:3000` (and broadcasts on your local network IP for phone testing)
+> The web preview is useful for development. Android testing should use Expo Go on a physical device; it is the supported mobile runtime.
 
 ### 🔥 Firebase Setup
 
@@ -149,9 +150,9 @@ EXPO_PUBLIC_FIREBASE_APP_ID=your_app_id
 ### 🔧 Building the APK
 
 Every push to `main` automatically triggers a GitHub Actions build that:
-1. Runs `npx expo prebuild`
+1. Runs `npx expo prebuild --platform android --no-install`
 2. Compiles via `./gradlew assembleRelease`
-3. Publishes the APK to GitHub Releases
+3. Uploads the APK artifact and publishes it to GitHub Releases as `v2.0.1`
 
 To trigger manually: go to **Actions → Build Android APK & Publish Release → Run workflow**
 

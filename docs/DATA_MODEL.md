@@ -6,7 +6,7 @@ All code must use these exact collection names and field types.
 
 ### 1. `pairs`
 Holds the PIN-based connection between devices.
-- **Path:** `pairs/{pinCode}` (Document ID is the 4-6 digit PIN)
+- **Path:** `pairs/{pinCode}` (Document ID is a six-digit PIN)
 - **Fields:**
   - `elderId`: string (unique device identifier)
   - `volunteerId`: string | null (volunteer's unique identifier)

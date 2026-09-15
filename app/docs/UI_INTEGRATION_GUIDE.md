@@ -3,10 +3,9 @@
 This guide defines the "API Contract" for the UI AI. You (the UI team) are responsible for building the screens and user experience. You will import all backend functionality from the shared module defined below.
 
 ## 1. Shared Module Location
-All backend operations are available via:
-`/app/src/lib/wellcheck.ts`
+Shared Firestore operations are available via `app/src/lib/wellcheck.ts`. The app context also coordinates the live screen state and Firestore listeners.
 
-**DO NOT** implement your own Firestore logic. Use the functions below to ensure consistency.
+Use the shared functions below for new Firestore operations so collection names and payloads remain consistent.
 
 ---
 

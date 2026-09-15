@@ -1,19 +1,19 @@
 # WellCheck Project Status Report
 
-## Current Version: 2.0.0
-Production-ready **React Native Web** mobile elder care safety companion with real-time Firestore synchronization, multi-elder roster management, check-in schedule matrix with 3-minute escalation, OpenStreetMap/Google Maps telemetry, privacy-first medication manager, and 20+ language TTS voice guidance.
+## Current Version: 2.0.1
+Android-first **Expo / React Native** elder-care safety companion with Firestore synchronization, multi-elder roster management, scheduled check-ins, SOS flows, medication reminders, Google Maps deep links, and multilingual voice guidance. Vite remains available as a web preview only.
 
 ---
 
 ## Status Summary
 
-- [x] **Architecture Modernization (React Native Web)**:
-  - Frontend shifted to `react-native-web` with Tailwind CSS v4 and Vite bundler.
-  - Eliminated manual JSX/StyleSheet conversion corruption.
-  - Pure mobile UI (`src/mobile/`) with standalone mobile entry point ([`MobileApp.tsx`](app/src/mobile/MobileApp.tsx)).
-  - Discarded desktop dual-device simulator frames.
+- [x] **Android-native runtime readiness**:
+  - Expo SDK 57 and React Native 0.86 power the Android experience.
+  - The mobile UI lives in `app/src/mobile/`, rooted at `MobileApp.tsx`.
+  - Safe-area insets protect content from Android status and navigation bars, including three-button navigation.
+  - Mobile screens use React Native-compatible wrappers and APIs; browser-only APIs were removed from mobile flows.
 - [x] **Backend Infrastructure & Firestore Cloud**:
-  - Cloud Firestore database `wellcheck` live in `asia-south1` (`YOUR_FIREBASE_PROJECT_ID`).
+  - Firestore client configuration is supplied with `EXPO_PUBLIC_FIREBASE_*` environment variables.
   - Real-time `onSnapshot` synchronization for PIN pairing, alerts, check-ins, and medications.
   - Security rules deployed and strictly enforced with schema validations.
   - Backend check-in escalation cron service verified with 100% test pass.
@@ -28,13 +28,13 @@ Production-ready **React Native Web** mobile elder care safety companion with re
   - **⏰ Check-In Schedule Matrix**: Configurable daily check-in slots with alarm toggles.
   - **⏳ 3-Minute Timeout Escalation**: 180s live countdown prompt with automatic full-screen takeover modal on caregiver devices upon timeout.
   - **🗺️ Interactive Maps & Telemetry**: OpenStreetMap embed + Google Maps universal deep links with movement simulation presets (Home, Park, Pharmacy).
-  - **📷 Privacy-First Medication Manager**: Photo capture with local device storage (`localPhotoRef`) preserving healthcare privacy.
-  - **🔑 Real-Time PIN Pairing System**: 4-digit PIN generation with live listener across physical devices.
+  - **📷 Privacy-First Medication Manager**: Preset or URL-based photo references are stored as `localPhotoRef`; no device photo-picker or camera integration is currently included.
+  - **🔑 Real-Time PIN Pairing System**: six-digit PIN generation with live listener across physical devices.
   - **🗣️ Multilingual Voice Guidance (TTS)**: 20+ languages supported via Web Speech API with real-time subtitle banner.
   - **🌙 Dark Mode & High-Contrast Theming**: WCAG AA-compliant night theme for low-light caregiver checks.
 - [x] **Production Releases**:
   - Standalone Android APK: [`WellCheck-v1.0.1.apk`](https://github.com/lanofgajanan/WellCheck/releases/tag/v1.0.1).
-  - React Native Web Live Server: `npm run dev` with LAN multi-device access.
+  - Android build workflow: `.github/workflows/build-apk.yml` produces and releases `v2.0.1`.
 
 ---
 
